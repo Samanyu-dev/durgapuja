@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
@@ -7,7 +5,7 @@ import 'material_tracker_screen.dart';
 import '../../widgets/custom_button.dart';
 
 class FinanceHomeScreen extends StatefulWidget {
-  const FinanceHomeScreen({super.key});
+  const FinanceHomeScreen({Key? key}) : super(key: key);
 
   @override
   State<FinanceHomeScreen> createState() => _FinanceHomeScreenState();
@@ -50,10 +48,17 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        // Add padding to bottom to avoid nav bar overlap
+        padding: const EdgeInsets.only(
+          left: AppConstants.defaultPadding,
+          right: AppConstants.defaultPadding,
+          top: AppConstants.defaultPadding,
+          bottom: 120, // ADDED: This gives space above the floating nav
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Record Voice Note Card
             Container(
               padding: const EdgeInsets.all(AppConstants.mediumPadding),
               decoration: BoxDecoration(
@@ -160,6 +165,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
             ),
             const SizedBox(height: AppConstants.largePadding),
 
+            // Financial Summary Cards
             _buildFinancialCard(
               icon: Icons.shopping_cart_outlined,
               label: 'Today\'s Expenses',
@@ -182,6 +188,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
             ),
             const SizedBox(height: AppConstants.largePadding),
 
+            // View Report Button - NOW ACCESSIBLE
             CustomButton(
               label: 'View Report',
               onPressed: () {
