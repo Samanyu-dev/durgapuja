@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../utils/dummy_data.dart';
 import '../../widgets/custom_button.dart';
 
 class SendUpdateScreen extends StatefulWidget {
-  final String clientName;
+  final String clientId;
 
-  const SendUpdateScreen({Key? key, required this.clientName})
+  const SendUpdateScreen({Key? key, required this.clientId})
       : super(key: key);
 
   @override
@@ -17,6 +17,8 @@ class SendUpdateScreen extends StatefulWidget {
 class _SendUpdateScreenState extends State<SendUpdateScreen> {
   final TextEditingController _messageController = TextEditingController();
   bool _isRecording = false;
+
+  String get clientName => DummyData.getClientNameById(widget.clientId);
 
   void _sendMessage() {
     if (_messageController.text.isEmpty) {
@@ -31,7 +33,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Message Sent'),
         content: Text(
-          'Your update has been sent to ${widget.clientName}',
+          'Your update has been sent to $clientName',
         ),
         actions: [
           TextButton(
@@ -55,7 +57,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(widget.clientName),
+        title: Text(clientName),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -166,11 +168,6 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-        },
       ),
     );
   }

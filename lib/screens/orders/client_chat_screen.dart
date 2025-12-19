@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
-import 'send_update_screen.dart';
-import 'record_payment_screen.dart';
-import 'delivery_dates_screen.dart';
+import '../../utils/dummy_data.dart';
 
 class ClientChatScreen extends StatelessWidget {
-  final String clientName;
+  final String clientId;
 
-  const ClientChatScreen({Key? key, required this.clientName}) : super(key: key);
+  const ClientChatScreen({Key? key, required this.clientId}) : super(key: key);
+
+  String get clientName => DummyData.getClientNameById(clientId);
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +77,7 @@ class ClientChatScreen extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SendUpdateScreen(clientName: clientName),
-                            ),
-                          );
+                          context.go('/orders/client/$clientId/send-update');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryBrown,
@@ -94,13 +89,7 @@ class ClientChatScreen extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  RecordPaymentScreen(clientName: clientName),
-                            ),
-                          );
+                          context.go('/orders/client/$clientId/record-payment');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.accentOrange,
@@ -113,13 +102,7 @@ class ClientChatScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            DeliveryDatesScreen(clientName: clientName),
-                      ),
-                    );
+                    context.go('/orders/client/$clientId/delivery-dates');
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primaryBrown,

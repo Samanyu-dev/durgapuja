@@ -13,7 +13,6 @@ class _FineDetailingScreenState extends State<FineDetailingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedExpression = 'Calm';
-  String _selectedEmotion = 'Joy';
   double _joyValue = 50;
   double _serenityValue = 25;
   double _powerValue = 5;

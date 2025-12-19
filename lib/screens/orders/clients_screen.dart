@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import 'client_chat_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({Key? key}) : super(key: key);
@@ -104,15 +104,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   Widget _buildClientCard(Map<String, dynamic> client) {
+    final clientId = (_clients.indexOf(client) + 1).toString();
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ClientChatScreen(clientName: client['name']),
-          ),
-        );
+        context.go('/orders/client/$clientId');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: AppConstants.mediumPadding),

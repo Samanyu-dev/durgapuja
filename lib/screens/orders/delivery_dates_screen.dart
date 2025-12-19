@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../utils/dummy_data.dart';
 import '../../widgets/custom_button.dart';
 
 class DeliveryDatesScreen extends StatefulWidget {
-  final String clientName;
+  final String clientId;
 
-  const DeliveryDatesScreen({Key? key, required this.clientName})
+  const DeliveryDatesScreen({Key? key, required this.clientId})
       : super(key: key);
 
   @override
@@ -19,6 +19,8 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _showCalendar = false;
+
+  String get clientName => DummyData.getClientNameById(widget.clientId);
 
   final List<Map<String, String>> _deliveryOrders = [
     {
@@ -67,7 +69,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(widget.clientName),
+        title: Text(clientName),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -200,11 +202,6 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-        },
       ),
     );
   }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../utils/dummy_data.dart';
 import '../../widgets/custom_button.dart';
 
 class RecordPaymentScreen extends StatefulWidget {
-  final String clientName;
+  final String clientId;
 
-  const RecordPaymentScreen({Key? key, required this.clientName})
+  const RecordPaymentScreen({Key? key, required this.clientId})
       : super(key: key);
 
   @override
@@ -20,6 +20,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
   String? _selectedPaymentMethod;
   bool _isRecording = false;
   DateTime? _selectedDate;
+
+  String get clientName => DummyData.getClientNameById(widget.clientId);
 
   final List<String> _paymentMethods = [
     'Cash',
@@ -78,7 +80,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
             Text('Amount: ₹${_amountController.text}'),
             Text('Date: ${_dateController.text}'),
             Text('Method: $_selectedPaymentMethod'),
-            Text('Client: ${widget.clientName}'),
+            Text('Client: $clientName'),
           ],
         ),
         actions: [
@@ -103,7 +105,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(widget.clientName),
+        title: Text(clientName),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -287,11 +289,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-        },
       ),
     );
   }

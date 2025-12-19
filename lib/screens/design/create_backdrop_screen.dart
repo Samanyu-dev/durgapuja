@@ -7,7 +7,7 @@ import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
 
 class CreateBackdropScreen extends StatefulWidget {
-  const CreateBackdropScreen({Key? key}) : super(key: key);
+  const CreateBackdropScreen({super.key});
 
   @override
   State<CreateBackdropScreen> createState() => _CreateBackdropScreenState();
@@ -35,6 +35,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
     });
 
     Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
       setState(() {
         _generatedBackdrop = _uploadedImage;
         _isGenerating = false;
@@ -159,7 +160,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                       BorderRadius.circular(AppConstants.borderRadius),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -260,7 +261,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                       BorderRadius.circular(AppConstants.borderRadius),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

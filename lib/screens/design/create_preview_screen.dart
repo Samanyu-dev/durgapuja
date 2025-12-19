@@ -14,6 +14,7 @@ class CreatePreviewScreen extends StatefulWidget {
 }
 
 class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
+  // ignore: prefer_final_fields
   List<File> _uploadedImages = [];
   File? _generated360View;
   bool _isGenerating = false;
@@ -176,6 +177,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                           ),
                         ],
                       );
+                    // ignore: unnecessary_to_list_in_spreads
                     }).toList(),
                   ],
                 ),

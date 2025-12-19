@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_bottom_nav.dart';
+import '../../services/krea_ai_service.dart';
+import '../../models/generated_image.dart';
 
 class AIDesignAssistantScreen extends StatefulWidget {
   const AIDesignAssistantScreen({Key? key}) : super(key: key);
@@ -15,9 +17,9 @@ class _AIDesignAssistantScreenState extends State<AIDesignAssistantScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _themeController = TextEditingController();
   late TabController _tabController;
-  final List<String> _generatedImages = [];
+  final List<GeneratedImage> _generatedImages = [];
   bool _isGenerating = false;
-  String _selectedInspiration = 'Scripture';
+  final KreaAIService _kreaService = KreaAIService();
 
   @override
   void initState() {
@@ -25,17 +27,44 @@ class _AIDesignAssistantScreenState extends State<AIDesignAssistantScreen>
     _tabController = TabController(length: 3, vsync: this);
   }
 
-  void _generateIdeas() {
+  Future<void> _generateIdeas() async {
+    if (_themeController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a theme first')),
+      );
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
     });
 
-    Future.delayed(const Duration(seconds: 3), () {
+    try {
+      final prompt = _buildPromptFromTheme(_themeController.text.trim());
+      final images = await _kreaService.generateImages(prompt, count: 4);
+
       setState(() {
-        _generatedImages.addAll(['1', '2', '3', '4', '5', '6']);
+        _generatedImages.addAll(images);
         _isGenerating = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate images: $e')),
+      );
+    }
+  }
+
+  String _buildPromptFromTheme(String theme) {
+    final inspiration = _tabController.index == 0
+        ? 'Scripture'
+        : _tabController.index == 1
+            ? 'Festival'
+            : 'Modern Theme';
+
+    return 'Create a beautiful Durga Puja idol design with theme: $theme, inspiration from: $inspiration. Traditional Bengali style, intricate details, golden ornaments, serene expression.';
   }
 
   @override
@@ -155,26 +184,49 @@ class _AIDesignAssistantScreenState extends State<AIDesignAssistantScreen>
                 ),
                 itemCount: _generatedImages.length,
                 itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.darkBrown,
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/durga_${index + 1}.jpg'),
-                        fit: BoxFit.cover,
-                        onError: (exception, stackTrace) {},
-                      ),
-                    ),
+                  final image = _generatedImages[index];
+                  return GestureDetector(
+                    onTap: () {
+                      // TODO: Navigate to detail view or save image
+                    },
                     child: Container(
                       decoration: BoxDecoration(
+                        color: AppColors.darkBrown,
                         borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.5),
-                          ],
+                        image: DecorationImage(
+                          image: NetworkImage(image.url),
+                          fit: BoxFit.cover,
+                          onError: (exception, stackTrace) {
+                            // Fallback to placeholder if image fails to load
+                          },
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.3),
+                            ],
+                          ),
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Generated Idol Design',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
                       ),
                     ),

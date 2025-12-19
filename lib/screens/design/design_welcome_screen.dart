@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../design/ai_design_assistant_screen.dart';
-import '../design/idol_visualization_screen.dart';
-import '../design/fine_detailing_screen.dart';
-import '../design/create_preview_screen.dart';
-import '../design/create_backdrop_screen.dart';
-import '../design/suggest_lighting_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class DesignWelcomeScreen extends StatefulWidget {
+  const DesignWelcomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<DesignWelcomeScreen> createState() => _DesignWelcomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,80 +36,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.lightbulb_outline,
                   title: 'Idea Generation',
                   subtitle: 'Generate unique idol designs with AI',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AIDesignAssistantScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/idea-generation'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.build_circle_outlined,
                   title: 'Idol Build',
                   subtitle: 'Step-by-step guide to building your idol',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const IdolVisualizationScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/sculpting'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.palette_outlined,
                   title: 'Decoration & Detailing',
                   subtitle: 'Add details and decorations to your idol',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FineDetailingScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/detailing'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.preview_outlined,
                   title: 'Idol Previews',
                   subtitle: 'Showcase your creations',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreatePreviewScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/preview'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.image_outlined,
                   title: 'Generate Backdrop',
                   subtitle: 'Add details and decorations to your idol',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateBackdropScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/backdrop'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.lightbulb_circle_outlined,
                   title: 'Try Lights',
                   subtitle: 'Showcase your creations',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SuggestLightingScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/design/lighting'),
                 ),
               ],
             ),

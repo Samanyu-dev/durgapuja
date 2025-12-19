@@ -13,7 +13,6 @@ class SuggestLightingScreen extends StatefulWidget {
 
 class _SuggestLightingScreenState extends State<SuggestLightingScreen> {
   double _intensityValue = 50;
-  double _shadowValue = 50;
   String _selectedDirection = 'Front';
   String _selectedShadow = 'Medium';
   bool _expandLightingPanel = false;
@@ -318,7 +317,6 @@ class _SuggestLightingScreenState extends State<SuggestLightingScreen> {
                     onPressed: () {
                       setState(() {
                         _intensityValue = 50;
-                        _shadowValue = 50;
                         _selectedDirection = 'Front';
                         _selectedShadow = 'Medium';
                       });

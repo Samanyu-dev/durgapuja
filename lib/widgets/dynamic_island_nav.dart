@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
@@ -5,11 +7,13 @@ import '../utils/constants.dart';
 class DynamicIslandNav extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final VoidCallback? onVoiceTap;
 
   const DynamicIslandNav({
     Key? key,
     required this.currentIndex,
     required this.onTap,
+    this.onVoiceTap,
   }) : super(key: key);
 
   @override
@@ -59,6 +63,7 @@ class DynamicIslandNav extends StatelessWidget {
                   label: 'Design',
                   index: 1,
                 ),
+                _buildVoiceButton(),
                 _buildNavItem(
                   icon: Icons.shopping_bag_outlined,
                   label: 'Orders',
@@ -124,5 +129,39 @@ class DynamicIslandNav extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildVoiceButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBrown,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBrown.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: const Icon(
+          Icons.mic,
+          color: Colors.white,
+          size: 24,
+        ),
+        onPressed: onVoiceTap ?? () => _showVoiceBottomSheet(),
+        padding: const EdgeInsets.all(12),
+        constraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
+      ),
+    );
+  }
+
+  void _showVoiceBottomSheet() {
+    // This will be handled by the parent widget
   }
 }

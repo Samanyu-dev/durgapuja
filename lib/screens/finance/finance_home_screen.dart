@@ -188,7 +188,6 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
             ),
             const SizedBox(height: AppConstants.largePadding),
 
-            // View Report Button - NOW ACCESSIBLE
             CustomButton(
               label: 'View Report',
               onPressed: () {
