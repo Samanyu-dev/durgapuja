@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 class DesignWelcomeScreen extends StatefulWidget {
   const DesignWelcomeScreen({Key? key}) : super(key: key);
@@ -13,10 +14,12 @@ class DesignWelcomeScreen extends StatefulWidget {
 class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: const Text('Welcome, artisan'),
+        title: Text(l10n.welcomeArtisan),
         automaticallyImplyLeading: false,
         elevation: 0,
       ),
@@ -34,38 +37,38 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
               children: [
                 _buildFeatureCard(
                   icon: Icons.lightbulb_outline,
-                  title: 'Idea Generation',
-                  subtitle: 'Generate unique idol designs with AI',
+                  title: l10n.ideaGeneration,
+                  subtitle: l10n.ideaGenerationDesc,
                   onTap: () => context.go('/design/idea-generation'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.build_circle_outlined,
-                  title: 'Idol Build',
-                  subtitle: 'Step-by-step guide to building your idol',
+                  title: l10n.idolBuild,
+                  subtitle: l10n.idolBuildDesc,
                   onTap: () => context.go('/design/sculpting'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.palette_outlined,
-                  title: 'Decoration & Detailing',
-                  subtitle: 'Add details and decorations to your idol',
+                  title: l10n.decorationDetailing,
+                  subtitle: l10n.decorationDetailingDesc,
                   onTap: () => context.go('/design/detailing'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.preview_outlined,
-                  title: 'Idol Previews',
-                  subtitle: 'Showcase your creations',
+                  title: l10n.idolPreviews,
+                  subtitle: l10n.idolPreviewsDesc,
                   onTap: () => context.go('/design/preview'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.image_outlined,
-                  title: 'Generate Backdrop',
-                  subtitle: 'Add details and decorations to your idol',
+                  title: l10n.generateBackdrop,
+                  subtitle: l10n.generateBackdropDesc,
                   onTap: () => context.go('/design/backdrop'),
                 ),
                 _buildFeatureCard(
                   icon: Icons.lightbulb_circle_outlined,
-                  title: 'Try Lights',
-                  subtitle: 'Showcase your creations',
+                  title: l10n.tryLights,
+                  subtitle: l10n.tryLightsDesc,
                   onTap: () => context.go('/design/lighting'),
                 ),
               ],

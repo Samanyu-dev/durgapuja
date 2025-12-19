@@ -7,6 +7,8 @@ class AppScaffold extends StatelessWidget {
   final int currentIndex;
   final Function(int) onNavTap;
   final VoidCallback? onFabTap;
+  final bool showHomeIcon;
+  final bool isDesignModule;
 
   const AppScaffold({
     Key? key,
@@ -14,10 +16,42 @@ class AppScaffold extends StatelessWidget {
     required this.currentIndex,
     required this.onNavTap,
     this.onFabTap,
+    this.showHomeIcon = false,
+    this.isDesignModule = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Define navigation items based on the module
+    List<NavItem> navItems;
+    if (showHomeIcon) {
+      if (isDesignModule) {
+        // Design module: Dashboard, Design, Orders, Reports
+        navItems = [
+          const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+          const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+          const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+          const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+        ];
+      } else {
+        // Finance module: Dashboard, Orders, Reports
+        navItems = [
+          const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+          const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+          const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+        ];
+      }
+    } else {
+      // Default or combined navigation
+      navItems = [
+        const NavItem(icon: Icons.home_outlined, label: 'Home'),
+        const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+        const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+        const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
+        const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+      ];
+    }
+
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: Stack(
@@ -27,6 +61,7 @@ class AppScaffold extends StatelessWidget {
             currentIndex: currentIndex,
             onTap: onNavTap,
             onVoiceTap: onFabTap ?? () => _showVoiceBottomSheet(context),
+            navItems: navItems,
           ),
         ],
       ),

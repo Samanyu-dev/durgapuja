@@ -4,7 +4,6 @@ import 'screens/home/home_dashboard_screen.dart';
 import 'screens/home/module_selection_screen.dart';
 import 'screens/design/design_welcome_screen.dart';
 import 'screens/orders/clients_screen.dart';
-import 'screens/finance/finance_home_screen.dart';
 import 'screens/reports/reports_screen.dart';
 import 'screens/design/ai_design_assistant_screen.dart';
 import 'screens/design/sculpting_assistant_screen.dart';
@@ -25,38 +24,110 @@ final GoRouter router = GoRouter(
       path: '/',
       builder: (context, state) => const ModuleSelectionScreen(),
     ),
+    // Finance Module Routes
     ShellRoute(
       builder: (context, state, child) {
         return AppScaffold(
           body: child,
-          currentIndex: _getCurrentIndex(state.uri.toString()),
+          currentIndex: _getFinanceIndex(state.uri.toString()),
           onNavTap: (index) {
-            final routes = ['/dashboard', '/design', '/orders', '/finance', '/reports'];
+            final routes = ['/finance/dashboard', '/finance/orders', '/finance/reports'];
             if (index >= 0 && index < routes.length) {
               context.go(routes[index]);
             }
           },
+          showHomeIcon: true,
         );
       },
       routes: [
         GoRoute(
-          path: '/dashboard',
+          path: '/finance/dashboard',
+          builder: (context, state) => const HomeDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/finance',
+          redirect: (context, state) => '/finance/dashboard',
+        ),
+        GoRoute(
+          path: '/finance/orders',
+          builder: (context, state) => const ClientsScreen(),
+        ),
+        GoRoute(
+          path: '/finance/reports',
+          builder: (context, state) => const ReportsScreen(),
+        ),
+        // Orders routes for Finance module
+        GoRoute(
+          path: '/finance/orders/client/:id',
+          builder: (context, state) => ClientChatScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/finance/orders/client/:id/details',
+          builder: (context, state) => ClientDetailsScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/finance/orders/add-client',
+          builder: (context, state) => const AddClientScreen(),
+        ),
+        GoRoute(
+          path: '/finance/orders/client/:id/delivery-dates',
+          builder: (context, state) => DeliveryDatesScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/finance/orders/client/:id/send-update',
+          builder: (context, state) => SendUpdateScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/finance/orders/client/:id/record-payment',
+          builder: (context, state) => RecordPaymentScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+      ],
+    ),
+    // Design Module Routes
+    ShellRoute(
+      builder: (context, state, child) {
+        return AppScaffold(
+          body: child,
+          currentIndex: _getDesignIndex(state.uri.toString()),
+          onNavTap: (index) {
+            final routes = ['/design/dashboard', '/design/welcome', '/design/orders', '/design/reports'];
+            if (index >= 0 && index < routes.length) {
+              context.go(routes[index]);
+            }
+          },
+          showHomeIcon: true,
+          isDesignModule: true,
+        );
+      },
+      routes: [
+        GoRoute(
+          path: '/design/dashboard',
           builder: (context, state) => const HomeDashboardScreen(),
         ),
         GoRoute(
           path: '/design',
+          redirect: (context, state) => '/design/welcome',
+        ),
+        GoRoute(
+          path: '/design/welcome',
           builder: (context, state) => const DesignWelcomeScreen(),
         ),
         GoRoute(
-          path: '/orders',
+          path: '/design/orders',
           builder: (context, state) => const ClientsScreen(),
         ),
         GoRoute(
-          path: '/finance',
-          builder: (context, state) => const FinanceHomeScreen(),
-        ),
-        GoRoute(
-          path: '/reports',
+          path: '/design/reports',
           builder: (context, state) => const ReportsScreen(),
         ),
         // Design routes
@@ -84,37 +155,37 @@ final GoRouter router = GoRouter(
           path: '/design/lighting',
           builder: (context, state) => const SuggestLightingScreen(),
         ),
-        // Orders routes
+        // Orders routes for Design module
         GoRoute(
-          path: '/orders/client/:id',
+          path: '/design/orders/client/:id',
           builder: (context, state) => ClientChatScreen(
             clientId: state.pathParameters['id']!,
           ),
         ),
         GoRoute(
-          path: '/orders/client/:id/details',
+          path: '/design/orders/client/:id/details',
           builder: (context, state) => ClientDetailsScreen(
             clientId: state.pathParameters['id']!,
           ),
         ),
         GoRoute(
-          path: '/orders/add-client',
+          path: '/design/orders/add-client',
           builder: (context, state) => const AddClientScreen(),
         ),
         GoRoute(
-          path: '/orders/client/:id/delivery-dates',
+          path: '/design/orders/client/:id/delivery-dates',
           builder: (context, state) => DeliveryDatesScreen(
             clientId: state.pathParameters['id']!,
           ),
         ),
         GoRoute(
-          path: '/orders/client/:id/send-update',
+          path: '/design/orders/client/:id/send-update',
           builder: (context, state) => SendUpdateScreen(
             clientId: state.pathParameters['id']!,
           ),
         ),
         GoRoute(
-          path: '/orders/client/:id/record-payment',
+          path: '/design/orders/client/:id/record-payment',
           builder: (context, state) => RecordPaymentScreen(
             clientId: state.pathParameters['id']!,
           ),
@@ -124,11 +195,28 @@ final GoRouter router = GoRouter(
   ],
 );
 
-int _getCurrentIndex(String path) {
-  if (path == '/dashboard' || path.startsWith('/home')) return 0;
-  if (path.startsWith('/design')) return 1;
-  if (path.startsWith('/orders')) return 2;
-  if (path.startsWith('/finance')) return 3;
-  if (path.startsWith('/reports')) return 4;
-  return 0; // default to home
+int _getFinanceIndex(String path) {
+  if (path == '/finance/dashboard') return 0;
+  if (path.startsWith('/finance/orders')) return 1;
+  if (path.startsWith('/finance/reports')) return 2;
+  return 0; // default to dashboard
+}
+
+int _getDesignIndex(String path) {
+  if (path == '/design/dashboard') {
+    return 0;
+  }
+  if (path.startsWith('/design/welcome') || path.startsWith('/design/idea-generation') ||
+      path.startsWith('/design/sculpting') || path.startsWith('/design/detailing') ||
+      path.startsWith('/design/preview') || path.startsWith('/design/backdrop') ||
+      path.startsWith('/design/lighting')) {
+    return 1;
+  }
+  if (path.startsWith('/design/orders')) {
+    return 2;
+  }
+  if (path.startsWith('/design/reports')) {
+    return 3;
+  }
+  return 0; // default to dashboard
 }

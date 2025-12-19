@@ -4,20 +4,43 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 
+class NavItem {
+  final IconData icon;
+  final String label;
+
+  const NavItem({
+    required this.icon,
+    required this.label,
+  });
+}
+
 class DynamicIslandNav extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final VoidCallback? onVoiceTap;
+  final List<NavItem>? navItems;
 
   const DynamicIslandNav({
     Key? key,
     required this.currentIndex,
     required this.onTap,
     this.onVoiceTap,
+    this.navItems,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Default navigation items if none provided
+    final defaultNavItems = [
+      const NavItem(icon: Icons.home_outlined, label: 'Home'),
+      const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+      const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+      const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
+      const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+    ];
+
+    final items = navItems ?? defaultNavItems;
+
     return Positioned(
       bottom: 0,
       left: 0,
@@ -52,39 +75,30 @@ class DynamicIslandNav extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildNavItem(
-                  icon: Icons.home_outlined,
-                  label: 'Home',
-                  index: 0,
-                ),
-                _buildNavItem(
-                  icon: Icons.palette_outlined,
-                  label: 'Design',
-                  index: 1,
-                ),
-                _buildVoiceButton(),
-                _buildNavItem(
-                  icon: Icons.shopping_bag_outlined,
-                  label: 'Orders',
-                  index: 2,
-                ),
-                _buildNavItem(
-                  icon: Icons.wallet_outlined,
-                  label: 'Finance',
-                  index: 3,
-                ),
-                _buildNavItem(
-                  icon: Icons.bar_chart_outlined,
-                  label: 'Reports',
-                  index: 4,
-                ),
-              ],
+              children: _buildNavigationItems(items),
             ),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildNavigationItems(List<NavItem> items) {
+    final widgets = <Widget>[];
+
+    for (int i = 0; i < items.length; i++) {
+      // Add voice button in the middle for navigation lists with more than 2 items
+      if (i == (items.length ~/ 2) && items.length > 2) {
+        widgets.add(_buildVoiceButton());
+      }
+      widgets.add(_buildNavItem(
+        icon: items[i].icon,
+        label: items[i].label,
+        index: i,
+      ));
+    }
+
+    return widgets;
   }
 
   Widget _buildNavItem({

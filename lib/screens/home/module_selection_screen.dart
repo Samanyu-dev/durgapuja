@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 class ModuleSelectionScreen extends StatelessWidget {
   const ModuleSelectionScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
@@ -33,9 +36,9 @@ class ModuleSelectionScreen extends StatelessWidget {
               const SizedBox(height: AppConstants.largePadding),
 
               // Welcome Text
-              const Text(
-                'Welcome to Durga Idol Maker',
-                style: TextStyle(
+              Text(
+                l10n.appTitle,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
@@ -43,8 +46,8 @@ class ModuleSelectionScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppConstants.mediumPadding),
-              const Text(
-                'Choose your module to get started',
+              Text(
+                l10n.chooseModule,
                 style: TextStyle(
                   fontSize: AppConstants.fontSizeBody,
                   color: AppColors.textLight,
@@ -91,22 +94,22 @@ class ModuleSelectionScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: AppConstants.mediumPadding),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Finance',
+                                  l10n.finance,
                                   style: TextStyle(
                                     fontSize: AppConstants.fontSizeLarge,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Track expenses, materials, and payments',
+                                  l10n.financeDescription,
                                   style: TextStyle(
                                     fontSize: AppConstants.fontSizeBody,
                                     color: AppColors.textLight,
@@ -166,22 +169,22 @@ class ModuleSelectionScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: AppConstants.mediumPadding),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Design',
+                                  l10n.design,
                                   style: TextStyle(
                                     fontSize: AppConstants.fontSizeLarge,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Create and customize idol designs',
+                                  l10n.designDescription,
                                   style: TextStyle(
                                     fontSize: AppConstants.fontSizeBody,
                                     color: AppColors.textLight,

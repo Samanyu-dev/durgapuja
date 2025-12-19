@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 import 'utils/colors.dart';
 import 'router.dart';
 import 'widgets/app_scaffold.dart';
+import 'providers/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp();
-  runApp(const MyApp());
+  // Firebase initialization removed for development
+  // await Firebase.initializeApp();
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -18,15 +27,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Durga Idol Maker',
-      theme: ThemeData(
-        primaryColor: AppColors.primaryBrown,
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.backgroundCream,
-      ),
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
+    return Consumer<LocaleProvider>(
+      builder: (context, localeProvider, child) {
+        return MaterialApp.router(
+          title: 'Durga Idol Maker',
+          theme: ThemeData(
+            primaryColor: AppColors.primaryBrown,
+            useMaterial3: true,
+            scaffoldBackgroundColor: AppColors.backgroundCream,
+          ),
+          locale: localeProvider.locale,
+          supportedLocales: const [
+            Locale('en'),
+            Locale('bn'),
+          ],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          routerConfig: router,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

@@ -1,23 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../providers/locale_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../settings_screen.dart';
 
 class HomeDashboardScreen extends StatelessWidget {
   const HomeDashboardScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: const Text('Hello, Artisan'),
+        title: Text(l10n.helloArtisan),
         automaticallyImplyLeading: false,
         elevation: 0,
         actions: [
+          // Language Toggle Button
+          Consumer<LocaleProvider>(
+            builder: (context, localeProvider, child) {
+              return IconButton(
+                icon: Text(
+                  localeProvider.locale.languageCode == 'en' ? 'বাং' : 'EN',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBrown,
+                  ),
+                ),
+                onPressed: () => localeProvider.toggleLanguage(),
+                tooltip: l10n.language,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.home_outlined, color: AppColors.primaryBrown),
+            onPressed: () => context.go('/'),
+            tooltip: l10n.backToModuleSelection,
           ),
         ],
       ),
@@ -56,18 +87,18 @@ class HomeDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Record Voice Note',
-                    style: TextStyle(
+                  Text(
+                    l10n.recordVoiceNote,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Quickly capture your thoughts and ideas',
-                    style: TextStyle(
+                  Text(
+                    l10n.voiceNoteDescription,
+                    style: const TextStyle(
                       color: AppColors.textLight,
                     ),
                     textAlign: TextAlign.center,
@@ -82,7 +113,7 @@ class HomeDashboardScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildSummaryCard(
-                    'Today\'s Expenses',
+                    l10n.todaysExpenses,
                     '₹2,450',
                     Icons.account_balance_wallet,
                   ),
@@ -90,7 +121,7 @@ class HomeDashboardScreen extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildSummaryCard(
-                    'Materials Bought',
+                    l10n.materialsBought,
                     '₹8,200',
                     Icons.inventory,
                   ),
@@ -99,7 +130,7 @@ class HomeDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildSummaryCard(
-              'Pending Payments',
+              l10n.pendingPayments,
               '₹15,000',
               Icons.pending,
               fullWidth: true,
@@ -108,7 +139,7 @@ class HomeDashboardScreen extends StatelessWidget {
 
             // View Report Button
             CustomButton(
-              label: 'View Report',
+              label: l10n.viewReport,
               onPressed: () => context.go('/reports'),
               backgroundColor: AppColors.primaryBrown,
             ),
