@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'utils/colors.dart';
-import 'screens/home/home_screen.dart';
 import 'screens/design/my_concepts_screen.dart';
 import 'screens/orders/clients_screen.dart';
 import 'screens/finance/finance_home_screen.dart';
@@ -38,7 +37,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    const FinanceHomeScreen(),
+
     const MyConceptsScreen(),
     const ClientsScreen(),
     const FinanceHomeScreen(),

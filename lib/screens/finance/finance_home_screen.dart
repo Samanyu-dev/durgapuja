@@ -1,272 +1,162 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
-import 'material_tracker_screen.dart';
-import '../../widgets/custom_button.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import 'material_screen.dart';
 
-class FinanceHomeScreen extends StatefulWidget {
+class FinanceHomeScreen extends StatelessWidget {
   const FinanceHomeScreen({super.key});
-
-  @override
-  State<FinanceHomeScreen> createState() => _FinanceHomeScreenState();
-}
-
-class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
-  bool _isRecording = false;
-  final TextEditingController _voiceNoteController = TextEditingController();
-
-  void _toggleRecording() {
-    setState(() {
-      _isRecording = !_isRecording;
-    });
-
-    if (_isRecording) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('🎙️ Recording started... Say your transaction details'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Recording saved'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        title: const Text('Hello, Artisan'),
-        automaticallyImplyLeading: false,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              decoration: BoxDecoration(
-                color: AppColors.cardCream,
-                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
+      bottomNavigationBar: CustomBottomNav(currentIndex: 3, onTap: (index) {}),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Record Voice Note',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeLarge,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
+                    "App Name",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: AppConstants.mediumPadding),
-                  const Text(
-                    'Tap to record your transaction details',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.largePadding),
-                  GestureDetector(
-                    onTap: _toggleRecording,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: _isRecording
-                            ? AppColors.warningRed
-                            : AppColors.primaryBrown,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isRecording
-                                    ? AppColors.warningRed
-                                    : AppColors.primaryBrown)
-                                .withOpacity(0.3),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        _isRecording ? Icons.stop : Icons.mic,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.largePadding),
-                  const Text(
-                    'Example inputs:',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.mediumPadding),
-                  Container(
-                    padding:
-                        const EdgeInsets.all(AppConstants.mediumPadding),
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundCream,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.borderRadius),
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '"Sold 2 idols to Behala Samity for ₹10,000"',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeBody,
-                            color: AppColors.textLight,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        SizedBox(height: AppConstants.smallPadding),
-                        Text(
-                          '"Paid ₹500 for paints at Shyambazar shop"',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeBody,
-                            color: AppColors.textLight,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.settings, size: 26),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
 
-            _buildFinancialCard(
-              icon: Icons.shopping_cart_outlined,
-              label: 'Today\'s Expenses',
-              amount: '₹2,500',
-              color: AppColors.warningRed,
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            _buildFinancialCard(
-              icon: Icons.local_shipping_outlined,
-              label: 'Materials Bought',
-              amount: '₹15,000',
-              color: AppColors.accentOrange,
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            _buildFinancialCard(
-              icon: Icons.receipt_outlined,
-              label: 'Pending Payments',
-              amount: '₹8,000',
-              color: AppColors.primaryBrown,
-            ),
-            const SizedBox(height: AppConstants.largePadding),
+              const SizedBox(height: 8),
+              const Text(
+                "Hello, Artisan",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              ),
 
-            CustomButton(
-              label: 'View Report',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MaterialTrackerScreen(),
-                  ),
-                );
-              },
-              backgroundColor: AppColors.primaryBrown,
-            ),
-          ],
+              const SizedBox(height: 25),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: AppColors.cardCream,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      "Record Voice Note",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "Tap to record your transaction details",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.all(25),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryBrown,
+                      ),
+                      child: const Icon(
+                        Icons.mic,
+                        size: 35,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              _buildCard(
+                icon: Icons.shopping_basket_outlined,
+                title: "Today's Expenses",
+                amount: "₹ 2,500",
+                color: AppColors.warningRed,
+              ),
+
+              const SizedBox(height: 15),
+
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => MaterialsScreen()),
+                  );
+                },
+                child: _buildCard(
+                  icon: Icons.category_outlined,
+                  title: "Materials Bought",
+                  amount: "₹ 15,000",
+                  color: AppColors.accentOrange,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              _buildCard(
+                icon: Icons.sticky_note_2_outlined,
+                title: "Pending Payments",
+                amount: "₹ 8,000",
+                color: AppColors.primaryBrown,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFinancialCard({
+  Widget _buildCard({
     required IconData icon,
-    required String label,
+    required String title,
     required String amount,
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.mediumPadding),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: AppConstants.mediumPadding),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: AppConstants.fontSizeBody,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
-                  ),
+          Icon(icon, color: color, size: 28),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  amount,
-                  style: TextStyle(
-                    fontSize: AppConstants.fontSizeLarge,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+              ),
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _voiceNoteController.dispose();
-    super.dispose();
   }
 }
