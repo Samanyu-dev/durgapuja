@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'widgets/app_scaffold.dart';
 import 'screens/home/home_dashboard_screen.dart';
+import 'screens/home/module_selection_screen.dart';
 import 'screens/design/design_welcome_screen.dart';
 import 'screens/orders/clients_screen.dart';
 import 'screens/finance/finance_home_screen.dart';
@@ -20,13 +21,17 @@ import 'screens/orders/record_payment_screen.dart';
 
 final GoRouter router = GoRouter(
   routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const ModuleSelectionScreen(),
+    ),
     ShellRoute(
       builder: (context, state, child) {
         return AppScaffold(
           body: child,
           currentIndex: _getCurrentIndex(state.uri.toString()),
           onNavTap: (index) {
-            final routes = ['/', '/design', '/orders', '/finance', '/reports'];
+            final routes = ['/dashboard', '/design', '/orders', '/finance', '/reports'];
             if (index >= 0 && index < routes.length) {
               context.go(routes[index]);
             }
@@ -35,7 +40,7 @@ final GoRouter router = GoRouter(
       },
       routes: [
         GoRoute(
-          path: '/',
+          path: '/dashboard',
           builder: (context, state) => const HomeDashboardScreen(),
         ),
         GoRoute(
@@ -120,7 +125,7 @@ final GoRouter router = GoRouter(
 );
 
 int _getCurrentIndex(String path) {
-  if (path == '/' || path.startsWith('/home')) return 0;
+  if (path == '/dashboard' || path.startsWith('/home')) return 0;
   if (path.startsWith('/design')) return 1;
   if (path.startsWith('/orders')) return 2;
   if (path.startsWith('/finance')) return 3;

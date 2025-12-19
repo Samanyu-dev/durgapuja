@@ -51,6 +51,7 @@ class _AIDesignAssistantScreenState extends State<AIDesignAssistantScreen>
       setState(() {
         _isGenerating = false;
       });
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to generate images: $e')),
       );
