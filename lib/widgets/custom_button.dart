@@ -5,7 +5,7 @@ import '../utils/constants.dart';
 
 class CustomButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color? backgroundColor;
   final Color? textColor;
   final IconData? icon;
@@ -17,7 +17,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     Key? key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.backgroundColor = AppColors.primaryBrown,
     this.textColor = Colors.white,
     this.icon,

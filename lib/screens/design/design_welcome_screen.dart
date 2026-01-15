@@ -86,33 +86,102 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return _FeatureCard(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
       onTap: onTap,
-      child: Container(
+    );
+  }
+}
+
+class _FeatureCard extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  State<_FeatureCard> createState() => _FeatureCardState();
+}
+
+class _FeatureCardState extends State<_FeatureCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        transform: _isPressed
+            ? Matrix4.translationValues(0, 2, 0)
+            : Matrix4.translationValues(0, 0, 0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _isPressed
+                ? [AppColors.cardCream, Colors.white]
+                : [Colors.white, AppColors.cardCream.withOpacity(0.7)],
+          ),
           borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: _isPressed
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryBrown.withOpacity(0.15),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+          border: Border.all(
+            color: _isPressed
+                ? AppColors.primaryBrown.withOpacity(0.2)
+                : Colors.transparent,
+            width: 1,
+          ),
         ),
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 40,
-              color: AppColors.primaryBrown,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              decoration: BoxDecoration(
+                color: _isPressed
+                    ? AppColors.primaryBrown.withOpacity(0.15)
+                    : AppColors.primaryBrown.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Icon(
+                widget.icon,
+                size: _isPressed ? 42 : 40,
+                color: AppColors.primaryBrown,
+              ),
             ),
             const SizedBox(height: AppConstants.mediumPadding),
             Text(
-              title,
-              style: const TextStyle(
+              widget.title,
+              style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textDark,
@@ -121,10 +190,11 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              subtitle,
-              style: const TextStyle(
+              widget.subtitle,
+              style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
             ),

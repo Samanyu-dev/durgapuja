@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
+import '../../services/test_firebase.dart';
 import '../design/ai_design_assistant_screen.dart';
 import '../design/idol_visualization_screen.dart';
 import '../design/fine_detailing_screen.dart';
@@ -16,6 +17,39 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Future<void> _testFirebaseConnection() async {
+    try {
+      final testService = FirebaseTestService();
+      final result = await testService.testFirebaseConnection();
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Firebase Test Successful! ${result['data']['total_test_records']} dynamic records created and verified. Sample: ${result['data']['sample_client']}'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Firebase Test Failed: ${result['message']}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,6 +153,24 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: AppConstants.largePadding),
+            // Firebase Test Button
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+              child: ElevatedButton.icon(
+                onPressed: _testFirebaseConnection,
+                icon: const Icon(Icons.cloud_upload),
+                label: const Text('Test Firebase Connection'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBrown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

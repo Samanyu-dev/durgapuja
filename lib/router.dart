@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'widgets/app_scaffold.dart';
 import 'screens/home/home_dashboard_screen.dart';
 import 'screens/home/module_selection_screen.dart';
@@ -17,9 +18,41 @@ import 'screens/orders/add_client_screen.dart';
 import 'screens/orders/delivery_dates_screen.dart';
 import 'screens/orders/send_update_screen.dart';
 import 'screens/orders/record_payment_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/analytics_dashboard_screen.dart';
+import 'screens/inventory_screen.dart';
+import 'screens/auth/sign_in_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
+import 'providers/auth_provider.dart';
 
 final GoRouter router = GoRouter(
+  initialLocation: '/onboarding',
+  redirect: (context, state) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // If user is not authenticated and trying to access protected routes
+    if (!authProvider.isAuthenticated && 
+        !state.uri.toString().startsWith('/onboarding') && 
+        !state.uri.toString().startsWith('/auth') &&
+        !state.uri.toString().startsWith('/otp-verification')) {
+      return '/auth';
+    }
+    
+    // If user is authenticated and on auth/onboarding screens, redirect to main app
+    if (authProvider.isAuthenticated && 
+        (state.uri.toString() == '/onboarding' || 
+         state.uri.toString().startsWith('/auth') ||
+         state.uri.toString().startsWith('/otp-verification'))) {
+      return '/';
+    }
+    
+    return null;
+  },
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const ModuleSelectionScreen(),
@@ -191,6 +224,26 @@ final GoRouter router = GoRouter(
           ),
         ),
       ],
+    ),
+    // Analytics Dashboard Route
+    GoRoute(
+      path: '/analytics',
+      builder: (context, state) => const AnalyticsDashboardScreen(),
+    ),
+    // Inventory Management Route
+    GoRoute(
+      path: '/inventory',
+      builder: (context, state) => const InventoryScreen(),
+    ),
+    // Auth Routes
+    GoRoute(
+      path: '/auth',
+      builder: (context, state) => const SignInScreen(),
+    ),
+    // Admin Routes
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminDashboardScreen(),
     ),
   ],
 );

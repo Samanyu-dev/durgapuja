@@ -52,27 +52,46 @@ class DynamicIslandNav extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              AppColors.backgroundCream.withOpacity(0.3),
+              AppColors.backgroundCream.withOpacity(0.4),
+              AppColors.backgroundCream.withOpacity(0.8),
               AppColors.backgroundCream,
             ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
-        padding: const EdgeInsets.only(bottom: 20, top: 10),
+        padding: const EdgeInsets.only(bottom: 34, top: 20),
         child: Center(
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  AppColors.cardCream.withOpacity(0.9),
+                ],
+              ),
               borderRadius: BorderRadius.circular(50),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                  offset: const Offset(0, -5),
+                  color: AppColors.primaryBrown.withOpacity(0.2),
+                  blurRadius: 25,
+                  spreadRadius: 2,
+                  offset: const Offset(0, -8),
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                  offset: const Offset(0, -3),
                 ),
               ],
+              border: Border.all(
+                color: AppColors.cardCream.withOpacity(0.5),
+                width: 1,
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: _buildNavigationItems(items),
