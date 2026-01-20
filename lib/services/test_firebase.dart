@@ -3,6 +3,7 @@
 import 'firestore_service.dart';
 import '../models/client.dart';
 import '../models/transaction.dart';
+import '../models/idol_order.dart';
 import 'dart:math';
 
 class FirebaseTestService {
@@ -97,6 +98,7 @@ class FirebaseTestService {
         id: clientId,
         name: name,
         phone: '+91 $phone',
+        status: 'Active',
         idols: [
           IdolOrder(
             id: _generateRandomId(),

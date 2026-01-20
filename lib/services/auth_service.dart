@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
 
-// Mock Firebase User for testing
 class MockUser implements User {
   final String _uid;
   final String _phoneNumber;
@@ -49,24 +48,37 @@ class MockUser implements User {
   @override
   Future<String> getIdToken([bool forceRefresh = false]) async => 'mock_token';
 
-  // Unimplemented methods (throw errors for unused functionality)
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+// Mock UserCredential for testing
+class MockUserCredential implements UserCredential {
+  final User _user;
+
+  MockUserCredential(this._user);
+
+  @override
+  User get user => _user;
+
+  @override
+  AuthCredential? get credential => null;
+
+  @override
+  AdditionalUserInfo? get additionalUserInfo => null;
 }
 
 // Mock user database for development without Firebase
 class _MockUserDatabase {
   final Map<String, UserModel> _users = {};
   final Map<String, String> _phoneToUid = {};
-  final Map<String, String> _phoneToPassword = {};
 
-  // Pre-populate with test users
   _MockUserDatabase() {
-    _addTestUser('+919000012025', 'admin123', UserRole.admin, 'Test Admin');
-    _addTestUser('+919876543210', 'user123', UserRole.user, 'Test User');
+    _addTestUser('+919000012025', UserRole.admin, 'Test Admin');
+    _addTestUser('+919876543210', UserRole.user, 'Test User');
   }
 
-  void _addTestUser(String phone, String password, UserRole role, String name) {
+  void _addTestUser(String phone, UserRole role, String name) {
     final uid = 'mock_${phone.replaceAll('+91', '')}';
     final user = UserModel(
       uid: uid,
@@ -80,17 +92,20 @@ class _MockUserDatabase {
     );
     _users[uid] = user;
     _phoneToUid[phone] = uid;
-    _phoneToPassword[phone] = password;
   }
 
   UserModel? getUser(String uid) => _users[uid];
   String? getUidForPhone(String phone) => _phoneToUid[phone];
-  bool validatePassword(String phone, String password) => _phoneToPassword[phone] == password;
 
   void updateLastLogin(String uid) {
     if (_users.containsKey(uid)) {
       _users[uid] = _users[uid]!.copyWith(lastLogin: DateTime.now());
     }
+  }
+
+  void addUser(UserModel user) {
+    _users[user.uid] = user;
+    _phoneToUid[user.phoneNumber] = user.uid;
   }
 }
 
@@ -99,32 +114,38 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _MockUserDatabase _mockDb = _MockUserDatabase();
 
-  // Flag to use mock auth instead of Firebase
-  static const bool _useMockAuth = true; // Set to false when Firebase is ready
+  // Test mode flag - SET TO FALSE FOR PRODUCTION
+  bool _isTestMode = true;
 
-  // Test mode flag - set to true to bypass Firebase auth
-  bool _isTestMode = true; // TODO: Change to false when Firebase is set up
+  bool get isTestMode => _isTestMode;
 
-  // Stream controller for test mode auth state changes
-  final StreamController<User?> _testAuthController = StreamController<User?>.broadcast();
+  // Enable/disable test mode
+  void setTestMode(bool enabled) {
+    _isTestMode = enabled;
+  }
 
-  // Get current user
+  final StreamController<User?> _testAuthController =
+      StreamController<User?>.broadcast();
+
   User? get currentUser => _isTestMode ? _mockUser : _auth.currentUser;
 
-  // Mock user for test mode
   User? _mockUser;
 
-  // Create a mock Firebase User object
   User _createMockUser(String uid, String phoneNumber) {
     return MockUser(uid: uid, phoneNumber: phoneNumber);
   }
 
-  // Stream of auth state changes
   Stream<User?> get authStateChanges => _isTestMode
       ? _testAuthController.stream
       : _auth.authStateChanges();
 
-  // Sign out
+  AuthService() {
+    // In test mode, emit initial null value to indicate no user is logged in
+    if (_isTestMode) {
+      _testAuthController.add(null);
+    }
+  }
+
   Future<void> signOut() async {
     if (_isTestMode) {
       _mockUser = null;
@@ -134,78 +155,166 @@ class AuthService {
     }
   }
 
-  // Sign in with phone and password (using email as phone@domain.com)
-  Future<bool> signInWithPhoneAndPassword(String phoneNumber, String password) async {
+  // OTP methods
+  String? _verificationId;
+  String? _pendingPhoneNumber;
+  int? _resendToken;
+
+  String? get verificationId => _verificationId;
+  String? get pendingPhoneNumber => _pendingPhoneNumber;
+
+  Future<void> sendOTP(String phoneNumber) async {
+    _pendingPhoneNumber = phoneNumber;
+
     if (_isTestMode) {
-      // Use mock authentication
-      final uid = _mockDb.getUidForPhone(phoneNumber);
-      if (uid == null) {
-        throw Exception('user-not-found');
-      }
-
-      if (!_mockDb.validatePassword(phoneNumber, password)) {
-        throw Exception('wrong-password');
-      }
-
-      // Create mock Firebase user
-      _mockUser = _createMockUser(uid, phoneNumber);
-      _mockDb.updateLastLogin(uid);
-
-      // Emit the new user to the stream
-      _testAuthController.add(_mockUser);
-
-      return true;
+      await Future.delayed(const Duration(seconds: 1));
+      _verificationId = 'test_verification_${DateTime.now().millisecondsSinceEpoch}';
+      print('Mock OTP sent to $phoneNumber. Use code: 123456');
+      return;
     }
 
     try {
-      // Create email from phone number for Firebase Auth
-      final email = _getTestEmail(phoneNumber);
-
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification (Android only)
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print('Verification failed: ${e.code} - ${e.message}');
+          throw e;
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          print('OTP sent successfully');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+        timeout: const Duration(seconds: 60),
       );
-
-      return true;
-    } catch (e) {
-      throw e;
+    } on FirebaseAuthException catch (e) {
+      throw FirebaseAuthException(
+        code: e.code,
+        message: _getErrorMessage(e.code),
+      );
     }
   }
 
-  // Sign up with phone and password
-  Future<bool> signUpWithPhoneAndPassword(String phoneNumber, String password, {String? name, String? email}) async {
+  Future<UserCredential> verifyOTP(String smsCode) async {
+    if (_isTestMode) {
+      if (smsCode == '123456' && _pendingPhoneNumber != null) {
+        var uid = _mockDb.getUidForPhone(_pendingPhoneNumber!);
+        
+        // If user doesn't exist, create new user
+        if (uid == null) {
+          uid = 'mock_${_pendingPhoneNumber!.replaceAll('+91', '')}';
+          final newUser = UserModel(
+            uid: uid,
+            phoneNumber: _pendingPhoneNumber!,
+            name: null,
+            email: null,
+            role: UserRole.user,
+            isActive: true,
+            createdAt: DateTime.now(),
+            lastLogin: DateTime.now(),
+          );
+          _mockDb.addUser(newUser);
+        }
+
+        _mockUser = _createMockUser(uid, _pendingPhoneNumber!);
+        _mockDb.updateLastLogin(uid);
+        _testAuthController.add(_mockUser);
+
+        return MockUserCredential(_mockUser!);
+      } else {
+        throw FirebaseAuthException(
+          code: 'invalid-verification-code',
+          message: 'Invalid OTP code. Use 123456 for testing.',
+        );
+      }
+    }
+
+    if (_verificationId == null) {
+      throw FirebaseAuthException(
+        code: 'missing-verification-id',
+        message: 'Verification ID not found. Please request OTP again.',
+      );
+    }
+
     try {
-      // Use a Gmail account for Firebase Auth (required for email/password auth)
-      final authEmail = _getTestEmail(phoneNumber);
-
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: authEmail,
-        password: password,
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId!,
+        smsCode: smsCode,
       );
 
-      // Create user profile in Firestore
-      await _createUserProfile(userCredential.user!, phoneNumber, name: name, email: email);
-
-      return true;
-    } catch (e) {
-      throw e;
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      
+      // Check if user profile exists, if not create it
+      final userExists = await this.userExists(userCredential.user!.uid);
+      if (!userExists) {
+        await _createUserProfile(
+          userCredential.user!,
+          userCredential.user!.phoneNumber ?? _pendingPhoneNumber ?? '',
+        );
+      } else {
+        await updateLastLogin(userCredential.user!.uid);
+      }
+      
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      throw FirebaseAuthException(
+        code: e.code,
+        message: _getErrorMessage(e.code),
+      );
     }
   }
 
-  // Get test email for Firebase Auth
-  String _getTestEmail(String phoneNumber) {
-    // For test admin user, use a specific Gmail account
-    if (phoneNumber == '+919000012025') {
-      return 'testadmin@durgaapp.com'; // This should be a real email you can access
+  Future<void> resendOTP(String phoneNumber) async {
+    if (_isTestMode) {
+      await sendOTP(phoneNumber);
+      return;
     }
-    // For other users, create a Gmail format
-    final cleanPhone = phoneNumber.replaceAll(RegExp(r'[+\s]'), '');
-    return '$cleanPhone@gmail.com'; // Use Gmail format
+
+    _pendingPhoneNumber = phoneNumber;
+
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        forceResendingToken: _resendToken,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print('Verification failed: ${e.code} - ${e.message}');
+          throw e;
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          print('OTP resent successfully');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    } on FirebaseAuthException catch (e) {
+      throw FirebaseAuthException(
+        code: e.code,
+        message: _getErrorMessage(e.code),
+      );
+    }
   }
 
   // Create user profile in Firestore
-  Future<void> _createUserProfile(User user, String phoneNumber, {String? name, String? email}) async {
-    // Check if this is the test admin user
+  Future<void> _createUserProfile(
+    User user,
+    String phoneNumber, {
+    String? name,
+    String? email,
+  }) async {
     final isTestAdmin = phoneNumber == '+919000012025';
 
     final userModel = UserModel(
@@ -213,7 +322,7 @@ class AuthService {
       phoneNumber: phoneNumber,
       email: email,
       name: name,
-      role: isTestAdmin ? UserRole.admin : UserRole.user, // Assign admin role to test user
+      role: isTestAdmin ? UserRole.admin : UserRole.user,
       isActive: true,
       createdAt: DateTime.now(),
       lastLogin: DateTime.now(),
@@ -235,12 +344,24 @@ class AuthService {
       }
       return null;
     } catch (e) {
+      print('Error getting user profile: $e');
       return null;
     }
   }
 
   // Update user profile
   Future<void> updateUserProfile(String uid, {String? name, String? email}) async {
+    if (_isTestMode) {
+      final user = _mockDb.getUser(uid);
+      if (user != null) {
+        _mockDb._users[uid] = user.copyWith(
+          name: name ?? user.name,
+          email: email ?? user.email,
+        );
+      }
+      return;
+    }
+
     final updateData = <String, dynamic>{
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -253,6 +374,11 @@ class AuthService {
 
   // Update last login
   Future<void> updateLastLogin(String uid) async {
+    if (_isTestMode) {
+      _mockDb.updateLastLogin(uid);
+      return;
+    }
+
     await _firestore.collection('users').doc(uid).update({
       'lastLogin': FieldValue.serverTimestamp(),
     });
@@ -260,53 +386,40 @@ class AuthService {
 
   // Check if user exists
   Future<bool> userExists(String uid) async {
+    if (_isTestMode) {
+      return _mockDb.getUser(uid) != null;
+    }
+
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.exists;
   }
 
-  // Legacy OTP methods (kept for compatibility)
-  Future<void> sendOTP(String phoneNumber) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await _auth.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        throw e;
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        _verificationId = verificationId;
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-      timeout: const Duration(seconds: 60),
-    );
-  }
-
-  String? _verificationId;
-  String? get verificationId => _verificationId;
-
-  Future<UserCredential> verifyOTP(String smsCode) async {
-    if (_verificationId == null) {
-      throw Exception('Verification ID not found. Please request OTP again.');
+  // Helper method to get user-friendly error messages
+  String _getErrorMessage(String code) {
+    switch (code) {
+      case 'invalid-phone-number':
+        return 'Invalid phone number format.';
+      case 'invalid-verification-code':
+        return 'Invalid OTP code.';
+      case 'missing-verification-id':
+        return 'Verification session expired. Please request OTP again.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'quota-exceeded':
+        return 'SMS quota exceeded. Please try again later.';
+      case 'missing-client-identifier':
+        return 'App verification failed. Please contact support.';
+      case 'session-expired':
+        return 'Session expired. Please request a new OTP.';
+      default:
+        return 'An error occurred. Please try again.';
     }
-
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: _verificationId!,
-      smsCode: smsCode,
-    );
-
-    UserCredential userCredential = await _auth.signInWithCredential(credential);
-    await _createUserProfile(userCredential.user!, userCredential.user!.phoneNumber ?? '');
-    return userCredential;
   }
 
-  Future<void> sendWhatsAppOTP(String phoneNumber) async {
-    await sendOTP(phoneNumber);
-  }
-
-  Future<void> resendOTP(String phoneNumber) async {
-    await sendOTP(phoneNumber);
+  // Dispose method to clean up resources
+  void dispose() {
+    _testAuthController.close();
   }
 }
+
+

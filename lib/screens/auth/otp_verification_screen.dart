@@ -5,7 +5,7 @@ import 'dart:async';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
-import '../../services/auth_service.dart';
+import '../../providers/auth_provider.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({Key? key}) : super(key: key);
@@ -25,7 +25,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Timer? _timer;
   String? _errorMessage;
   String? _phoneNumber;
-  String? _verificationId;
 
   @override
   void initState() {
@@ -49,11 +48,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _extractArgs() {
-    final args = GoRouter.of(context).routerDelegate.currentConfiguration.extra as Map<String, dynamic>?;
+    final args = GoRouterState.of(context).extra as Map<String, dynamic>?;
     if (args != null) {
       setState(() {
         _phoneNumber = args['phoneNumber'] as String?;
-        _verificationId = args['verificationId'] as String?;
       });
     }
   }
@@ -61,6 +59,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void _startResendTimer() {
     _canResend = false;
     _resendTimer = 30;
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -89,16 +88,22 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
 
     try {
-      final authService = context.read<AuthService>();
-      await authService.verifyOTP(otp);
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.verifyOTP(otp);
 
       if (mounted) {
         // Navigate to main app
         context.go('/');
       }
     } catch (e) {
+      print('OTP verification failed: $e');
       setState(() {
         _errorMessage = 'Invalid OTP. Please try again.';
+        // Clear OTP fields on error
+        for (var controller in _controllers) {
+          controller.clear();
+        }
+        _focusNodes[0].requestFocus();
       });
     } finally {
       if (mounted) {
@@ -117,8 +122,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
 
     try {
-      final authService = context.read<AuthService>();
-      await authService.resendOTP(_phoneNumber!);
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.resendOTP(_phoneNumber!);
       _startResendTimer();
 
       if (mounted) {
@@ -127,6 +132,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         );
       }
     } catch (e) {
+      print('OTP resend failed: $e');
       setState(() {
         _errorMessage = 'Failed to resend OTP. Please try again.';
       });
@@ -136,13 +142,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void _onOtpChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
+    } else if (value.isEmpty && index > 0) {
+      _focusNodes[index - 1].requestFocus();
     }
 
     // Auto-verify when all digits are entered
     final otp = _controllers.map((controller) => controller.text).join();
     if (otp.length == 6) {
-      // Small delay to allow user to see the last digit
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           _verifyOTP();
         }
@@ -343,26 +350,26 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
                 const SizedBox(height: AppConstants.mediumPadding),
 
-                // WhatsApp Info
+                // Info
                 Container(
                   padding: const EdgeInsets.all(AppConstants.smallPadding),
                   decoration: BoxDecoration(
-                    color: AppColors.successGreen.withOpacity(0.1),
+                    color: AppColors.primaryBrown.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.check_circle,
-                        color: AppColors.successGreen,
+                        Icons.info_outline,
+                        color: AppColors.primaryBrown,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'OTP sent via WhatsApp to your number',
+                          'OTP sent via SMS to your phone number',
                           style: TextStyle(
-                            color: AppColors.successGreen,
+                            color: AppColors.primaryBrown,
                             fontSize: AppConstants.fontSizeSmall,
                           ),
                         ),

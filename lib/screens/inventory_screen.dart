@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../l10n/app_localizations.dart';
 import '../widgets/loading_skeleton.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -90,8 +89,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
@@ -314,7 +311,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${currentStock} ${material['unit']}',
+                        '$currentStock ${material['unit']}',
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           fontWeight: FontWeight.w600,
@@ -337,7 +334,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${minThreshold} ${material['unit']}',
+                        '$minThreshold ${material['unit']}',
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           fontWeight: FontWeight.w600,

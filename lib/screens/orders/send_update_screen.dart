@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../utils/dummy_data.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
 
 class SendUpdateScreen extends StatefulWidget {
   final String clientId;
 
-  const SendUpdateScreen({Key? key, required this.clientId})
-      : super(key: key);
+  const SendUpdateScreen({super.key, required this.clientId});
 
   @override
   State<SendUpdateScreen> createState() => _SendUpdateScreenState();
@@ -18,13 +17,11 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
   final TextEditingController _messageController = TextEditingController();
   bool _isRecording = false;
 
-  String get clientName => DummyData.getClientNameById(widget.clientId);
-
   void _sendMessage() {
     if (_messageController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a message')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a message')));
       return;
     }
 
@@ -32,9 +29,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Message Sent'),
-        content: Text(
-          'Your update has been sent to $clientName',
-        ),
+        content: Text('Your update has been sent to ${widget.clientId}'),
         actions: [
           TextButton(
             onPressed: () {
@@ -57,7 +52,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(clientName),
+        title: Text(widget.clientId),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -89,18 +84,18 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
               maxLines: 8,
               decoration: InputDecoration(
                 hintText: 'Write a message',
-                hintStyle: const TextStyle(
-                  color: AppColors.textLight,
-                ),
+                hintStyle: const TextStyle(color: AppColors.textLight),
                 filled: true,
                 fillColor: AppColors.cardCream,
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding:
-                    const EdgeInsets.all(AppConstants.mediumPadding),
+                contentPadding: const EdgeInsets.all(
+                  AppConstants.mediumPadding,
+                ),
               ),
               style: const TextStyle(
                 fontSize: AppConstants.fontSizeBody,
@@ -127,8 +122,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
                 color: _isRecording
                     ? AppColors.warningRed
                     : AppColors.primaryBrown,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.largeRadius),
+                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
               ),
               child: TextButton.icon(
                 onPressed: () {
@@ -169,6 +163,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 2, onTap: (index) {}),
     );
   }
 

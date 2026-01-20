@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../l10n/app_localizations.dart';
 import '../widgets/loading_skeleton.dart';
 
 class AnalyticsDashboardScreen extends StatefulWidget {
@@ -57,8 +56,6 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
@@ -113,7 +110,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               Expanded(
                 child: _buildKPICard(
                   'Total Revenue',
-                  '₹${_analyticsData['totalRevenue'].toStringAsFixed(0)}',
+                      '₹${_analyticsData['totalRevenue'].toStringAsFixed(0)}',
                   Icons.account_balance_wallet,
                   AppColors.successGreen,
                 ),

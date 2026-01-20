@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
-import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../services/krea_ai_service.dart';
+import '../../models/generated_image.dart';
+import 'image_viewer_screen.dart';
 
 class CreatePreviewScreen extends StatefulWidget {
   const CreatePreviewScreen({Key? key}) : super(key: key);
@@ -14,399 +14,351 @@ class CreatePreviewScreen extends StatefulWidget {
 }
 
 class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
-  // ignore: prefer_final_fields
-  List<File> _uploadedImages = [];
-  File? _generated360View;
+  final TextEditingController _sceneController = TextEditingController();
+  final List<GeneratedImage> _generatedImages = [];
   bool _isGenerating = false;
-  bool _cleanSmooth = true;
-  final ImagePicker _picker = ImagePicker();
+  final KreaAIService _kreaService = KreaAIService();
 
-  Future<void> _pickImage() async {
-    final XFile? image =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _uploadedImages.add(File(image.path));
-      });
+  final List<String> _previewTypes = [
+    'Full Idol View',
+    'Pandals Background',
+    'Lighting Setup',
+    'Crowd View',
+    'Night Scene',
+    'Day Scene'
+  ];
+
+  String _selectedPreviewType = 'Full Idol View';
+
+  Future<void> _generatePreview() async {
+    if (_sceneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter scene description first')),
+      );
+      return;
     }
-  }
 
-  void _generate360View() {
     setState(() {
       _isGenerating = true;
     });
 
-    Future.delayed(const Duration(seconds: 3), () {
+    try {
+      final prompt = 'Create ${_selectedPreviewType.toLowerCase()} preview of Durga Puja scene: ${_sceneController.text.trim()}. Realistic lighting, traditional Bengali setting, festive atmosphere.';
+
+      final images = await _kreaService.generateImages(prompt, count: 2);
+
       setState(() {
-        if (_uploadedImages.isNotEmpty) {
-          _generated360View = _uploadedImages.first;
-        }
+        _generatedImages.addAll(images);
         _isGenerating = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate preview: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Create Idol Preview'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.mediumPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Upload your Idol\'s structure',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  color: AppColors.lightCream,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  border: Border.all(
-                    color: AppColors.primaryBrown,
-                    width: 2,
-                    style: BorderStyle.solid,
+    return Container(
+      color: AppColors.backgroundCream,
+      child: Column(
+        children: [
+          // Custom App Bar
+          Container(
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            color: AppColors.backgroundCream,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/design/welcome'),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Idol Preview Generator',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cloud_upload_outlined,
-                      size: 48,
-                      color: AppColors.primaryBrown,
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Choose preview type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
                     ),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    const Text(
-                      'Tap to Upload',
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardCream,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedPreviewType,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _previewTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPreviewType = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Describe the scene and setting',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    hintText: 'e.g., "traditional Bengali pandal with colorful lights"',
+                    controller: _sceneController,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'AI will generate realistic scene previews',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: AppConstants.fontSizeBody,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isGenerating ? null : _generatePreview,
+                      child: _isGenerating
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.preview),
+                                SizedBox(width: 8),
+                                Text('Generate Preview'),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (_generatedImages.isNotEmpty) ...[
+                    Text(
+                      '${_selectedPreviewType} Previews (${_generatedImages.length})',
+                      style: const TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Upload 3 to 8 photos',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeSmall,
-                        color: AppColors.textLight,
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.5,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            if (_uploadedImages.isNotEmpty) ...[
-              const Text(
-                'Uploaded Images',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: AppConstants.mediumPadding),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ..._uploadedImages.asMap().entries.map((entry) {
-                      int idx = entry.key;
-                      File image = entry.value;
-                      return Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            margin: const EdgeInsets.only(
-                              right: AppConstants.mediumPadding,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                AppConstants.borderRadius,
-                              ),
-                              image: DecorationImage(
-                                image: FileImage(image),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: AppConstants.mediumPadding,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _uploadedImages.removeAt(idx);
-                                });
-                              },
-                              child: Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.warningRed,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 16,
+                      itemCount: _generatedImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _generatedImages[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImageViewerScreen(
+                                  images: _generatedImages,
+                                  initialIndex: index,
                                 ),
                               ),
+                            );
+                          },
+                          child: Hero(
+                            tag: 'preview_${image.id}',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      image.url,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.primaryBrown,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.5),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primaryBrown.withOpacity(0.9),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.preview,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _selectedPreviewType,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Scene Preview',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap to zoom and explore the full scene',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.9),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    // ignore: unnecessary_to_list_in_spreads
-                    }).toList(),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(
-                        AppConstants.smallPadding,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.borderRadius,
-                        ),
-                      ),
-                      child: const Text(
-                        'Front View',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: AppConstants.fontSizeSmall,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppConstants.smallPadding),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(
-                        AppConstants.smallPadding,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.borderRadius,
-                        ),
-                      ),
-                      child: const Text(
-                        'Side View',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: AppConstants.fontSizeSmall,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              CustomButton(
-                label: 'Generate 360° View',
-                icon: Icons.threed_rotation_outlined,
-                onPressed:
-                    (_uploadedImages.length >= 3 && !_isGenerating)
-                        ? _generate360View
-                        : () {},
-                backgroundColor: AppColors.primaryBrown,
-              ),
-            ],
-            const SizedBox(height: AppConstants.largePadding),
-
-            if (_generated360View != null) ...[
-              const Text(
-                'Generated 360° View',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: AppConstants.mediumPadding),
-              Container(
-                height: 250,
-                decoration: BoxDecoration(
-                  color: AppColors.darkBrown,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  image: DecorationImage(
-                    image: FileImage(_generated360View!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-
-              const Text(
-                'Texture Enhancement',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: AppConstants.mediumPadding),
-              Container(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() => _cleanSmooth = true);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _cleanSmooth
-                            ? AppColors.primaryBrown
-                            : Colors.white,
-                        foregroundColor: _cleanSmooth
-                            ? Colors.white
-                            : AppColors.primaryBrown,
-                        side: BorderSide(
-                          color: AppColors.primaryBrown,
-                        ),
-                      ),
-                      child: const Text('Clean & Smooth'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() => _cleanSmooth = false);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: !_cleanSmooth
-                            ? AppColors.primaryBrown
-                            : Colors.white,
-                        foregroundColor: !_cleanSmooth
-                            ? Colors.white
-                            : AppColors.primaryBrown,
-                        side: BorderSide(
-                          color: AppColors.primaryBrown,
-                        ),
-                      ),
-                      child: const Text('Keep Raw Texture'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              CustomButton(
-                label: 'Click here to generate Backdrop',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎨 Generating backdrop...'),
-                    ),
-                  );
-                },
-                backgroundColor: AppColors.accentOrange,
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomButton(
-                      label: 'Save to Gallery',
-                      icon: Icons.save_alt,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✓ Saved to gallery'),
                           ),
                         );
                       },
-                      backgroundColor: AppColors.primaryBrown,
-                    ),
-                  ),
-                  const SizedBox(width: AppConstants.mediumPadding),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _uploadedImages.clear();
-                          _generated360View = null;
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primaryBrown,
-                        side: const BorderSide(
-                          color: AppColors.primaryBrown,
-                        ),
-                      ),
-                      child: const Text('Start over'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            if (_isGenerating) ...[
-              const SizedBox(height: AppConstants.largePadding),
-              Center(
-                child: Column(
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    const Text(
-                      'Generating 360° view...',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeBody,
-                        color: AppColors.textLight,
-                      ),
                     ),
                   ],
-                ),
+                ],
               ),
-            ],
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-        },
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _sceneController.dispose();
+    super.dispose();
   }
 }

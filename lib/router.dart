@@ -21,7 +21,10 @@ import 'screens/orders/record_payment_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/analytics_dashboard_screen.dart';
 import 'screens/inventory_screen.dart';
+
+import 'screens/auth/phone_auth_screen.dart';
 import 'screens/auth/sign_in_screen.dart';
+import 'screens/auth/otp_verification_screen.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
 import 'providers/auth_provider.dart';
 
@@ -29,23 +32,36 @@ final GoRouter router = GoRouter(
   initialLocation: '/onboarding',
   redirect: (context, state) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+    final currentPath = state.uri.toString();
+
+    print('Router redirect: path=$currentPath, isAuthenticated=${authProvider.isAuthenticated}, isLoading=${authProvider.isLoading}'); // Debug log
+
+    // Don't redirect while auth is loading to avoid race conditions
+    if (authProvider.isLoading) {
+      print('Router: Auth is loading, not redirecting'); // Debug log
+      return null;
+    }
+
     // If user is not authenticated and trying to access protected routes
-    if (!authProvider.isAuthenticated && 
-        !state.uri.toString().startsWith('/onboarding') && 
-        !state.uri.toString().startsWith('/auth') &&
-        !state.uri.toString().startsWith('/otp-verification')) {
+    if (!authProvider.isAuthenticated &&
+        !currentPath.startsWith('/onboarding') &&
+        !currentPath.startsWith('/auth') &&
+        !currentPath.startsWith('/sign-in') &&
+        !currentPath.startsWith('/otp-verification')) {
+      print('Router: Redirecting to /auth (not authenticated)'); // Debug log
       return '/auth';
     }
-    
+
     // If user is authenticated and on auth/onboarding screens, redirect to main app
-    if (authProvider.isAuthenticated && 
-        (state.uri.toString() == '/onboarding' || 
-         state.uri.toString().startsWith('/auth') ||
-         state.uri.toString().startsWith('/otp-verification'))) {
+    if (authProvider.isAuthenticated &&
+        (currentPath == '/onboarding' ||
+         currentPath.startsWith('/auth') ||
+         currentPath.startsWith('/sign-in') ||
+         currentPath.startsWith('/otp-verification'))) {
+      print('Router: Redirecting to / (authenticated, on auth screen)'); // Debug log
       return '/';
     }
-    
+
     return null;
   },
   routes: [
@@ -133,7 +149,7 @@ final GoRouter router = GoRouter(
           body: child,
           currentIndex: _getDesignIndex(state.uri.toString()),
           onNavTap: (index) {
-            final routes = ['/design/dashboard', '/design/welcome', '/design/orders', '/design/reports'];
+            final routes = ['/design/dashboard', '/design/welcome'];
             if (index >= 0 && index < routes.length) {
               context.go(routes[index]);
             }
@@ -238,7 +254,15 @@ final GoRouter router = GoRouter(
     // Auth Routes
     GoRoute(
       path: '/auth',
+      builder: (context, state) => const PhoneAuthScreen(),
+    ),
+    GoRoute(
+      path: '/sign-in',
       builder: (context, state) => const SignInScreen(),
+    ),
+    GoRoute(
+      path: '/otp-verification',
+      builder: (context, state) => const OtpVerificationScreen(),
     ),
     // Admin Routes
     GoRoute(
@@ -262,14 +286,9 @@ int _getDesignIndex(String path) {
   if (path.startsWith('/design/welcome') || path.startsWith('/design/idea-generation') ||
       path.startsWith('/design/sculpting') || path.startsWith('/design/detailing') ||
       path.startsWith('/design/preview') || path.startsWith('/design/backdrop') ||
-      path.startsWith('/design/lighting')) {
+      path.startsWith('/design/lighting') || path.startsWith('/design/orders') ||
+      path.startsWith('/design/reports')) {
     return 1;
-  }
-  if (path.startsWith('/design/orders')) {
-    return 2;
-  }
-  if (path.startsWith('/design/reports')) {
-    return 3;
   }
   return 0; // default to dashboard
 }

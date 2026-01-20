@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
@@ -15,7 +14,7 @@ class CustomButton extends StatelessWidget {
   final BorderSide? borderSide;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.backgroundColor = AppColors.primaryBrown,
@@ -25,7 +24,7 @@ class CustomButton extends StatelessWidget {
     this.width,
     this.height = 48,
     this.borderSide,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

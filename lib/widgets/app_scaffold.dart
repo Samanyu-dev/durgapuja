@@ -26,15 +26,13 @@ class AppScaffold extends StatelessWidget {
     List<NavItem> navItems;
     if (showHomeIcon) {
       if (isDesignModule) {
-        // Design module: Dashboard, Design, Orders, Reports
+        // Design module: Dashboard, Design (no finance parts)
         navItems = [
           const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
           const NavItem(icon: Icons.palette_outlined, label: 'Design'),
-          const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
-          const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
         ];
       } else {
-        // Finance module: Dashboard, Orders, Reports
+        // Finance module: Dashboard, Orders, Reports (no design parts)
         navItems = [
           const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
           const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),

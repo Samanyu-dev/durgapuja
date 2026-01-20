@@ -1,353 +1,364 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
-import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../services/krea_ai_service.dart';
+import '../../models/generated_image.dart';
+import 'image_viewer_screen.dart';
 
 class CreateBackdropScreen extends StatefulWidget {
-  const CreateBackdropScreen({super.key});
+  const CreateBackdropScreen({Key? key}) : super(key: key);
 
   @override
   State<CreateBackdropScreen> createState() => _CreateBackdropScreenState();
 }
 
 class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
-  File? _uploadedImage;
-  File? _generatedBackdrop;
+  final TextEditingController _backdropController = TextEditingController();
+  final List<GeneratedImage> _generatedImages = [];
   bool _isGenerating = false;
-  final ImagePicker _picker = ImagePicker();
+  final KreaAIService _kreaService = KreaAIService();
 
-  Future<void> _pickImage(ImageSource source) async {
-    final XFile? image = await _picker.pickImage(source: source);
-    if (image != null) {
-      setState(() {
-        _uploadedImage = File(image.path);
-        _generatedBackdrop = null;
-      });
+  final List<String> _backdropStyles = [
+    'Traditional Bengali',
+    'Modern Contemporary',
+    'Floral Design',
+    'Geometric Patterns',
+    'Nature Inspired',
+    'Cultural Symbols'
+  ];
+
+  String _selectedBackdropStyle = 'Traditional Bengali';
+
+  Future<void> _generateBackdrop() async {
+    if (_backdropController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter backdrop description first')),
+      );
+      return;
     }
-  }
 
-  void _generateBackdrop() {
     setState(() {
       _isGenerating = true;
     });
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
+    try {
+      final prompt = 'Create beautiful Durga Puja backdrop in ${_selectedBackdropStyle.toLowerCase()} style: ${_backdropController.text.trim()}. Traditional Bengali pandal background, festive decorations, intricate details, cultural elements.';
+
+      final images = await _kreaService.generateImages(prompt, count: 2);
+
       setState(() {
-        _generatedBackdrop = _uploadedImage;
+        _generatedImages.addAll(images);
         _isGenerating = false;
       });
-
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Backdrop generated successfully'),
-        ),
+        SnackBar(content: Text('Failed to generate backdrop: $e')),
       );
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Create Backdrop'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.mediumPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Upload your Idol\'s structure',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            GestureDetector(
-              onTap: () => _pickImage(ImageSource.gallery),
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: AppColors.lightCream,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  border: Border.all(
-                    color: AppColors.primaryBrown,
-                    width: 2,
-                    style: BorderStyle.solid,
+    return Container(
+      color: AppColors.backgroundCream,
+      child: Column(
+        children: [
+          // Custom App Bar
+          Container(
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            color: AppColors.backgroundCream,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/design/welcome'),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Backdrop Generator',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                child: _uploadedImage == null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 48,
-                            color: AppColors.primaryBrown,
-                          ),
-                          const SizedBox(
-                              height: AppConstants.mediumPadding),
-                          const Text(
-                            'Tap to Upload or Use Camera',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeBody,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: AppConstants.mediumPadding),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () =>
-                                    _pickImage(ImageSource.gallery),
-                                icon: const Icon(Icons.photo_library,
-                                    size: 18),
-                                label: const Text('From Gallery'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      AppColors.primaryBrown,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                onPressed: () =>
-                                    _pickImage(ImageSource.camera),
-                                icon: const Icon(Icons.camera_alt,
-                                    size: 18),
-                                label: const Text('Use Camera'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      AppColors.darkBrown,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.borderRadius,
-                        ),
-                        child: Image.file(
-                          _uploadedImage!,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-              ),
+                const SizedBox(width: 48),
+              ],
             ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            if (_uploadedImage != null)
-              Container(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: AppColors.successGreen,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: AppConstants.mediumPadding),
-                        const Text(
-                          'Analyzing your idol...',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeBody,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        minHeight: 4,
-                        backgroundColor: AppColors.cardCream,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryBrown,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    const Text(
-                      'Detecting Deity, Mood, and Ornamentation...',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeSmall,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            if (_uploadedImage != null && _generatedBackdrop == null)
-              CustomButton(
-                label: 'Click here to generate Backdrop',
-                icon: Icons.auto_awesome,
-                onPressed: _isGenerating ? () {} : _generateBackdrop,
-                isLoading: _isGenerating,
-                backgroundColor: AppColors.accentOrange,
-              ),
-
-            if (_generatedBackdrop != null) ...[
-              const Text(
-                'Generated Backdrop',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: AppConstants.mediumPadding),
-              Container(
-                height: 250,
-                decoration: BoxDecoration(
-                  color: AppColors.darkBrown,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  image: DecorationImage(
-                    image: FileImage(_generatedBackdrop!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              const Text(
-                'Background Details',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeBody,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: AppConstants.mediumPadding),
-              Container(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow('Deity Pattern', 'Durga Chaturdashi'),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    _buildDetailRow('Mood Analysis', 'Powerful, Divine'),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    _buildDetailRow(
-                        'Ornamentation', 'Golden, Traditional'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppConstants.largePadding),
-              Row(
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: CustomButton(
-                      label: 'Save to Gallery',
-                      icon: Icons.save_alt,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✓ Backdrop saved'),
+                  const Text(
+                    'Choose backdrop style',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardCream,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedBackdropStyle,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _backdropStyles.map((style) {
+                        return DropdownMenuItem(
+                          value: style,
+                          child: Text(style),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedBackdropStyle = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Describe your backdrop vision',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    hintText: 'e.g., "colorful flowers, traditional motifs, golden accents"',
+                    controller: _backdropController,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'AI will create stunning pandal backdrops',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isGenerating ? null : _generateBackdrop,
+                      child: _isGenerating
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image),
+                                SizedBox(width: 8),
+                                Text('Generate Backdrop'),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (_generatedImages.isNotEmpty) ...[
+                    Text(
+                      '${_selectedBackdropStyle} Backdrops (${_generatedImages.length})',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.8,
+                      ),
+                      itemCount: _generatedImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _generatedImages[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImageViewerScreen(
+                                  images: _generatedImages,
+                                  initialIndex: index,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Hero(
+                            tag: 'backdrop_${image.id}',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      image.url,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.primaryBrown,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.4),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primaryBrown.withOpacity(0.9),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.image,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _selectedBackdropStyle,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Pandal Backdrop',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap to zoom and see backdrop details',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.9),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         );
                       },
-                      backgroundColor: AppColors.primaryBrown,
                     ),
-                  ),
-                  const SizedBox(width: AppConstants.mediumPadding),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _uploadedImage = null;
-                          _generatedBackdrop = null;
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primaryBrown,
-                        side: const BorderSide(
-                          color: AppColors.primaryBrown,
-                        ),
-                      ),
-                      child: const Text('Start over'),
-                    ),
-                  ),
+                  ],
                 ],
               ),
-            ],
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: AppConstants.fontSizeSmall,
-            color: AppColors.textLight,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: AppConstants.fontSizeSmall,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
-          ),
-        ),
-      ],
-    );
+  @override
+  void dispose() {
+    _backdropController.dispose();
+    super.dispose();
   }
 }

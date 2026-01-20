@@ -130,7 +130,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
               controller: _tabController,
               children: [
                 _buildMaterialTrackerTab(),
-                const SamitiMaterialView(),
+                const SamitiFundsScreen(),
               ],
             ),
           ),

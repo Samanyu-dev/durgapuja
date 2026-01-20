@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../services/krea_ai_service.dart';
+import '../../models/generated_image.dart';
+import 'image_viewer_screen.dart';
 
 class FineDetailingScreen extends StatefulWidget {
   const FineDetailingScreen({Key? key}) : super(key: key);
@@ -9,375 +13,342 @@ class FineDetailingScreen extends StatefulWidget {
   State<FineDetailingScreen> createState() => _FineDetailingScreenState();
 }
 
-class _FineDetailingScreenState extends State<FineDetailingScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  String _selectedExpression = 'Calm';
-  double _joyValue = 50;
-  double _serenityValue = 25;
-  double _powerValue = 5;
-  double _compassionValue = 10;
+class _FineDetailingScreenState extends State<FineDetailingScreen> {
+  final TextEditingController _detailController = TextEditingController();
+  final List<GeneratedImage> _generatedImages = [];
+  bool _isGenerating = false;
+  final KreaAIService _kreaService = KreaAIService();
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+  final List<String> _detailTypes = [
+    'Gold Embroidery',
+    'Color Details',
+    'Texture Patterns',
+    'Ornament Details',
+    'Face Expressions',
+    'Clothing Folds'
+  ];
+
+  String _selectedDetailType = 'Gold Embroidery';
+
+  Future<void> _generateDetail() async {
+    if (_detailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter detail description first')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isGenerating = true;
+    });
+
+    try {
+      final prompt = 'Create detailed close-up of Durga idol ${_selectedDetailType.toLowerCase()}: ${_detailController.text.trim()}. High resolution, intricate details, traditional Bengali art style.';
+
+      final images = await _kreaService.generateImages(prompt, count: 3);
+
+      setState(() {
+        _generatedImages.addAll(images);
+        _isGenerating = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate details: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Fine Detailing'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Column(
+    return Container(
+      color: AppColors.backgroundCream,
+      child: Column(
         children: [
+          // Custom App Bar
           Container(
-            height: 300,
-            margin: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.darkBrown,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/idol_face.jpg',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(
-                      Icons.image_outlined,
-                      size: 80,
-                      color: Colors.white30,
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            color: AppColors.backgroundCream,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/design/welcome'),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Fine Detailing Assistant',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: AppColors.cardCream,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: AppColors.primaryBrown,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              labelColor: Colors.white,
-              unselectedLabelColor: AppColors.textDark,
-              tabs: const [
-                Tab(text: 'Face Expressions'),
-                Tab(text: 'Ornaments'),
-                Tab(text: 'Full Dress'),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(width: 48),
               ],
             ),
           ),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFaceExpressionsTab(),
-                _buildOrnamentsTab(),
-                _buildFullDressTab(),
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBrown,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Choose detail type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
                     ),
-                    child: const Text('Save'),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryBrown,
-                      side: const BorderSide(color: AppColors.primaryBrown),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardCream,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('Preview'),
+                    child: DropdownButton<String>(
+                      value: _selectedDetailType,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _detailTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDetailType = value!;
+                        });
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          CustomBottomNav(
-            currentIndex: 1,
-            onTap: (index) {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFaceExpressionsTab() {
-    final expressions = ['Calm', 'Fierce', 'Kind', 'Motherly', 'Love'];
-    
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: expressions.map((expression) {
-              final isSelected = _selectedExpression == expression;
-              return ChoiceChip(
-                label: Text(expression),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedExpression = expression;
-                  });
-                },
-                selectedColor: AppColors.primaryBrown,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textDark,
-                  fontWeight: FontWeight.w500,
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'Emotions',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildEmotionSlider('Joy', _joyValue, (value) {
-            setState(() => _joyValue = value);
-          }),
-          _buildEmotionSlider('Serenity', _serenityValue, (value) {
-            setState(() => _serenityValue = value);
-          }),
-          _buildEmotionSlider('Power', _powerValue, (value) {
-            setState(() => _powerValue = value);
-          }),
-          _buildEmotionSlider('Compassion', _compassionValue, (value) {
-            setState(() => _compassionValue = value);
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmotionSlider(
-      String label, double value, Function(double) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textDark,
-                ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Describe the detail you want to focus on',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    hintText: 'e.g., "intricate gold threading on the border"',
+                    controller: _detailController,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'AI will generate high-resolution close-up details',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isGenerating ? null : _generateDetail,
+                      child: _isGenerating
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.zoom_in),
+                                SizedBox(width: 8),
+                                Text('Generate Detail Close-up'),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (_generatedImages.isNotEmpty) ...[
+                    Text(
+                      'Detail Close-ups (${_generatedImages.length})',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.2,
+                      ),
+                      itemCount: _generatedImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _generatedImages[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImageViewerScreen(
+                                  images: _generatedImages,
+                                  initialIndex: index,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Hero(
+                            tag: 'detail_${image.id}',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      image.url,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.primaryBrown,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.6),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primaryBrown.withOpacity(0.9),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.center_focus_strong,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  ),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'High-Resolution Detail',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _selectedDetailType,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap to zoom and examine fine details',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.9),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ],
               ),
-              Text(
-                value.toInt().toString(),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryBrown,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: AppColors.accentOrange,
-              inactiveTrackColor: AppColors.lightCream,
-              thumbColor: AppColors.primaryBrown,
-              overlayColor: AppColors.primaryBrown.withOpacity(0.2),
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              trackHeight: 4,
-            ),
-            child: Slider(
-              value: value,
-              min: 0,
-              max: 100,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrnamentsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: 8,
-            itemBuilder: (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.darkBrown,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.primaryBrown, width: 2),
-                ),
-                child: const Icon(
-                  Icons.diamond_outlined,
-                  color: Colors.amber,
-                  size: 32,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Customization',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildCustomizationOption('Material', 'Gold'),
-          _buildCustomizationOption('Color', 'Golden Yellow'),
-          _buildCustomizationOption('Size', 'Medium'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFullDressTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: 4,
-            itemBuilder: (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.darkBrown,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.checkroom_outlined,
-                    color: Colors.white30,
-                    size: 48,
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Customization',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildCustomizationOption('Material', 'Silk'),
-          _buildCustomizationOption('Color', 'Red'),
-          _buildCustomizationOption('Drape Style', 'Bengal'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCustomizationOption(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textLight,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.lightCream,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.arrow_drop_down,
-                  color: AppColors.primaryBrown,
-                ),
-              ],
             ),
           ),
         ],
@@ -387,7 +358,7 @@ class _FineDetailingScreenState extends State<FineDetailingScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _detailController.dispose();
     super.dispose();
   }
 }

@@ -26,12 +26,13 @@ class AuthProvider with ChangeNotifier {
 
   void _initializeAuth() {
     _authService.authStateChanges.listen((User? user) async {
+      print('AuthProvider: User changed: ${user?.uid}');
       _firebaseUser = user;
       if (user != null) {
-        // Load user model from Firestore
+        print('AuthProvider: Loading user profile for ${user.uid}');
         _userModel = await _authService.getUserProfile(user.uid);
+        print('AuthProvider: User model loaded: ${_userModel?.name}');
         if (_userModel != null) {
-          // Update last login
           await _authService.updateLastLogin(user.uid);
         }
       } else {
@@ -42,32 +43,33 @@ class AuthProvider with ChangeNotifier {
     });
   }
 
-  Future<bool> signInWithPhoneAndPassword(String phoneNumber, String password) async {
+  // OTP Authentication Methods
+  Future<void> sendOTP(String phoneNumber) async {
+    _isLoading = true;
+    notifyListeners();
+    
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final result = await _authService.signInWithPhoneAndPassword(phoneNumber, password);
-      return result;
-    } catch (e) {
+      await _authService.sendOTP(phoneNumber);
+    } finally {
       _isLoading = false;
       notifyListeners();
-      throw e;
     }
   }
 
-  Future<bool> signUpWithPhoneAndPassword(String phoneNumber, String password, {String? name, String? email}) async {
+  Future<UserCredential> verifyOTP(String smsCode) async {
+    _isLoading = true;
+    notifyListeners();
+    
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final result = await _authService.signUpWithPhoneAndPassword(phoneNumber, password, name: name, email: email);
-      return result;
-    } catch (e) {
+      return await _authService.verifyOTP(smsCode);
+    } finally {
       _isLoading = false;
       notifyListeners();
-      throw e;
     }
+  }
+
+  Future<void> resendOTP(String phoneNumber) async {
+    await _authService.resendOTP(phoneNumber);
   }
 
   Future<void> signOut() async {
@@ -77,7 +79,6 @@ class AuthProvider with ChangeNotifier {
   Future<void> updateUserProfile({String? name, String? email}) async {
     if (_firebaseUser != null) {
       await _authService.updateUserProfile(_firebaseUser!.uid, name: name, email: email);
-      // Reload user model
       _userModel = await _authService.getUserProfile(_firebaseUser!.uid);
       notifyListeners();
     }

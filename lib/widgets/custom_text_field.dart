@@ -11,7 +11,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.hintText,
     this.controller,
     this.maxLines = 1,
@@ -19,7 +19,7 @@ class CustomTextField extends StatelessWidget {
     this.onVoicePressed,
     this.keyboardType,
     this.prefixIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,6 @@ class CustomTextField extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -40,23 +39,14 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
-        style: const TextStyle(
-          fontSize: 16,
-          color: AppColors.textDark,
-        ),
+        style: const TextStyle(fontSize: 16, color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(
-            color: AppColors.textLight,
-            fontSize: 16,
-          ),
+          hintStyle: TextStyle(color: AppColors.textLight, fontSize: 16),
           prefixIcon: prefixIcon,
           suffixIcon: hasVoiceInput
               ? IconButton(
-                  icon: Icon(
-                    Icons.mic_outlined,
-                    color: AppColors.primaryBrown,
-                  ),
+                  icon: Icon(Icons.mic_outlined, color: AppColors.primaryBrown),
                   onPressed: onVoicePressed,
                 )
               : null,

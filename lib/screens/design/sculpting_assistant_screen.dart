@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
 
 class SculptingAssistantScreen extends StatefulWidget {
@@ -60,16 +60,37 @@ class _SculptingAssistantScreenState extends State<SculptingAssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Sculpting Assistant'),
-      ),
-      body: SingleChildScrollView(
+    return Container(
+      color: AppColors.backgroundCream,
+      child: Column(
+        children: [
+          // Custom App Bar
+          Container(
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            color: AppColors.backgroundCream,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/design/welcome'),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Sculpting Assistant',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(width: 48), // Balance the back button
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,10 +443,8 @@ class _SculptingAssistantScreenState extends State<SculptingAssistantScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-        },
+          ),
+        ],
       ),
     );
   }

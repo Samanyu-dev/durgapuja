@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
-import '../../widgets/custom_bottom_nav.dart';
-import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../services/krea_ai_service.dart';
+import '../../models/generated_image.dart';
+import 'image_viewer_screen.dart';
 
 class SuggestLightingScreen extends StatefulWidget {
   const SuggestLightingScreen({Key? key}) : super(key: key);
@@ -12,434 +14,351 @@ class SuggestLightingScreen extends StatefulWidget {
 }
 
 class _SuggestLightingScreenState extends State<SuggestLightingScreen> {
-  double _intensityValue = 50;
-  String _selectedDirection = 'Front';
-  String _selectedShadow = 'Medium';
-  bool _expandLightingPanel = false;
-  bool _expandSceneSimulation = false;
-  bool _expandAIEnhancement = false;
+  final TextEditingController _lightingController = TextEditingController();
+  final List<GeneratedImage> _generatedImages = [];
+  bool _isGenerating = false;
+  final KreaAIService _kreaService = KreaAIService();
 
-  final List<String> _directions = ['Top', 'Bottom', 'Front', 'Left', 'Right', 'Backlight'];
-  final List<String> _shadowOptions = ['Soft', 'Medium', 'Deep'];
-  final List<String> _lightingPresets = [
-    'Warm Golden Puja',
-    'Temple Lighting',
-    'Soft Shimmer'
+  final List<String> _lightingTypes = [
+    'Traditional Oil Lamps',
+    'Modern LED Lights',
+    'String Lights',
+    'Spotlights',
+    'Colorful Flood Lights',
+    'Mixed Lighting'
   ];
+
+  String _selectedLightingType = 'Traditional Oil Lamps';
+
+  Future<void> _generateLightingSuggestion() async {
+    if (_lightingController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter lighting description first')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isGenerating = true;
+    });
+
+    try {
+      final prompt = 'Create Durga Puja lighting setup with ${_selectedLightingType.toLowerCase()}: ${_lightingController.text.trim()}. Traditional Bengali pandal illumination, festive atmosphere, warm golden lighting, cultural ambiance.';
+
+      final images = await _kreaService.generateImages(prompt, count: 2);
+
+      setState(() {
+        _generatedImages.addAll(images);
+        _isGenerating = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isGenerating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate lighting: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Suggest Lighting'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.mediumPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Upload your idol\'s structure',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('📸 Upload photos for lighting analysis')),
-                );
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  color: AppColors.lightCream,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  border: Border.all(
-                    color: AppColors.primaryBrown,
-                    width: 2,
-                    style: BorderStyle.solid,
+    return Container(
+      color: AppColors.backgroundCream,
+      child: Column(
+        children: [
+          // Custom App Bar
+          Container(
+            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            color: AppColors.backgroundCream,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.go('/design/welcome'),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Lighting Suggestions',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cloud_upload_outlined,
-                      size: 48,
-                      color: AppColors.primaryBrown,
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Choose lighting type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
                     ),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    const Text(
-                      'Upload 3 to 8 photos',
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardCream,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedLightingType,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _lightingTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedLightingType = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Describe your lighting vision',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    hintText: 'e.g., "warm golden hues, traditional Bengali style"',
+                    controller: _lightingController,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'AI will suggest perfect lighting arrangements',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: AppConstants.fontSizeBody,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isGenerating ? null : _generateLightingSuggestion,
+                      child: _isGenerating
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.lightbulb),
+                                SizedBox(width: 8),
+                                Text('Generate Lighting'),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (_generatedImages.isNotEmpty) ...[
+                    Text(
+                      '${_selectedLightingType} Suggestions (${_generatedImages.length})',
+                      style: const TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColors.darkBrown,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.image_outlined,
-                      size: 80,
-                      color: Colors.white30,
-                    ),
-                    const SizedBox(height: AppConstants.mediumPadding),
-                    const Text(
-                      'Analyzing your idol...',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: AppConstants.fontSizeBody,
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.3,
                       ),
+                      itemCount: _generatedImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _generatedImages[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImageViewerScreen(
+                                  images: _generatedImages,
+                                  initialIndex: index,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Hero(
+                            tag: 'lighting_${image.id}',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      image.url,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.primaryBrown,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: AppColors.cardCream,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: AppColors.textLight,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.5),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primaryBrown.withOpacity(0.9),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.lightbulb,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _selectedLightingType,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Lighting Setup',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap to zoom and examine lighting details',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.9),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            Container(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Before',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  Switch(
-                    value: true,
-                    onChanged: (value) {},
-                    activeColor: AppColors.primaryBrown,
-                  ),
-                  const Text(
-                    'After',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
                 ],
               ),
             ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            const Text(
-              'Traditional Lighting Presets',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeLarge,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-            Wrap(
-              spacing: AppConstants.mediumPadding,
-              runSpacing: AppConstants.mediumPadding,
-              children: _lightingPresets.map((preset) {
-                return ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Applied: $preset')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentOrange,
-                  ),
-                  child: Text(
-                    preset,
-                    style: const TextStyle(
-                      fontSize: AppConstants.fontSizeSmall,
-                      color: Colors.white,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            _buildExpandablePanel(
-              title: 'Lighting Control Panel',
-              isExpanded: _expandLightingPanel,
-              onTap: () {
-                setState(() {
-                  _expandLightingPanel = !_expandLightingPanel;
-                });
-              },
-              child: Column(
-                children: [
-                  _buildSliderControl('Intensity', _intensityValue, (value) {
-                    setState(() => _intensityValue = value);
-                  }),
-                  const SizedBox(height: AppConstants.largePadding),
-                  const Text(
-                    'Direction',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.mediumPadding),
-                  Wrap(
-                    spacing: AppConstants.smallPadding,
-                    runSpacing: AppConstants.smallPadding,
-                    children: _directions.map((direction) {
-                      return FilterChip(
-                        label: Text(direction),
-                        selected: _selectedDirection == direction,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedDirection = selected ? direction : 'Front';
-                          });
-                        },
-                        selectedColor: AppColors.primaryBrown,
-                        labelStyle: TextStyle(
-                          color: _selectedDirection == direction
-                              ? Colors.white
-                              : AppColors.textDark,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: AppConstants.largePadding),
-                  const Text(
-                    'Shadows',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.mediumPadding),
-                  Wrap(
-                    spacing: AppConstants.smallPadding,
-                    children: _shadowOptions.map((shadow) {
-                      return FilterChip(
-                        label: Text(shadow),
-                        selected: _selectedShadow == shadow,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedShadow = selected ? shadow : 'Medium';
-                          });
-                        },
-                        selectedColor: AppColors.primaryBrown,
-                        labelStyle: TextStyle(
-                          color: _selectedShadow == shadow
-                              ? Colors.white
-                              : AppColors.textDark,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-
-            _buildExpandablePanel(
-              title: 'Scene Simulation',
-              isExpanded: _expandSceneSimulation,
-              onTap: () {
-                setState(() {
-                  _expandSceneSimulation = !_expandSceneSimulation;
-                });
-              },
-              child: const Text('Scene simulation options coming soon...'),
-            ),
-            const SizedBox(height: AppConstants.mediumPadding),
-
-            _buildExpandablePanel(
-              title: 'AI Enhancement',
-              isExpanded: _expandAIEnhancement,
-              onTap: () {
-                setState(() {
-                  _expandAIEnhancement = !_expandAIEnhancement;
-                });
-              },
-              child: const Text('AI enhancement options coming soon...'),
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-
-            Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    label: 'Save to Gallery',
-                    icon: Icons.save_alt,
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✓ Lighting saved to gallery'),
-                        ),
-                      );
-                    },
-                    backgroundColor: AppColors.primaryBrown,
-                  ),
-                ),
-                const SizedBox(width: AppConstants.mediumPadding),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _intensityValue = 50;
-                        _selectedDirection = 'Front';
-                        _selectedShadow = 'Medium';
-                      });
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryBrown,
-                      side: const BorderSide(color: AppColors.primaryBrown),
-                    ),
-                    child: const Text('Start over'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-        },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSliderControl(
-      String label, double value, Function(double) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            Text(
-              value.toInt().toString(),
-              style: const TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryBrown,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppConstants.mediumPadding),
-        SliderTheme(
-          data: SliderThemeData(
-            activeTrackColor: AppColors.accentOrange,
-            inactiveTrackColor: AppColors.lightCream,
-            thumbColor: AppColors.primaryBrown,
-            trackHeight: 4,
-          ),
-          child: Slider(
-            value: value,
-            min: 0,
-            max: 100,
-            onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExpandablePanel({
-    required String title,
-    required bool isExpanded,
-    required VoidCallback onTap,
-    required Widget child,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  Icon(
-                    isExpanded
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    color: AppColors.primaryBrown,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (isExpanded) ...[
-            const Divider(height: 0),
-            Padding(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              child: child,
-            ),
-          ],
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _lightingController.dispose();
+    super.dispose();
   }
 }

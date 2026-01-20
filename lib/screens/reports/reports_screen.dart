@@ -1,194 +1,474 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
+import '../../widgets/custom_bottom_nav.dart';
+import '../../services/database_service.dart';
 
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({Key? key}) : super(key: key);
+class ReportsScreen extends StatefulWidget {
+  final bool showBottomNav;
+
+  const ReportsScreen({super.key, this.showBottomNav = true});
+
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  String _selectedTimeframe =
+      "Last 6 months"; // Last 6 months, Last year, All years
+  double _totalIncome = 0.0;
+  double _totalExpenses = 0.0;
+  double get _totalProfit => _totalIncome - _totalExpenses;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFinanceData();
+  }
+
+  Future<void> _loadFinanceData() async {
+    final data = await DatabaseService.getFinanceData();
+    setState(() {
+      _totalIncome = data['total_income'] ?? 0.0;
+      _totalExpenses = data['total_expenses'] ?? 0.0;
+    });
+  }
+
+  String _formatCurrency(double amount) {
+    final amountStr = amount.toStringAsFixed(0);
+    if (amountStr.length <= 3) {
+      return amountStr;
+    }
+    String result = '';
+    for (int i = amountStr.length - 1; i >= 0; i--) {
+      int position = amountStr.length - 1 - i;
+      if (position == 3 || (position > 3 && (position - 3) % 2 == 0)) {
+        result = ',$result';
+      }
+      result = amountStr[i] + result;
+    }
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        title: const Text('Reports'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profits Overview Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildOverviewCard(
-                    'Total Income',
-                    '₹2,45,000',
-                    Icons.trending_up,
-                    AppColors.successGreen,
-                  ),
+      bottomNavigationBar: widget.showBottomNav
+          ? CustomBottomNav(
+              currentIndex: 3,
+              onTap: (index) {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+            )
+          : null,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              const Text(
+                "Profits",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildOverviewCard(
-                    'Total Expenses',
-                    '₹1,85,000',
-                    Icons.trending_down,
-                    AppColors.warningRed,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildOverviewCard(
-              'Total Profit',
-              '₹60,000',
-              Icons.account_balance,
-              AppColors.primaryBrown,
-              fullWidth: true,
-            ),
-            const SizedBox(height: 24),
-
-            // Filter Chips
-            const Text(
-              'Filter by Period',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildFilterChip('Last 6 months', true),
-                const SizedBox(width: 8),
-                _buildFilterChip('Last year', false),
-                const SizedBox(width: 8),
-                _buildFilterChip('All years', false),
-              ],
-            ),
-            const SizedBox(height: 24),
 
-            // Project Profits Chart Placeholder
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+              const SizedBox(height: 25),
+
+              // Overview Section
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBrown,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Total Income",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "₹${_formatCurrency(_totalIncome)}",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Total Expenses",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "₹${_formatCurrency(_totalExpenses)}",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: const Center(
-                child: Text(
-                  'Project Profits Bar Chart',
-                  style: TextStyle(color: AppColors.textLight),
+
+              const SizedBox(height: 12),
+
+              // Total Profit Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5E6D3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Total profit",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "₹${_formatCurrency(_totalProfit)}",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Project Profits Section
+              const Text(
+                "Project Profits",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              // Time Filter Buttons
+              Row(
+                children: [
+                  Expanded(child: _buildTimeFilterButton("Last 6 months")),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildTimeFilterButton("Last year")),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildTimeFilterButton("All years")),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // Bar Chart
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    _buildBarChartItem(
+                      "Saraswati P.",
+                      125000,
+                      AppColors.primaryBrown,
+                      barWidth: 1.0,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Durga P.",
+                      25000,
+                      AppColors.accentOrange,
+                      barWidth: 0.25,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Ganesha P.",
+                      40000,
+                      AppColors.primaryBrown,
+                      isSelected: true,
+                      barWidth: 0.40,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Diwali",
+                      45000,
+                      AppColors.primaryBrown,
+                      barWidth: 0.45,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Material Expenses Section
+              const Text(
+                "Material Expenses",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              // Material Expenses Bar Chart
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    _buildBarChartItem(
+                      "Clay",
+                      125000,
+                      AppColors.primaryBrown,
+                      barWidth: 1.0,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Ornaments",
+                      25000,
+                      AppColors.accentOrange,
+                      barWidth: 0.25,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Paint",
+                      40000,
+                      AppColors.primaryBrown,
+                      barWidth: 0.40,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBarChartItem(
+                      "Clothes",
+                      45000,
+                      AppColors.primaryBrown,
+                      barWidth: 0.45,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Transactions Section
+              const Text(
+                "Transactions",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              // Transaction Items
+              _buildTransactionItem(
+                "Payment from Samiti 1",
+                "Oct 15",
+                "+ ₹16,000",
+                Colors.green,
+              ),
+              const SizedBox(height: 12),
+              _buildTransactionItem(
+                "Purchase of Clay",
+                "Oct 15",
+                "- ₹16,000",
+                Colors.red,
+              ),
+
+              const SizedBox(height: 30),
+
+              // Detailed Reports Section
+              const Text(
+                "Detailed Reports",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              // Report List Items
+              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+              const SizedBox(height: 12),
+              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeFilterButton(String label) {
+    final isSelected = _selectedTimeframe == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTimeframe = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryBrown : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? AppColors.primaryBrown : AppColors.cardCream,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.textLight,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarChartItem(
+    String label,
+    int value,
+    Color color, {
+    bool isSelected = false,
+    double? barWidth,
+  }) {
+    // Use provided barWidth or calculate from value
+    final maxValue = 125000;
+    final widthFactor = barWidth ?? (value / maxValue);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              _formatCurrencyWithSymbol(value),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            Container(
+              height: 30,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              width: double.infinity,
+            ),
+            FractionallySizedBox(
+              widthFactor: widthFactor,
+              child: Container(
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Detailed Reports List
-            const Text(
-              'Detailed Reports',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+            if (isSelected)
+              Positioned(
+                right: 8,
+                top: 6,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildReportItem('Durga Puja Idols', '₹45,000 profit'),
-            _buildReportItem('Ganesh Chaturthi', '₹25,000 profit'),
-            _buildReportItem('Diwali Decorations', '₹15,000 profit'),
           ],
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildOverviewCard(String title, String amount, IconData icon, Color color, {bool fullWidth = false}) {
+  Widget _buildTransactionItem(
+    String title,
+    String date,
+    String amount,
+    Color amountColor,
+  ) {
     return Container(
-      width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textLight,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryBrown : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? AppColors.primaryBrown : AppColors.textLight,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : AppColors.textDark,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportItem(String title, String subtitle) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Column(
@@ -199,12 +479,11 @@ class ReportsScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  subtitle,
+                  date,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textLight,
@@ -213,12 +492,78 @@ class ReportsScreen extends StatelessWidget {
               ],
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: AppColors.textLight,
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: amountColor,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildReportItem(String title, String amount, Color amountColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5E6D3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          Row(
+            children: [
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: amountColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppColors.textLight,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatCurrencyWithSymbol(int value) {
+    // Format as Indian numbering system: 1,25,000 (last 3 digits, then groups of 2)
+    final String valueStr = value.toString();
+    if (valueStr.length <= 3) {
+      return "₹$valueStr";
+    }
+
+    List<String> parts = [];
+    // Take last 3 digits
+    if (valueStr.length > 3) {
+      parts.add(valueStr.substring(valueStr.length - 3));
+      // Take remaining digits in groups of 2 from right
+      int remaining = valueStr.length - 3;
+      for (int i = remaining - 2; i >= 0; i -= 2) {
+        int start = i < 0 ? 0 : i;
+        int end = i + 2 > remaining ? remaining : i + 2;
+        parts.insert(0, valueStr.substring(start, end));
+      }
+    } else {
+      parts.add(valueStr);
+    }
+
+    return "₹${parts.join(',')}";
   }
 }

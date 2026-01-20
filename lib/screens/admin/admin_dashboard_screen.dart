@@ -5,8 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/user.dart';
-import '../../l10n/app_localizations.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({Key? key}) : super(key: key);
@@ -65,7 +63,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final l10n = AppLocalizations.of(context)!;
 
     if (!authProvider.isAdmin) {
       return Scaffold(

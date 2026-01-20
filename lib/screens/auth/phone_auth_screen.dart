@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
-
-import '../../services/auth_service.dart';
-import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({Key? key}) : super(key: key);
@@ -36,21 +34,24 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     });
 
     try {
-      final authService = context.read<AuthService>();
-      final phoneNumber = '+91${_phoneController.text.trim()}'; // Assuming Indian numbers
+      final authProvider = context.read<AuthProvider>();
+      final phoneNumber = '+91${_phoneController.text.trim()}';
 
-      await authService.sendWhatsAppOTP(phoneNumber);
+      print('Attempting to send OTP to: $phoneNumber');
+
+      await authProvider.sendOTP(phoneNumber);
+
+      print('OTP sent successfully');
 
       if (mounted) {
-        // Navigate to OTP verification screen
         context.push('/otp-verification', extra: {
           'phoneNumber': phoneNumber,
-          'verificationId': authService.verificationId,
         });
       }
     } catch (e) {
+      print('OTP send failed with error: $e');
       setState(() {
-        _errorMessage = 'Failed to send OTP. Please try again.';
+        _errorMessage = _getDetailedErrorMessage(e);
       });
     } finally {
       if (mounted) {
@@ -58,6 +59,24 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  String _getDetailedErrorMessage(Object error) {
+    final errorString = error.toString().toLowerCase();
+
+    if (errorString.contains('invalid-phone-number')) {
+      return 'Invalid phone number format. Please check and try again.';
+    } else if (errorString.contains('too-many-requests')) {
+      return 'Too many requests. Please wait a few minutes before trying again.';
+    } else if (errorString.contains('quota-exceeded')) {
+      return 'SMS quota exceeded. Please try again later.';
+    } else if (errorString.contains('missing-client-identifier')) {
+      return 'Firebase not properly configured. Please check your setup.';
+    } else if (errorString.contains('simulator')) {
+      return 'Phone authentication not supported on iOS Simulator. Please use a real device or Android emulator.';
+    } else {
+      return 'Failed to send OTP: ${error.toString()}';
     }
   }
 
@@ -76,8 +95,6 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
@@ -206,7 +223,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: CustomButton(
-                    label: _isLoading ? 'Sending...' : 'Send OTP via WhatsApp',
+                    label: _isLoading ? 'Sending...' : 'Send OTP',
                     onPressed: _isLoading ? null : () => _sendOTP(),
                     backgroundColor: AppColors.primaryBrown,
                     isLoading: _isLoading,
@@ -217,7 +234,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
 
                 // Info Text
                 Text(
-                  'We will send an OTP to your WhatsApp number for verification',
+                  'We will send an OTP to your phone number for verification',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeSmall,
                     color: AppColors.textLight,

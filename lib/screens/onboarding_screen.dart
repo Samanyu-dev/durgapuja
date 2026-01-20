@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../l10n/app_localizations.dart';
 
 class OnboardingItem {
   final String title;

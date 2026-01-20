@@ -194,9 +194,11 @@ class _FeatureCardState extends State<_FeatureCard> {
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
-                height: 1.2,
+                height: 1.1,
               ),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

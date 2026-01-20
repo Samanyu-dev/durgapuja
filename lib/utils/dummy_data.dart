@@ -1,5 +1,6 @@
 import '../models/client.dart';
 import '../models/transaction.dart';
+import '../models/idol_order.dart';
 
 class DummyData {
   static List<Client> clients = [
@@ -7,6 +8,7 @@ class DummyData {
       id: '1',
       name: 'Rohan Sharma',
       phone: '+91 98765 43210',
+      status: 'Active',
       idols: [
         IdolOrder(
           id: '1',
@@ -37,6 +39,7 @@ class DummyData {
       id: '2',
       name: 'Priya Patel',
       phone: '+91 87654 32109',
+      status: 'Active',
       idols: [
         IdolOrder(
           id: '3',
@@ -58,6 +61,7 @@ class DummyData {
       id: '3',
       name: 'Amit Kumar',
       phone: '+91 76543 21098',
+      status: 'Active',
       idols: [
         IdolOrder(
           id: '4',

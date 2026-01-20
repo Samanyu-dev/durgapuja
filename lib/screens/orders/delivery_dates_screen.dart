@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../utils/dummy_data.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
 
 class DeliveryDatesScreen extends StatefulWidget {
   final String clientId;
 
-  const DeliveryDatesScreen({Key? key, required this.clientId})
-      : super(key: key);
+  const DeliveryDatesScreen({super.key, required this.clientId});
 
   @override
   State<DeliveryDatesScreen> createState() => _DeliveryDatesScreenState();
@@ -20,24 +19,16 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
   DateTime? _selectedDay;
   bool _showCalendar = false;
 
-  String get clientName => DummyData.getClientNameById(widget.clientId);
-
   final List<Map<String, String>> _deliveryOrders = [
-    {
-      'name': 'Ganesh Idol',
-      'date': 'Oct 26, 2024',
-    },
-    {
-      'name': 'Durga Idol',
-      'date': 'Oct 26, 2024',
-    },
+    {'name': 'Ganesh Idol', 'date': 'Oct 26, 2024'},
+    {'name': 'Durga Idol', 'date': 'Oct 26, 2024'},
   ];
 
   void _addDeliveryDate() {
     if (_selectedDay == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a date')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a date')));
       return;
     }
 
@@ -69,7 +60,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(clientName),
+        title: Text(widget.clientId),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -91,8 +82,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                 padding: const EdgeInsets.all(AppConstants.mediumPadding),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -105,8 +97,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                   firstDay: DateTime.utc(2024, 1, 1),
                   lastDay: DateTime.utc(2025, 12, 31),
                   focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) =>
-                      isSameDay(_selectedDay, day),
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
                       _selectedDay = selectedDay;
@@ -125,9 +116,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                       color: AppColors.accentOrange,
                       shape: BoxShape.circle,
                     ),
-                    weekendTextStyle: TextStyle(
-                      color: AppColors.warningRed,
-                    ),
+                    weekendTextStyle: TextStyle(color: AppColors.warningRed),
                   ),
                   headerStyle: HeaderStyle(
                     formatButtonVisible: false,
@@ -175,8 +164,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
               ),
               decoration: BoxDecoration(
                 color: AppColors.primaryBrown,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.largeRadius),
+                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
               ),
               child: TextButton.icon(
                 onPressed: () {
@@ -186,10 +174,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                     ),
                   );
                 },
-                icon: const Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.mic, color: Colors.white),
                 label: const Text(
                   'Record with voice',
                   style: TextStyle(
@@ -203,6 +188,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 2, onTap: (index) {}),
     );
   }
 

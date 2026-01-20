@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../providers/auth_provider.dart';
-import '../../l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -18,15 +16,12 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isSignIn = true; // true for sign in, false for sign up
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -41,18 +36,13 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       final phoneNumber = '+91${_phoneController.text.trim()}';
-      final password = _passwordController.text;
 
-      bool success;
-      if (_isSignIn) {
-        success = await authProvider.signInWithPhoneAndPassword(phoneNumber, password);
-      } else {
-        success = await authProvider.signUpWithPhoneAndPassword(phoneNumber, password);
-      }
+      await authProvider.sendOTP(phoneNumber);
 
-      if (success && mounted) {
-        // Navigation will be handled by router redirect
-        context.go('/');
+      if (mounted) {
+        context.push('/otp-verification', extra: {
+          'phoneNumber': phoneNumber,
+        });
       }
     } catch (e) {
       setState(() {
@@ -97,20 +87,10 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter your password';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
-  }
+
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
@@ -155,7 +135,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 // Subtitle
                 Text(
-                  _isSignIn ? 'Sign in to your account' : 'Create your account',
+                  'Enter your phone number to continue',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeBody,
                     color: AppColors.textLight,
@@ -194,33 +174,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 ),
 
-                const SizedBox(height: AppConstants.mediumPadding),
 
-                // Password Input
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.all(16),
-                    ),
-                    validator: _validatePassword,
-                  ),
-                ),
 
                 // Error Message
                 if (_errorMessage != null) ...[
@@ -259,9 +213,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: CustomButton(
-                    label: _isLoading
-                        ? (_isSignIn ? 'Signing In...' : 'Creating Account...')
-                        : (_isSignIn ? 'Sign In' : 'Sign Up'),
+                    label: _isLoading ? 'Sending OTP...' : 'Send OTP',
                     onPressed: _isLoading ? null : _submit,
                     backgroundColor: AppColors.primaryBrown,
                     isLoading: _isLoading,
@@ -270,57 +222,46 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 const SizedBox(height: AppConstants.mediumPadding),
 
-                // Toggle between sign in and sign up
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isSignIn = !_isSignIn;
-                      _errorMessage = null;
-                    });
-                  },
-                  child: Text(
-                    _isSignIn
-                        ? "Don't have an account? Sign Up"
-                        : 'Already have an account? Sign In',
-                    style: TextStyle(
-                      color: AppColors.primaryBrown,
-                      fontSize: AppConstants.fontSizeBody,
-                    ),
+                // Info Text
+                Text(
+                  'We will send an OTP to your phone number for verification',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSizeSmall,
+                    color: AppColors.textLight,
                   ),
+                  textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: AppConstants.mediumPadding),
 
-                // Terms and Privacy (only show for sign up)
-                if (!_isSignIn) ...[
-                  Text.rich(
-                    TextSpan(
-                      text: 'By signing up, you agree to our ',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeSmall,
-                        color: AppColors.textLight,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Terms of Service',
-                          style: TextStyle(
-                            color: AppColors.primaryBrown,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const TextSpan(text: ' and '),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: TextStyle(
-                            color: AppColors.primaryBrown,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                // Terms and Privacy
+                Text.rich(
+                  TextSpan(
+                    text: 'By continuing, you agree to our ',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeSmall,
+                      color: AppColors.textLight,
                     ),
-                    textAlign: TextAlign.center,
+                    children: [
+                      TextSpan(
+                        text: 'Terms of Service',
+                        style: TextStyle(
+                          color: AppColors.primaryBrown,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const TextSpan(text: ' and '),
+                      TextSpan(
+                        text: 'Privacy Policy',
+                        style: TextStyle(
+                          color: AppColors.primaryBrown,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),

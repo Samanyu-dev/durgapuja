@@ -1,6 +1,7 @@
 // Unit tests for critical business logic
 import 'package:flutter_test/flutter_test.dart';
 import '../lib/models/client.dart';
+import '../lib/models/idol_order.dart';
 import '../lib/models/transaction.dart' as app_transaction;
 import '../lib/utils/constants.dart';
 
@@ -82,6 +83,7 @@ void main() {
         id: 'client-1',
         name: 'John Doe',
         phone: '+919876543210',
+        status: 'Active',
         idols: [
           IdolOrder(
             id: 'idol-1',
@@ -110,9 +112,9 @@ void main() {
 
     test('should validate Client data', () {
       // Arrange & Act & Assert
-      expect(() => Client(id: '', name: 'John', phone: '+919876543210', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
-      expect(() => Client(id: 'client-1', name: '', phone: '+919876543210', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
-      expect(() => Client(id: 'client-1', name: 'John', phone: 'invalid', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
+      expect(() => Client(id: '', name: 'John', phone: '+919876543210', status: 'Active', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
+      expect(() => Client(id: 'client-1', name: '', phone: '+919876543210', status: 'Active', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
+      expect(() => Client(id: 'client-1', name: 'John', phone: 'invalid', status: 'Active', idols: [], pendingAmount: 0, deliveryDates: [], notes: []), throwsException);
     });
   });
 
@@ -308,9 +310,9 @@ void main() {
     test('should calculate client pending amounts correctly', () {
       // Arrange
       final clients = [
-        Client(id: '1', name: 'Client A', phone: '+911234567890', idols: [], pendingAmount: 5000, deliveryDates: [], notes: []),
-        Client(id: '2', name: 'Client B', phone: '+919876543210', idols: [], pendingAmount: 3000, deliveryDates: [], notes: []),
-        Client(id: '3', name: 'Client C', phone: '+918765432109', idols: [], pendingAmount: 0, deliveryDates: [], notes: []),
+        Client(id: '1', name: 'Client A', phone: '+911234567890', status: 'Active', idols: [], pendingAmount: 5000, deliveryDates: [], notes: []),
+        Client(id: '2', name: 'Client B', phone: '+919876543210', status: 'Active', idols: [], pendingAmount: 3000, deliveryDates: [], notes: []),
+        Client(id: '3', name: 'Client C', phone: '+918765432109', status: 'Active', idols: [], pendingAmount: 0, deliveryDates: [], notes: []),
       ];
 
       // Act
