@@ -52,7 +52,7 @@ dependencies:
   firebase_storage: ^12.0.0
   sqflite: ^2.3.3
   speech_to_text: ^6.6.1
-  google_mlkit_translation: ^0.11.0
+  # google_mlkit_translation: ^0.11.0  # Temporarily disabled - requires higher iOS deployment target
 
 dev_dependencies:
   flutter_test:
