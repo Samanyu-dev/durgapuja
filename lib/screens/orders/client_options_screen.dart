@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import 'client_details_screen.dart';
 import 'record_payment_screen.dart';
 
@@ -13,12 +12,7 @@ class ClientOptionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-          // Navigation handled by MainNavigationScreen
-        },
-      ),
+
       body: SafeArea(
         child: Column(
           children: [

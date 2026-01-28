@@ -188,7 +188,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(currentIndex: 2, onTap: (index) {}),
+
     );
   }
 

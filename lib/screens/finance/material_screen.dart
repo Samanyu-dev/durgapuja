@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'samiti_funds_screen.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import 'add_new_rate_screen.dart';
 import 'worker_funds_screen.dart';
 
@@ -19,158 +18,21 @@ class MaterialsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F0E6),
-      bottomNavigationBar: showBottomNav
-          ? CustomBottomNav(
-              currentIndex: 2,
-              onTap:
-                  onBottomNavTap ??
-                  (index) {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    // Navigation will be handled by MainNavigationScreen
-                  },
-            )
-          : null,
-
+      backgroundColor: const Color(0xFFF5E6D3),
+      appBar: AppBar(
+        title: const Text('Material Tracker'),
+        backgroundColor: const Color(0xFF9A5222),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // -------- TOP: TITLE + BACK BUTTON -------
-              Row(
-                children: [
-                  if (showBottomNav)
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    )
-                  else
-                    IconButton(
-                      onPressed: () {
-                        // Navigate to Home tab in MainNavigationScreen
-                        if (onBackPressed != null) {
-                          onBackPressed!();
-                        } else {
-                          Navigator.of(context).popUntil((route) => route.isFirst);
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.black,
-                        size: 20,
-                      ),
-                    ),
-                  const Spacer(),
-                  const Text(
-                    "Finance",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.view_module,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              // -------- NEW TABS (Material Tracker | Samiti Funds | Worker Funds) --------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Material Tracker (SELECTED)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            "Material Tracker",
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF5C3D2E),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(top: 6),
-                            height: 3,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5C3D2E),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Samiti Funds
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SamitiFundsScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Samiti Funds",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF757575),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Worker Funds
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const WorkerFundsScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Worker Funds",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF757575),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
               // ---------------- SEARCH BAR ----------------
               Container(
                 padding: const EdgeInsets.symmetric(

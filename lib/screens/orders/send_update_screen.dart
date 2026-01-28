@@ -163,7 +163,7 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(currentIndex: 2, onTap: (index) {}),
+
     );
   }
 

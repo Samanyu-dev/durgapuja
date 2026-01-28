@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/speech_service.dart';
 import '../../utils/colors.dart';
 import '../../services/translation_service.dart';
 import '../../services/gpt_service.dart';
 import '../../services/database_service.dart';
 import '../../services/finance_processor.dart';
+import '../../utils/dummy_data.dart';
 
 class FinanceHomeScreen extends StatefulWidget {
   const FinanceHomeScreen({super.key});
@@ -21,6 +23,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   double _totalExpenses = 0.0;
   double get _currentBalance => _totalIncome - _totalExpenses;
   bool _isListening = false;
+  bool _showManagementView = false; // Toggle between Dashboard and All Sections
 
   @override
   void initState() {
@@ -87,6 +90,12 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 "Hello, Artisan",
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
+
+              const SizedBox(height: 25),
+
+              // Quick Navigation Chips
+              if (!_showManagementView)
+                _buildQuickNavigationChips(),
 
               const SizedBox(height: 25),
 
@@ -272,6 +281,70 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 changePercent: null,
                 isPositive: true,
                 iconBackground: AppColors.cardCream,
+              ),
+
+              const SizedBox(height: 30),
+
+              // Finance Navigation Grid
+              const Text(
+                "Finance Management",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+
+              const SizedBox(height: 15),
+
+              GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  // Material Tracker
+                  _buildFinanceCard(
+                    icon: Icons.category,
+                    title: "Material Tracker",
+                    subtitle: "Track material costs and trends",
+                    onTap: () {
+                      context.go('/finance/materials');
+                    },
+                  ),
+                  
+                  // Samiti Funds
+                  _buildFinanceCard(
+                    icon: Icons.account_balance_wallet,
+                    title: "Samiti Funds",
+                    subtitle: "Manage community fund sources",
+                    onTap: () {
+                      context.go('/finance/samiti-funds');
+                    },
+                  ),
+
+                  // Worker Funds
+                  _buildFinanceCard(
+                    icon: Icons.people,
+                    title: "Worker Funds",
+                    subtitle: "Track worker payments and budgets",
+                    onTap: () {
+                      context.go('/finance/worker-funds');
+                    },
+                  ),
+
+                  // Worker Details
+                  _buildFinanceCard(
+                    icon: Icons.person,
+                    title: "Worker Details",
+                    subtitle: "View and manage worker information",
+                    onTap: () {
+                      context.go('/finance/worker-details', extra: {
+                        'name': 'Ramesh',
+                        'category': 'Durga Idol / Claymaking',
+                        'budget': '25000',
+                        'paid': '12000'
+                      });
+                    },
+                  ),
+                ],
               ),
 
               const SizedBox(height: 30),
@@ -600,19 +673,40 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   }
 
   Widget _buildPendingPaymentList() {
+    // Get clients with pending amounts
+    final pendingClients = DummyData.clients.where((client) => client.pendingAmount > 0).toList();
+
+    if (pendingClients.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: Text(
+            "No pending payments",
+            style: TextStyle(fontSize: 16, color: AppColors.textLight),
+          ),
+        ),
+      );
+    }
+
     return Column(
-      children: [
-        _buildPendingPaymentItem(name: "Rohan Sharma", delay: "2 day delay"),
-        const SizedBox(height: 12),
-        _buildPendingPaymentItem(name: "Rohan Sharma", delay: "2 day delay"),
-        const SizedBox(height: 12),
-        _buildPendingPaymentItem(name: "Rohan Sharma", delay: "2 day delay"),
-      ],
+      children: pendingClients.map((client) {
+        return Column(
+          children: [
+            _buildPendingPaymentItem(
+              name: client.name,
+              amount: client.pendingAmount,
+              delay: "Pending payment"
+            ),
+            const SizedBox(height: 12),
+          ],
+        );
+      }).toList(),
     );
   }
 
   Widget _buildPendingPaymentItem({
     required String name,
+    required double amount,
     required String delay,
   }) {
     return Container(
@@ -641,7 +735,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                   ),
                 ),
                 Text(
-                  delay,
+                  "₹${amount.toStringAsFixed(0)} - $delay",
                   style: const TextStyle(fontSize: 14, color: Colors.red),
                 ),
               ],
@@ -674,12 +768,342 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   }
 
   Widget _buildUpcomingDeliveriesList() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(40.0),
+    // Get all upcoming deliveries from clients
+    final now = DateTime.now();
+    final upcomingDeliveries = <Map<String, dynamic>>[];
+
+    for (final client in DummyData.clients) {
+      for (final idol in client.idols) {
+        if (idol.deliveryDate.isAfter(now)) {
+          upcomingDeliveries.add({
+            'clientName': client.name,
+            'idolName': idol.name,
+            'deliveryDate': idol.deliveryDate,
+            'status': idol.status,
+          });
+        }
+      }
+    }
+
+    // Sort by delivery date
+    upcomingDeliveries.sort((a, b) => a['deliveryDate'].compareTo(b['deliveryDate']));
+
+    if (upcomingDeliveries.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40.0),
+          child: Text(
+            "No upcoming deliveries",
+            style: TextStyle(fontSize: 16, color: AppColors.textLight),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: upcomingDeliveries.map((delivery) {
+        return Column(
+          children: [
+            _buildUpcomingDeliveryItem(
+              clientName: delivery['clientName'],
+              idolName: delivery['idolName'],
+              deliveryDate: delivery['deliveryDate'],
+              status: delivery['status'],
+            ),
+            const SizedBox(height: 12),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildUpcomingDeliveryItem({
+    required String clientName,
+    required String idolName,
+    required DateTime deliveryDate,
+    required String status,
+  }) {
+    final now = DateTime.now();
+    final daysLeft = deliveryDate.difference(now).inDays;
+    final dateStr = '${deliveryDate.day}/${deliveryDate.month}/${deliveryDate.year}';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.cardCream,
+            child: Icon(Icons.inventory, color: AppColors.primaryBrown),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$idolName - $clientName',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '$dateStr (${daysLeft > 0 ? '$daysLeft days left' : 'Overdue'})',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: daysLeft > 0 ? AppColors.primaryBrown : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _getStatusColor(status),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              status,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'in progress':
+        return AppColors.primaryBrown;
+      case 'pending':
+        return AppColors.accentOrange;
+      case '2 day delay':
+        return Colors.red;
+      default:
+        return AppColors.textLight;
+    }
+  }
+
+  // Quick Navigation Chips
+  Widget _buildQuickNavigationChips() {
+    return Container(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildQuickChip(
+            label: "Dashboard",
+            isSelected: !_showManagementView,
+            onTap: () {
+              setState(() {
+                _showManagementView = false;
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildQuickChip(
+            label: "All Sections",
+            isSelected: _showManagementView,
+            onTap: () {
+              setState(() {
+                _showManagementView = true;
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildQuickChip(
+            label: "Materials",
+            isSelected: false,
+            onTap: () {
+              context.go('/finance/materials');
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildQuickChip(
+            label: "Samiti Funds",
+            isSelected: false,
+            onTap: () {
+              context.go('/finance/samiti-funds');
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildQuickChip(
+            label: "Worker Funds",
+            isSelected: false,
+            onTap: () {
+              context.go('/finance/worker-funds');
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildQuickChip(
+            label: "Worker Details",
+            isSelected: false,
+            onTap: () {
+              context.go('/finance/worker-details');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accentOrange : AppColors.cardCream,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.accentOrange : AppColors.textLight,
+          ),
+        ),
         child: Text(
-          "No upcoming deliveries",
-          style: TextStyle(fontSize: 16, color: AppColors.textLight),
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textDark,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Compact Financial Summary Cards for Management View
+  Widget _buildCompactFinancialCards() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildCompactFinancialCard(
+            icon: Icons.account_balance_wallet,
+            title: "Income",
+            amount: "₹ ${_formatCurrency(_totalIncome)}",
+            color: Colors.green.withOpacity(0.1),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildCompactFinancialCard(
+            icon: Icons.shopping_basket,
+            title: "Expenses",
+            amount: "₹ ${_formatCurrency(_totalExpenses)}",
+            color: Colors.red.withOpacity(0.1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactFinancialCard({
+    required IconData icon,
+    required String title,
+    required String amount,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: AppColors.primaryBrown),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            amount,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Finance Navigation Card Widget
+  Widget _buildFinanceCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.cardCream,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 28, color: AppColors.primaryBrown),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
+          ],
         ),
       ),
     );

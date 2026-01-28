@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
 
@@ -96,6 +95,60 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
     );
   }
 
+  void _showVoiceNoteRecheckDialog(String banglaText, String englishText) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Voice Note Recheck'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Recognized Bangla Text:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(banglaText),
+            const SizedBox(height: 16),
+            const Text(
+              'Translated English Text:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(englishText),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Implement re-record functionality
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please record again')),
+              );
+            },
+            child: const Text('Recheck'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Process the voice note (e.g., extract payment info)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Voice note confirmed')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBrown,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,10 +157,19 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
         onPressed: () async {
           String banglaText = await _speechService.listenBangla();
           debugPrint("Bangla Text: $banglaText");
-          String englishText = await _translationService.translateToEnglish(
-            banglaText,
-          );
-          debugPrint("English Text: $englishText");
+          if (banglaText.isNotEmpty) {
+            String englishText = await _translationService.translateToEnglish(
+              banglaText,
+            );
+            debugPrint("English Text: $englishText");
+
+            // Show popup for recheck
+            _showVoiceNoteRecheckDialog(banglaText, englishText);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No speech detected. Please try again.')),
+            );
+          }
         },
         backgroundColor: AppColors.primaryBrown,
         child: const Icon(Icons.mic, color: Colors.white),
@@ -389,12 +451,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-          // Navigation handled by MainNavigationScreen
-        },
-      ),
+
     );
   }
 

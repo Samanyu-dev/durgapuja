@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
+import '../../services/database_service.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   final String clientId;
@@ -39,24 +39,196 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     super.dispose();
   }
 
+  void _updateClientDetails(BuildContext context) async {
+    try {
+      await DatabaseService.updateClientDetails(
+        oldCustomerName: widget.clientId,
+        newCustomerName: _clientNameController.text,
+        phoneNumber: _contactController.text,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Client details updated successfully')),
+      );
+      // Navigate back or refresh
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating client details: $e')),
+      );
+    }
+  }
+
+  void _deleteClient(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Client'),
+          content: const Text(
+            'Are you sure you want to delete this client and all their orders? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await DatabaseService.deleteOrdersByCustomerName(widget.clientId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Client deleted successfully')),
+        );
+        Navigator.of(context).pop(); // Go back to previous screen
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting client: $e')),
+        );
+      }
+    }
+  }
+
+  void _addAnotherIdol(BuildContext context) async {
+    // Show a dialog to input idol details
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController idolNameController = TextEditingController();
+        final TextEditingController requirementsController = TextEditingController();
+        DateTime? selectedDate;
+
+        return AlertDialog(
+          title: const Text('Add Another Idol'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: idolNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Idol Name',
+                    hintText: 'e.g., Durga Idol',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: requirementsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Special Requirements',
+                    hintText: 'Materials and requirements',
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().add(const Duration(days: 30)),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      selectedDate = picked;
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today),
+                        const SizedBox(width: 8),
+                        Text(
+                          selectedDate != null
+                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                              : 'Select Delivery Date',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (idolNameController.text.isNotEmpty) {
+                  try {
+                    await DatabaseService.insertOrder(
+                      customerName: widget.clientId,
+                      idolName: idolNameController.text,
+                      specialRequirements: requirementsController.text,
+                      deliveryDate: selectedDate?.toIso8601String(),
+                    );
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Idol added successfully')),
+                    );
+                    // Refresh the screen or update UI
+                    setState(() {});
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error adding idol: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Add Idol'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-          // Navigation handled by MainNavigationScreen
-        },
-      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          String banglaText = await _speechService.listenBangla();
-          debugPrint("Bangla Text: $banglaText");
-          String englishText = await _translationService.translateToEnglish(
-            banglaText,
-          );
-          debugPrint("English Text: $englishText");
+          try {
+            String banglaText = await _speechService.listenBangla();
+            debugPrint("Bangla Text: $banglaText");
+            if (banglaText.isNotEmpty) {
+              String englishText = await _translationService.translateToEnglish(
+                banglaText,
+              );
+              debugPrint("English Text: $englishText");
+              // Show the recognized text to user
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Recognized: $englishText')),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No speech detected')),
+              );
+            }
+          } catch (e) {
+            debugPrint("Speech recognition error: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Speech recognition failed: $e')),
+            );
+          }
         },
         backgroundColor: AppColors.primaryBrown,
         child: const Icon(Icons.mic, color: Colors.white),
@@ -166,7 +338,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => _addAnotherIdol(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBrown,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -191,7 +363,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => _deleteClient(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.cardCream,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -217,7 +389,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => _updateClientDetails(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.backgroundCream,
                     padding: const EdgeInsets.symmetric(vertical: 16),

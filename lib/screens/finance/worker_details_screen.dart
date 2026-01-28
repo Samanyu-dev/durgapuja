@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import '../../services/database_service.dart';
 
 class WorkerDetailsScreen extends StatefulWidget {
@@ -15,6 +14,15 @@ class WorkerDetailsScreen extends StatefulWidget {
     required this.budget,
     required this.paid,
   });
+
+  // Constructor for navigation with arguments
+  WorkerDetailsScreen.fromArgs(Map<String, dynamic> args)
+      : this(
+          workerName: args['name'] ?? 'Unknown',
+          category: args['category'] ?? 'Unknown',
+          budget: args['budget'] ?? '0',
+          paid: args['paid'] ?? '0',
+        );
 
   @override
   State<WorkerDetailsScreen> createState() => _WorkerDetailsScreenState();
@@ -66,30 +74,14 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
         double.tryParse(widget.paid.replaceAll(",", ""))!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F0E6),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-          if (index == 2) {
-            // Stay on Finance tab, just pop back
-            Navigator.pop(context);
-            return;
-          }
-
-          // Pop back to MainNavigationScreen, then switch tabs
-          // Pop multiple times if needed to get back to MainNavigationScreen
-          int popCount = 0;
-          while (Navigator.canPop(context) && popCount < 5) {
-            Navigator.pop(context);
-            popCount++;
-            // Stop if we've popped enough to get back to MainNavigationScreen
-          }
-
-          // Switch to the selected tab after popping
-          Future.microtask(() {
-            // Navigation handled by popping
-          });
-        },
+      backgroundColor: const Color(0xFFF5E6D3),
+      appBar: AppBar(
+        title: Text(widget.workerName),
+        backgroundColor: const Color(0xFF9A5222),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -102,27 +94,6 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Row
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  Text(
-                    widget.workerName,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
               Text(
                 "Category: ${widget.category}",
                 style: const TextStyle(fontSize: 14, color: Colors.black54),

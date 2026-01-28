@@ -28,180 +28,217 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: AppConstants.mediumPadding,
-              crossAxisSpacing: AppConstants.mediumPadding,
-              children: [
-                _buildFeatureCard(
-                  icon: Icons.lightbulb_outline,
-                  title: l10n.ideaGeneration,
-                  subtitle: l10n.ideaGenerationDesc,
-                  onTap: () => context.go('/design/idea-generation'),
-                ),
-                _buildFeatureCard(
-                  icon: Icons.build_circle_outlined,
-                  title: l10n.idolBuild,
-                  subtitle: l10n.idolBuildDesc,
-                  onTap: () => context.go('/design/sculpting'),
-                ),
-                _buildFeatureCard(
-                  icon: Icons.palette_outlined,
-                  title: l10n.decorationDetailing,
-                  subtitle: l10n.decorationDetailingDesc,
-                  onTap: () => context.go('/design/detailing'),
-                ),
-                _buildFeatureCard(
-                  icon: Icons.preview_outlined,
-                  title: l10n.idolPreviews,
-                  subtitle: l10n.idolPreviewsDesc,
-                  onTap: () => context.go('/design/preview'),
-                ),
-                _buildFeatureCard(
-                  icon: Icons.image_outlined,
-                  title: l10n.generateBackdrop,
-                  subtitle: l10n.generateBackdropDesc,
-                  onTap: () => context.go('/design/backdrop'),
-                ),
-                _buildFeatureCard(
-                  icon: Icons.lightbulb_circle_outlined,
-                  title: l10n.tryLights,
-                  subtitle: l10n.tryLightsDesc,
-                  onTap: () => context.go('/design/lighting'),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppConstants.largePadding),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return _FeatureCard(
-      icon: icon,
-      title: title,
-      subtitle: subtitle,
-      onTap: onTap,
-    );
-  }
-}
-
-class _FeatureCard extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  State<_FeatureCard> createState() => _FeatureCardState();
-}
-
-class _FeatureCardState extends State<_FeatureCard> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        transform: _isPressed
-            ? Matrix4.translationValues(0, 2, 0)
-            : Matrix4.translationValues(0, 0, 0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _isPressed
-                ? [AppColors.cardCream, Colors.white]
-                : [Colors.white, AppColors.cardCream.withOpacity(0.7)],
-          ),
-          borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-          boxShadow: _isPressed
-              ? [
-                  BoxShadow(
-                    color: AppColors.primaryBrown.withOpacity(0.15),
-                    blurRadius: 12,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [
+            // Welcome section
+            Container(
+              padding: const EdgeInsets.all(AppConstants.largePadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ],
-          border: Border.all(
-            color: _isPressed
-                ? AppColors.primaryBrown.withOpacity(0.2)
-                : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        padding: const EdgeInsets.all(AppConstants.mediumPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              decoration: BoxDecoration(
-                color: _isPressed
-                    ? AppColors.primaryBrown.withOpacity(0.15)
-                    : AppColors.primaryBrown.withOpacity(0.05),
-                shape: BoxShape.circle,
               ),
-              padding: const EdgeInsets.all(16),
-              child: Icon(
-                widget.icon,
-                size: _isPressed ? 42 : 40,
-                color: AppColors.primaryBrown,
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.design_services_outlined,
+                    size: 64,
+                    color: AppColors.primaryBrown,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Durga Idol Design Studio',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeLarge,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create beautiful Durga Puja designs with AI assistance',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeBody,
+                      color: AppColors.textLight,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: AppConstants.mediumPadding),
+            const SizedBox(height: AppConstants.largePadding),
+
+            // Main options
             Text(
-              widget.title,
+              'Choose Your Design Path',
               style: TextStyle(
-                fontSize: AppConstants.fontSizeMedium,
+                fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textDark,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            Text(
-              widget.subtitle,
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeSmall,
-                color: AppColors.textLight,
-                height: 1.1,
+            const SizedBox(height: AppConstants.mediumPadding),
+
+            Column(
+              children: [
+                _buildMainOption(
+                  icon: Icons.auto_awesome,
+                  title: 'Create New Design',
+                  subtitle: 'Generate a new Durga idol design using text or voice prompts',
+                  onTap: () => context.go('/design/create'),
+                  color: AppColors.primaryBrown,
+                ),
+                const SizedBox(height: AppConstants.mediumPadding),
+                _buildMainOption(
+                  icon: Icons.edit_outlined,
+                  title: 'Edit Existing Design',
+                  subtitle: 'Modify and enhance previously created designs',
+                  onTap: () => context.go('/design/edit'),
+                  color: AppColors.accentOrange,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppConstants.largePadding),
+
+            // Quick tips
+            Container(
+              padding: const EdgeInsets.all(AppConstants.mediumPadding),
+              decoration: BoxDecoration(
+                color: AppColors.cardCream,
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Design Tips',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeMedium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTip('Use descriptive prompts for better results'),
+                  _buildTip('Try voice input for natural language descriptions'),
+                  _buildTip('Select specific elements to edit individual parts'),
+                ],
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMainOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppConstants.largePadding),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, AppColors.cardCream.withOpacity(0.7)],
+          ),
+          borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 40,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeLarge,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeBody,
+                      color: AppColors.textLight,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 20,
+              color: AppColors.textLight,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTip(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: AppColors.primaryBrown,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: AppConstants.fontSizeSmall,
+              color: AppColors.textLight,
+            ),
+          ),
+        ],
       ),
     );
   }

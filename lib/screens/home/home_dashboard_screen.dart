@@ -5,10 +5,20 @@ import '../../utils/colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../providers/locale_provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/speech_service.dart';
+import '../../services/translation_service.dart';
 import '../settings_screen.dart';
 
-class HomeDashboardScreen extends StatelessWidget {
+class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
+}
+
+class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+  final SpeechService _speechService = SpeechService();
+  final TranslationService _translationService = TranslationService();
 
   @override
   Widget build(BuildContext context) {
@@ -58,52 +68,55 @@ class HomeDashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Record Voice Note Card
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.cardCream,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryBrown,
-                      shape: BoxShape.circle,
+            GestureDetector(
+              onTap: _recordVoiceNote,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.cardCream,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                    child: const Icon(
-                      Icons.mic,
-                      color: Colors.white,
-                      size: 40,
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryBrown,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.mic,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.recordVoiceNote,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.recordVoiceNote,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.voiceNoteDescription,
-                    style: const TextStyle(
-                      color: AppColors.textLight,
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.voiceNoteDescription,
+                      style: const TextStyle(
+                        color: AppColors.textLight,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -147,6 +160,32 @@ class HomeDashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _recordVoiceNote() async {
+    try {
+      String banglaText = await _speechService.listenBangla();
+      debugPrint("Bangla Text: $banglaText");
+      if (banglaText.isNotEmpty) {
+        String englishText = await _translationService.translateToEnglish(
+          banglaText,
+        );
+        debugPrint("English Text: $englishText");
+        // Show the recognized text to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Voice Note: $englishText')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No speech detected')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Speech recognition error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Speech recognition failed: $e')),
+      );
+    }
   }
 
   Widget _buildSummaryCard(String title, String amount, IconData icon, {bool fullWidth = false}) {

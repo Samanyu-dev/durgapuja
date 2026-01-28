@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/database_service.dart';
 
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({Key? key}) : super(key: key);
@@ -178,10 +179,28 @@ class _AddClientScreenState extends State<AddClientScreen> {
     }
   }
 
-  void _saveClient() {
+  void _saveClient() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Save client data
-      context.go('/orders');
+      try {
+        await DatabaseService.insertOrder(
+          customerName: _clientNameController.text,
+          phoneNumber: _phoneController.text,
+          idolName: _idolNameController.text,
+          amountReceived: 0.0, // New clients start with 0 payment
+          deliveryDate: _selectedDate?.toIso8601String(),
+          specialRequirements: _requirementsController.text,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Client added successfully')),
+        );
+
+        context.go('/finance/orders');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving client: $e')),
+        );
+      }
     }
   }
 

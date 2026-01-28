@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import '../../services/database_service.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -53,14 +52,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
-      bottomNavigationBar: widget.showBottomNav
-          ? CustomBottomNav(
-              currentIndex: 3,
-              onTap: (index) {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
-            )
-          : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -214,36 +205,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
-                  children: [
-                    _buildBarChartItem(
-                      "Saraswati P.",
-                      125000,
-                      AppColors.primaryBrown,
-                      barWidth: 1.0,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildBarChartItem(
-                      "Durga P.",
-                      25000,
-                      AppColors.accentOrange,
-                      barWidth: 0.25,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildBarChartItem(
-                      "Ganesha P.",
-                      40000,
-                      AppColors.primaryBrown,
-                      isSelected: true,
-                      barWidth: 0.40,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildBarChartItem(
-                      "Diwali",
-                      45000,
-                      AppColors.primaryBrown,
-                      barWidth: 0.45,
-                    ),
-                  ],
+                  children: _getProjectProfitsData().map((project) {
+                    return Column(
+                      children: [
+                        _buildBarChartItem(
+                          project['name'],
+                          project['value'],
+                          project['color'],
+                          isSelected: project['selected'] ?? false,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
 
@@ -395,8 +369,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     bool isSelected = false,
     double? barWidth,
   }) {
-    // Use provided barWidth or calculate from value
-    final maxValue = 125000;
+    // Use provided barWidth or calculate from value based on timeframe
+    final maxValue = _getMaxValueForTimeframe();
     final widthFactor = barWidth ?? (value / maxValue);
 
     return Column(
@@ -455,6 +429,52 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  int _getMaxValueForTimeframe() {
+    switch (_selectedTimeframe) {
+      case "Last 6 months":
+        return 125000;
+      case "Last year":
+        return 300000;
+      case "All years":
+        return 500000;
+      default:
+        return 125000;
+    }
+  }
+
+  List<Map<String, dynamic>> _getProjectProfitsData() {
+    switch (_selectedTimeframe) {
+      case "Last 6 months":
+        return [
+          {'name': 'Saraswati P.', 'value': 125000, 'color': AppColors.primaryBrown, 'selected': false},
+          {'name': 'Durga P.', 'value': 25000, 'color': AppColors.accentOrange, 'selected': false},
+          {'name': 'Ganesha P.', 'value': 40000, 'color': AppColors.primaryBrown, 'selected': true},
+          {'name': 'Diwali', 'value': 45000, 'color': AppColors.primaryBrown, 'selected': false},
+        ];
+      case "Last year":
+        return [
+          {'name': 'Saraswati P.', 'value': 280000, 'color': AppColors.primaryBrown, 'selected': false},
+          {'name': 'Durga P.', 'value': 120000, 'color': AppColors.accentOrange, 'selected': false},
+          {'name': 'Ganesha P.', 'value': 95000, 'color': AppColors.primaryBrown, 'selected': true},
+          {'name': 'Diwali', 'value': 110000, 'color': AppColors.primaryBrown, 'selected': false},
+        ];
+      case "All years":
+        return [
+          {'name': 'Saraswati P.', 'value': 450000, 'color': AppColors.primaryBrown, 'selected': false},
+          {'name': 'Durga P.', 'value': 320000, 'color': AppColors.accentOrange, 'selected': false},
+          {'name': 'Ganesha P.', 'value': 280000, 'color': AppColors.primaryBrown, 'selected': true},
+          {'name': 'Diwali', 'value': 350000, 'color': AppColors.primaryBrown, 'selected': false},
+        ];
+      default:
+        return [
+          {'name': 'Saraswati P.', 'value': 125000, 'color': AppColors.primaryBrown, 'selected': false},
+          {'name': 'Durga P.', 'value': 25000, 'color': AppColors.accentOrange, 'selected': false},
+          {'name': 'Ganesha P.', 'value': 40000, 'color': AppColors.primaryBrown, 'selected': true},
+          {'name': 'Diwali', 'value': 45000, 'color': AppColors.primaryBrown, 'selected': false},
+        ];
+    }
+  }
+
   Widget _buildTransactionItem(
     String title,
     String date,
@@ -467,38 +487,102 @@ class _ReportsScreenState extends State<ReportsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: amountColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  // TODO: Implement undo functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Transaction undone')),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  textStyle: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(
+                child: const Text('Undo'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () async {
+                  // Parse the amount string to determine if income or expense
+                  final amountStr = amount.replaceAll('₹', '').replaceAll(',', '');
+                  final isIncome = amountColor == Colors.green;
+                  final transactionAmount = double.tryParse(amountStr.replaceAll('+ ', '').replaceAll('- ', '')) ?? 0.0;
+
+                  try {
+                    if (isIncome) {
+                      await DatabaseService.updateIncome(transactionAmount);
+                    } else {
+                      await DatabaseService.updateExpenses(transactionAmount);
+                    }
+
+                    // Refresh the finance data
+                    await _loadFinanceData();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Transaction confirmed successfully')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error confirming transaction: $e')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBrown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  textStyle: const TextStyle(
                     fontSize: 14,
-                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ],
-            ),
-          ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: amountColor,
-            ),
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
         ],
       ),

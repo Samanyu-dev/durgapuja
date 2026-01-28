@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'samiti_funds_screen.dart';
-import '../../widgets/custom_bottom_nav.dart';
 import 'worker_details_screen.dart';
+import 'material_screen.dart';
 import '../../services/database_service.dart';
 
 class WorkerFundsScreen extends StatefulWidget {
@@ -55,134 +55,21 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F0E6),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-          if (index == 2) {
-            // Stay on Finance tab, just pop back to MaterialsScreen
-            Navigator.pop(context);
-            return;
-          }
-
-          // Pop back to MainNavigationScreen, then switch tabs
-          Navigator.pop(context);
-
-          // Switch to the selected tab after popping
-          Future.microtask(() {
-            // Navigation handled by popping
-          });
-        },
+      backgroundColor: const Color(0xFFF5E6D3),
+      appBar: AppBar(
+        title: const Text('Worker Funds'),
+        backgroundColor: const Color(0xFF9A5222),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // TOP HEADER
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  const Text(
-                    "Finance",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              // TABS
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          // Pop back to MaterialsScreen (which is in MainNavigationScreen)
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Material Tracker",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF757575),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          // Replace current screen with SamitiFundsScreen
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SamitiFundsScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Samiti Funds",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF757575),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            "Worker Funds",
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF5C3D2E),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(top: 6),
-                            height: 3,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5C3D2E),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
               // DROPDOWN
               Container(
                 padding: const EdgeInsets.symmetric(

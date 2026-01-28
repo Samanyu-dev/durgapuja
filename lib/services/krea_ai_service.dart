@@ -1,15 +1,46 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/generated_image.dart';
 
 class KreaAIService {
   static const String _baseUrl = 'https://api.krea.ai';
-  
+
   final String _apiToken;
 
   KreaAIService()
       : _apiToken = dotenv.env['KREA_API_TOKEN'] ?? '';
+
+  /// Enhances simple prompts for Durga idols with detailed specifications
+  String enhanceDurgaIdolPrompt(String prompt) {
+    final lowerPrompt = prompt.toLowerCase();
+
+    // Check if this is a simple Durga idol request
+    final durgaKeywords = ['durga', 'durgapuja', 'durga puja', 'durgotsav', 'idol', 'murt'];
+    final isDurgaRelated = durgaKeywords.any((keyword) => lowerPrompt.contains(keyword));
+
+   
+    if (isDurgaRelated && prompt.length < 50) {
+      final enhancedPrompt = '''
+Create a magnificent Durga idol with intricate details:
+- Goddess Durga with divine golden skin texture, realistic facial structure, and benevolent expression
+- Traditional Bengali features with almond-shaped eyes, arched eyebrows, and serene smile
+- Elaborate gold jewelry including necklace, earrings, armlets, and crown with detailed gemstone work
+- Rich traditional Bengali saree with golden borders and intricate patterns
+- Multiple arms holding weapons (trident, mace, discus, conch) and blessing hand
+- Lion vahana (vehicle) beneath her feet with detailed fur texture and fierce expression
+- Decorative backdrop with traditional Bengali motifs, flowers, and ornamental elements
+- High quality, photorealistic rendering with proper lighting and shadows
+- Traditional Durga Puja color scheme with gold, red, and white accents
+Original theme: $prompt
+      '''.trim();
+
+      return enhancedPrompt;
+    }
+
+    return prompt;
+  }
 
   /// Generates an image from a text prompt using Krea's official API
   Future<GeneratedImage> generateImage(String prompt) async {
@@ -27,13 +58,17 @@ class KreaAIService {
       );
     }
 
+    // Enhance prompt for Durga idols if needed
+    final enhancedPrompt = enhanceDurgaIdolPrompt(prompt);
+
     final images = <GeneratedImage>[];
-    
+
     // Generate images sequentially
     for (int i = 0; i < count; i++) {
       try {
         print('Generating image ${i + 1} of $count...');
-        
+        print('Using prompt: ${enhancedPrompt.substring(0, math.min(100, enhancedPrompt.length))}${enhancedPrompt.length > 100 ? '...' : ''}');
+
         // Step 1: Submit the generation job (using Flux model)
         final generateUrl = Uri.parse('$_baseUrl/generate/image/bfl/flux-1-dev');
         final generateResponse = await http.post(
@@ -43,7 +78,7 @@ class KreaAIService {
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
-            'prompt': prompt,
+            'prompt': enhancedPrompt,
           }),
         );
 
@@ -147,18 +182,21 @@ class KreaAIService {
       throw Exception('Krea API token not found');
     }
 
+    // Enhance prompt for Durga idols if needed
+    final enhancedPrompt = enhanceDurgaIdolPrompt(prompt);
+
     final images = <GeneratedImage>[];
-    
+
     for (int i = 0; i < count; i++) {
       try {
         print('Generating image ${i + 1} of $count with $model...');
-        
+
         // Build endpoint URL
         final generateUrl = Uri.parse('$_baseUrl/generate/image/$model');
-        
+
         // Build request body
         final requestBody = <String, dynamic>{
-          'prompt': prompt,
+          'prompt': enhancedPrompt,
         };
         
         if (width != null) requestBody['width'] = width;

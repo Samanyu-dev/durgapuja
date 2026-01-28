@@ -527,6 +527,66 @@ class DatabaseService {
     await updateExpenses(additionalPaid);
   }
 
+  static Future<void> deleteOrdersByCustomerName(String customerName) async {
+    final db = await _getDatabase();
+    await db.delete(
+      _ordersTableName,
+      where: 'customer_name = ?',
+      whereArgs: [customerName],
+    );
+  }
+
+  static Future<void> updateOrder({
+    required int id,
+    String? customerName,
+    String? phoneNumber,
+    String? idolName,
+    double? amountReceived,
+    String? deliveryDate,
+    String? paymentDate,
+    String? paymentMethod,
+    String? specialRequirements,
+    String? whatsappLink,
+  }) async {
+    final db = await _getDatabase();
+    Map<String, dynamic> updates = {};
+    if (customerName != null) updates['customer_name'] = customerName;
+    if (phoneNumber != null) updates['phone_number'] = phoneNumber;
+    if (idolName != null) updates['idol_name'] = idolName;
+    if (amountReceived != null) updates['amount_received'] = amountReceived;
+    if (deliveryDate != null) updates['delivery_date'] = deliveryDate;
+    if (paymentDate != null) updates['payment_date'] = paymentDate;
+    if (paymentMethod != null) updates['payment_method'] = paymentMethod;
+    if (specialRequirements != null) updates['special_requirements'] = specialRequirements;
+    if (whatsappLink != null) updates['whatsapp_link'] = whatsappLink;
+
+    if (updates.isNotEmpty) {
+      await db.update(
+        _ordersTableName,
+        updates,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }
+  }
+
+  static Future<void> updateClientDetails({
+    required String oldCustomerName,
+    required String newCustomerName,
+    String? phoneNumber,
+  }) async {
+    final db = await _getDatabase();
+    Map<String, dynamic> updates = {'customer_name': newCustomerName};
+    if (phoneNumber != null) updates['phone_number'] = phoneNumber;
+
+    await db.update(
+      _ordersTableName,
+      updates,
+      where: 'customer_name = ?',
+      whereArgs: [oldCustomerName],
+    );
+  }
+
   static Future<void> close() async {
     if (_database != null) {
       await _database!.close();
@@ -534,4 +594,3 @@ class DatabaseService {
     }
   }
 }
-

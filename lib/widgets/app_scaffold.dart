@@ -7,8 +7,11 @@ class AppScaffold extends StatelessWidget {
   final int currentIndex;
   final Function(int) onNavTap;
   final VoidCallback? onFabTap;
+  final Widget? floatingActionButton;
   final bool showHomeIcon;
   final bool isDesignModule;
+  final bool isFinanceSubModule;
+  final List<NavItem>? customNavItems;
 
   const AppScaffold({
     Key? key,
@@ -16,38 +19,45 @@ class AppScaffold extends StatelessWidget {
     required this.currentIndex,
     required this.onNavTap,
     this.onFabTap,
+    this.floatingActionButton,
     this.showHomeIcon = false,
     this.isDesignModule = false,
+    this.isFinanceSubModule = false,
+    this.customNavItems,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Define navigation items based on the module
-    List<NavItem> navItems;
-    if (showHomeIcon) {
-      if (isDesignModule) {
-        // Design module: Dashboard, Design (no finance parts)
-        navItems = [
-          const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
-          const NavItem(icon: Icons.palette_outlined, label: 'Design'),
-        ];
+    // Use custom nav items if provided
+    List<NavItem> navItems = customNavItems ?? [];
+
+    if (navItems.isEmpty) {
+      // Define navigation items based on the module
+      if (showHomeIcon) {
+        if (isDesignModule) {
+          // Design module: Dashboard, Design (no finance parts)
+          navItems = [
+            const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+            const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+          ];
+        } else {
+          // Finance module: Dashboard, Orders, Reports (no design parts)
+          navItems = [
+            const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+            const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+            const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+          ];
+        }
       } else {
-        // Finance module: Dashboard, Orders, Reports (no design parts)
+        // Default or combined navigation
         navItems = [
-          const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+          const NavItem(icon: Icons.home_outlined, label: 'Home'),
+          const NavItem(icon: Icons.palette_outlined, label: 'Design'),
           const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+          const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
           const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
         ];
       }
-    } else {
-      // Default or combined navigation
-      navItems = [
-        const NavItem(icon: Icons.home_outlined, label: 'Home'),
-        const NavItem(icon: Icons.palette_outlined, label: 'Design'),
-        const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
-        const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
-        const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
-      ];
     }
 
     return Scaffold(
@@ -63,6 +73,7 @@ class AppScaffold extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: floatingActionButton,
     );
   }
 
