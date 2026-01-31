@@ -10,7 +10,7 @@ class DatabaseService {
   static const String _workerFundsTableName = 'worker_funds';
   static const String _workerPaymentsTableName = 'worker_payments';
 
-  static Future<Database> _getDatabase() async {
+  static Future<Database> getDatabase() async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
@@ -273,7 +273,7 @@ class DatabaseService {
   }
 
   static Future<Map<String, dynamic>> getFinanceData() async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     final result = await db.query(
       _tableName,
       where: 'id = ?',
@@ -297,7 +297,7 @@ class DatabaseService {
   }
 
   static Future<void> updateIncome(double amount) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.rawUpdate(
       'UPDATE $_tableName SET total_income = total_income + ? WHERE id = 1',
       [amount],
@@ -305,7 +305,7 @@ class DatabaseService {
   }
 
   static Future<void> updateExpenses(double amount) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.rawUpdate(
       'UPDATE $_tableName SET total_expenses = total_expenses + ? WHERE id = 1',
       [amount],
@@ -318,7 +318,7 @@ class DatabaseService {
     required String category, // "samiti" | "worker" | "other"
     required String sourceText, // original English sentence
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.insert(
       _transactionsTableName,
       {
@@ -337,7 +337,7 @@ class DatabaseService {
     String? idolType,
     required double amount,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.insert(
       _workerPaymentsTableName,
       {
@@ -352,7 +352,7 @@ class DatabaseService {
 
   /// Returns total amount paid for a given worker_type (e.g. "clay", "painting").
   static Future<double> getWorkerPaymentsTotalByType(String workerType) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     final result = await db.rawQuery(
       'SELECT SUM(amount) as total FROM $_workerPaymentsTableName WHERE worker_type = ?',
       [workerType],
@@ -372,7 +372,7 @@ class DatabaseService {
     String? specialRequirements,
     String? whatsappLink,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.insert(
       _ordersTableName,
       {
@@ -397,7 +397,7 @@ class DatabaseService {
     required String date,
     bool updateIdolMakerTotals = true,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.insert(
       _samitiFundsTableName,
       {
@@ -445,7 +445,7 @@ class DatabaseService {
     required double amountPaid,
     required double amountTotal,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     final remaining = amountTotal - amountPaid;
     final due = amountTotal - amountPaid;
     await db.insert(
@@ -497,7 +497,7 @@ class DatabaseService {
   }) async {
     if (additionalPaid <= 0) return;
 
-    final db = await _getDatabase();
+    final db = await getDatabase();
     final result = await db.query(
       _workerFundsTableName,
       where: 'id = ?',
@@ -528,7 +528,7 @@ class DatabaseService {
   }
 
   static Future<void> deleteOrdersByCustomerName(String customerName) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     await db.delete(
       _ordersTableName,
       where: 'customer_name = ?',
@@ -548,7 +548,7 @@ class DatabaseService {
     String? specialRequirements,
     String? whatsappLink,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     Map<String, dynamic> updates = {};
     if (customerName != null) updates['customer_name'] = customerName;
     if (phoneNumber != null) updates['phone_number'] = phoneNumber;
@@ -575,7 +575,7 @@ class DatabaseService {
     required String newCustomerName,
     String? phoneNumber,
   }) async {
-    final db = await _getDatabase();
+    final db = await getDatabase();
     Map<String, dynamic> updates = {'customer_name': newCustomerName};
     if (phoneNumber != null) updates['phone_number'] = phoneNumber;
 

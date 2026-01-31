@@ -1,4 +1,5 @@
 import 'idol_order.dart';
+import '../services/logging_service.dart';
 
 class Client {
   final String id;
@@ -38,16 +39,51 @@ class Client {
   }
 
   factory Client.fromMap(Map<String, dynamic> map) {
-    return Client(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      phone: map['phone'] ?? '',
-      status: map['status'] ?? '',
-      photoUrl: map['photoUrl'],
-      idols: (map['idols'] as List<dynamic>?)?.map((item) => IdolOrder.fromMap(item as Map<String, dynamic>)).toList() ?? [],
-      pendingAmount: (map['pendingAmount'] as num?)?.toDouble() ?? 0.0,
-      deliveryDates: (map['deliveryDates'] as List<dynamic>?)?.map((item) => DateTime.parse(item as String)).toList() ?? [],
-      notes: (map['notes'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
-    );
+    try {
+      return Client(
+        id: map['id'] ?? '',
+        name: map['name'] ?? '',
+        phone: map['phone'] ?? '',
+        status: map['status'] ?? '',
+        photoUrl: map['photoUrl'],
+        idols: (map['idols'] as List<dynamic>?)?.map((item) => IdolOrder.fromMap(item as Map<String, dynamic>)).toList() ?? [],
+        pendingAmount: (map['pendingAmount'] as num?)?.toDouble() ?? 0.0,
+        deliveryDates: (map['deliveryDates'] as List<dynamic>?)?.map((item) => DateTime.parse(item as String)).toList() ?? [],
+        notes: (map['notes'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
+      );
+    } catch (e) {
+      LoggingService.logError('Error parsing Client from map: $e');
+      return Client(
+        id: map['id'] ?? '',
+        name: map['name'] ?? '',
+        phone: map['phone'] ?? '',
+        status: map['status'] ?? '',
+      );
+    }
   }
+
+  // Validation methods
+  bool isValid() {
+    return id.isNotEmpty && 
+           name.isNotEmpty && 
+           phone.isNotEmpty &&
+           _isValidPhoneNumber(phone);
+  }
+
+  bool _isValidPhoneNumber(String phone) {
+    // Basic phone number validation (10 digits for India)
+    final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
+    return phoneRegex.hasMatch(phone);
+  }
+
+  // Helper methods
+  String getFormattedPhone() {
+    if (phone.length == 10 && !phone.startsWith('+91')) {
+      return '+91 $phone';
+    }
+    return phone;
+  }
+
+  bool hasPendingPayments() => pendingAmount > 0;
+  bool hasUpcomingDeliveries() => deliveryDates.any((date) => date.isAfter(DateTime.now()));
 }

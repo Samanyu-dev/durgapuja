@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../services/logging_service.dart';
 import 'dynamic_island_nav.dart';
 
 class AppScaffold extends StatelessWidget {

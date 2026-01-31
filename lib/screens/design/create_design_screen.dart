@@ -1,528 +1,294 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../utils/colors.dart';
-import '../../utils/constants.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/krea_ai_service.dart';
-import '../../services/speech_service.dart';
-import '../../services/image_save_service.dart';
+import '../../services/design_validation_service.dart';
 import '../../models/generated_image.dart';
-import '../../widgets/voice_input_button.dart';
-import 'image_viewer_screen.dart';
+import 'enhanced_image_editor_screen.dart';
 
 class CreateDesignScreen extends StatefulWidget {
-  const CreateDesignScreen({Key? key}) : super(key: key);
+  const CreateDesignScreen({super.key});
 
   @override
   State<CreateDesignScreen> createState() => _CreateDesignScreenState();
 }
 
-class _CreateDesignScreenState extends State<CreateDesignScreen> {
+class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _promptController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
   final KreaAIService _kreaService = KreaAIService();
-  final SpeechService _speechService = SpeechService();
-
-  final List<GeneratedImage> _generatedImages = [];
-  bool _isGenerating = false;
+  final List<File> _referenceImages = [];
+  
+  late stt.SpeechToText _speechToText;
   bool _isListening = false;
-  bool _hasGenerated = false;
-  File? _selectedImage;
-  String _imagePrompt = '';
+  bool _isGenerating = false;
+  String _confidence = '';
+  
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _speechToText = stt.SpeechToText();
+    _initializeSpeech();
+    
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _promptController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
-  Future<void> _generateDesign() async {
-    final prompt = _promptController.text.trim();
-    if (prompt.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a prompt or use voice input')),
-      );
-      return;
-    }
+  Future<void> _initializeSpeech() async {
+    await _speechToText.initialize();
+  }
 
-    setState(() {
-      _isGenerating = true;
-      _hasGenerated = false;
-    });
-
-    try {
-      final images = await _kreaService.generateImages(prompt, count: 1);
-      
-      setState(() {
-        _generatedImages.addAll(images);
-        _isGenerating = false;
-        _hasGenerated = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Design generated successfully!')),
-      );
-    } catch (e) {
-      setState(() {
-        _isGenerating = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to generate design: $e')),
-      );
+  Future<void> _startListening() async {
+    if (!_isListening) {
+      bool available = await _speechToText.initialize();
+      if (available) {
+        setState(() => _isListening = true);
+        _speechToText.listen(
+          onResult: (result) {
+            setState(() {
+              _promptController.text = result.recognizedWords;
+              _confidence = result.hasConfidenceRating
+                  ? (result.confidence * 100).toStringAsFixed(1)
+                  : '';
+            });
+          },
+        );
+      }
     }
   }
 
-  Future<void> _startVoiceInput() async {
+  void _stopListening() {
     if (_isListening) {
-      await _stopVoiceInput();
+      _speechToText.stop();
+      setState(() => _isListening = false);
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    if (_referenceImages.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 3 reference images allowed')),
+      );
       return;
     }
 
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _referenceImages.add(File(image.path));
+      });
+    }
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    if (_referenceImages.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 3 reference images allowed')),
+      );
+      return;
+    }
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _referenceImages.add(File(image.path));
+      });
+    }
+  }
+
+  void _removeReferenceImage(int index) {
     setState(() {
-      _isListening = true;
+      _referenceImages.removeAt(index);
     });
+  }
+
+  Future<void> _generateImage() async {
+    if (_promptController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a prompt')),
+      );
+      return;
+    }
+
+    setState(() => _isGenerating = true);
 
     try {
-      final recognizedText = await _speechService.listenBangla();
+      GeneratedImage generatedImage;
       
-      if (recognizedText.isNotEmpty) {
-        setState(() {
-          _promptController.text = recognizedText;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice input failed: $e')),
-      );
-    } finally {
-      setState(() {
-        _isListening = false;
-      });
-    }
-  }
-
-  Future<void> _stopVoiceInput() async {
-    try {
-      final text = await _speechService.stopListening();
-      if (text.isNotEmpty) {
-        setState(() {
-          _promptController.text = text;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to stop voice input: $e')),
-      );
-    } finally {
-      setState(() {
-        _isListening = false;
-      });
-    }
-  }
-
-  Future<void> _saveImage(GeneratedImage image) async {
-    final ImageSaveService saveService = ImageSaveService();
-    
-    try {
-      final success = await saveService.saveToGallery(image.url, 'durga_design');
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Image saved successfully!')),
+      if (_referenceImages.isNotEmpty) {
+        generatedImage = await _kreaService.generateImageWithReferences(
+          _promptController.text,
+          _referenceImages,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save image')),
+        generatedImage = await _kreaService.generateImage(_promptController.text);
+      }
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnhancedImageEditorScreen(
+              generatedImage: generatedImage,
+              originalPrompt: _promptController.text,
+            ),
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
-      );
-    }
-  }
-
-  Future<void> _editImage(GeneratedImage image) async {
-    // Navigate to edit screen
-    context.push('/design/edit/image/${image.id}', extra: image);
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<void> _takePhoto() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.camera);
-    
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Generation failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGenerating = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: const Text('Create Durga Design'),
-        automaticallyImplyLeading: true,
-        elevation: 0,
+        title: const Text(
+          'Durga Idol Designer',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeaderSection(),
+              const SizedBox(height: 24),
+              _buildPromptSection(),
+              const SizedBox(height: 24),
+              _buildReferenceImagesSection(),
+              const SizedBox(height: 32),
+              _buildGenerateButton(),
+              const SizedBox(height: 16),
+              _buildQuickPrompts(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderSection() {
+    return Card(
+      color: const Color(0xFFFF6B35),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.auto_awesome,
+              size: 48,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Create Your Durga Idol',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Use text, voice, or reference images',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPromptSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Input Section
-            Container(
-              padding: const EdgeInsets.all(AppConstants.largePadding),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+            Row(
+              children: [
+                const Icon(Icons.edit, color: Color(0xFFFF6B35)),
+                const SizedBox(width: 8),
+                const Text(
+                  'Describe Your Design',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Vision',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeLarge,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Describe your Durga idol design or speak your vision',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeBody,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Input Field with Voice Button
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.cardCream,
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                      border: Border.all(
-                        color: AppColors.primaryBrown.withOpacity(0.2),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _promptController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: 'E.g., Traditional Bengali Durga idol with golden jewelry and red saree...',
+                suffixIcon: _isListening
+                    ? ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: IconButton(
+                          icon: const Icon(Icons.mic, color: Colors.red),
+                          onPressed: _stopListening,
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.mic_none, color: Color(0xFFFF6B35)),
+                        onPressed: _startListening,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _promptController,
-                            maxLines: 3,
-                            style: const TextStyle(fontSize: 16),
-                            decoration: InputDecoration(
-                              hintText: 'e.g., "Traditional Durga with golden ornaments and serene expression"',
-                              hintStyle: TextStyle(color: AppColors.textLight),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        VoiceInputButton(
-                          onPressed: _startVoiceInput,
-                          isListening: _isListening,
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-
-                  // Image Upload Section
-                  if (_selectedImage == null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Or upload reference image',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeMedium,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _pickImage,
-                                icon: const Icon(Icons.photo_library),
-                                label: const Text('Gallery'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accentOrange,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _takePhoto,
-                                icon: const Icon(Icons.camera_alt),
-                                label: const Text('Camera'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryBrown,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                  // Selected Image Preview
-                  if (_selectedImage != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Selected Image',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeMedium,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 150,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardCream,
-                            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                            child: Image.file(
-                              _selectedImage!,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                onChanged: (value) => _imagePrompt = value,
-                                decoration: InputDecoration(
-                                  hintText: 'Describe what you want to modify or enhance in this image',
-                                  hintStyle: TextStyle(color: AppColors.textLight),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                                    borderSide: BorderSide(color: AppColors.primaryBrown.withOpacity(0.2)),
-                                  ),
-                                  contentPadding: const EdgeInsets.all(12),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // Handle image-based generation
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Image-based generation feature coming soon!')),
-                                );
-                              },
-                              icon: const Icon(Icons.auto_awesome),
-                              label: const Text('Generate'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryBrown,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedImage = null;
-                                    _imagePrompt = '';
-                                  });
-                                },
-                                icon: const Icon(Icons.delete),
-                                label: const Text('Remove'),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: AppColors.primaryBrown),
-                                  foregroundColor: AppColors.primaryBrown,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _pickImage,
-                                icon: const Icon(Icons.photo_library),
-                                label: const Text('Change'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accentOrange,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                  const SizedBox(height: 16),
-                  
-                  // Generate Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isGenerating ? null : _generateDesign,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBrown,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                        ),
-                      ),
-                      child: _isGenerating
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Generating Design...'),
-                              ],
-                            )
-                          : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.auto_awesome),
-                                SizedBox(width: 8),
-                                Text('Generate Design'),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
               ),
             ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            // Status Section
-            if (_isGenerating)
-              Container(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
-                decoration: BoxDecoration(
-                  color: AppColors.cardCream,
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBrown),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Creating your design...',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeMedium,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'AI is generating your Durga idol design with intricate details',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeSmall,
-                              color: AppColors.textLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            if (_hasGenerated && _generatedImages.isNotEmpty)
-              const SizedBox(height: AppConstants.largePadding),
-
-            // Generated Images Section
-            if (_generatedImages.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Generated Designs',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeLarge,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
-                    ),
+            if (_isListening && _confidence.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Confidence: $_confidence%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
                   ),
-                  const SizedBox(height: 12),
-                  
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.2,
-                    ),
-                    itemCount: _generatedImages.length,
-                    itemBuilder: (context, index) {
-                      final image = _generatedImages[index];
-                      return _buildGeneratedImageCard(image);
-                    },
-                  ),
-                ],
+                ),
               ),
           ],
         ),
@@ -530,91 +296,234 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> {
     );
   }
 
-  Widget _buildGeneratedImageCard(GeneratedImage image) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image Preview
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppConstants.largeRadius)),
-            child: Image.network(
-              image.url,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 200,
-                  color: AppColors.cardCream,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primaryBrown,
-                    ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  color: AppColors.cardCream,
-                  child: const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 48,
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          // Actions
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.mediumPadding),
-            child: Row(
+  Widget _buildReferenceImagesSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _saveImage(image),
-                    icon: const Icon(Icons.download),
-                    label: const Text('Save'),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.primaryBrown),
-                      foregroundColor: AppColors.primaryBrown,
-                    ),
+                const Icon(Icons.photo_library, color: Color(0xFFFF6B35)),
+                const SizedBox(width: 8),
+                const Text(
+                  'Reference Images',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _editImage(image),
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Edit'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentOrange,
-                      foregroundColor: Colors.white,
-                    ),
+                const Spacer(),
+                Text(
+                  '${_referenceImages.length}/3',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              'Add up to 3 reference images to guide the AI',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 120,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildAddImageButton(
+                    icon: Icons.photo_library,
+                    label: 'Gallery',
+                    onTap: _pickImageFromGallery,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildAddImageButton(
+                    icon: Icons.camera_alt,
+                    label: 'Camera',
+                    onTap: _pickImageFromCamera,
+                  ),
+                  const SizedBox(width: 12),
+                  ..._referenceImages.asMap().entries.map((entry) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildReferenceImageCard(entry.value, entry.key),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildAddImageButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: _referenceImages.length < 3 ? onTap : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 100,
+        decoration: BoxDecoration(
+          color: _referenceImages.length < 3
+              ? const Color(0xFFFF6B35).withOpacity(0.1)
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _referenceImages.length < 3
+                ? const Color(0xFFFF6B35)
+                : Colors.grey.shade300,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 32,
+              color: _referenceImages.length < 3
+                  ? const Color(0xFFFF6B35)
+                  : Colors.grey.shade400,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _referenceImages.length < 3
+                    ? const Color(0xFFFF6B35)
+                    : Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReferenceImageCard(File image, int index) {
+    return Stack(
+      children: [
+        Container(
+          width: 100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image: FileImage(image),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () => _removeReferenceImage(index),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenerateButton() {
+    return ElevatedButton(
+      onPressed: _isGenerating ? null : _generateImage,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFF6B35),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: _isGenerating
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.auto_awesome),
+                SizedBox(width: 8),
+                Text(
+                  'Generate Design',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildQuickPrompts() {
+    final prompts = [
+      'Traditional Bengali Durga',
+      'Modern fusion design',
+      'Golden jewelry details',
+      'Royal red saree',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Prompts',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: prompts.map((prompt) {
+            return ActionChip(
+              label: Text(prompt),
+              onPressed: () {
+                setState(() {
+                  _promptController.text = prompt;
+                });
+              },
+              backgroundColor: Colors.white,
+              side: BorderSide(color: Colors.grey.shade300),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

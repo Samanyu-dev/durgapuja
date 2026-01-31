@@ -1445,6 +1445,8 @@ PODS:
   - nanopb/encode (3.30910.0)
   - PromisesObjC (2.4.0)
   - RecaptchaInterop (101.0.0)
+  - record_ios (1.1.0):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -1469,6 +1471,7 @@ DEPENDENCIES:
   - google_mlkit_translation (from `.symlinks/plugins/google_mlkit_translation/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - speech_to_text (from `.symlinks/plugins/speech_to_text/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
@@ -1528,6 +1531,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  record_ios:
+    :path: ".symlinks/plugins/record_ios/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   speech_to_text:
@@ -1578,12 +1583,13 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   speech_to_text: 3b313d98516d3d0406cea424782ec25470c59d19
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   SSZipArchive: 8a6ee5677c8e304bebc109e39cf0da91ccef22ea
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
-PODFILE CHECKSUM: 1857a7cdb7dfafe45f2b0e9a9af44644190f7506
+PODFILE CHECKSUM: 3a3571e479d63e962d984d61228752be0b12c309
 
 COCOAPODS: 1.16.2

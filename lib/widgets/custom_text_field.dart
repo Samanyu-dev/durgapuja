@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../services/logging_service.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
+  final String? labelText;
   final TextEditingController? controller;
   final int maxLines;
   final bool hasVoiceInput;
@@ -13,6 +15,7 @@ class CustomTextField extends StatelessWidget {
   const CustomTextField({
     super.key,
     required this.hintText,
+    this.labelText,
     this.controller,
     this.maxLines = 1,
     this.hasVoiceInput = false,
@@ -42,7 +45,9 @@ class CustomTextField extends StatelessWidget {
         style: const TextStyle(fontSize: 16, color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: hintText,
+          labelText: labelText,
           hintStyle: TextStyle(color: AppColors.textLight, fontSize: 16),
+          labelStyle: TextStyle(color: AppColors.textLight, fontSize: 14),
           prefixIcon: prefixIcon,
           suffixIcon: hasVoiceInput
               ? IconButton(

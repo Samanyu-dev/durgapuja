@@ -24,6 +24,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Navigate back to orders screen
+            context.go('/finance/orders');
+          },
+          tooltip: 'Back',
+        ),
         title: const Text('Add Client'),
         elevation: 0,
       ),

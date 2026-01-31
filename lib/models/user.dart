@@ -12,6 +12,11 @@ enum UserRole {
       orElse: () => UserRole.user,
     );
   }
+
+  // Add validation method
+  static bool isValidRole(String value) {
+    return UserRole.values.any((role) => role.value == value);
+  }
 }
 
 class UserModel {

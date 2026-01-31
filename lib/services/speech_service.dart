@@ -1,70 +1,161 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+/// Service for handling speech recognition and text-to-speech functionality
 class SpeechService {
-  final SpeechToText _speech = SpeechToText();
-  bool _isInitialized = false;
-  bool isListening = false;
-  String _recognizedText = "";
+  final SpeechToText _speechToText = SpeechToText();
+  bool _isListening = false;
+  
+  // Callbacks for UI updates
+  ValueChanged<String>? onSpeechResult;
+  ValueChanged<bool>? onRecordingStateChanged;
+  ValueChanged<double>? onRecordingProgress;
 
-  Future<bool> _ensureInitialized() async {
-    if (_isInitialized) return true;
-    _isInitialized = await _speech.initialize(
-      onError: (error) => print('Speech initialization error: $error'),
-      onStatus: (status) => print('Speech status: $status'),
-    );
-    return _isInitialized;
-  }
-
-  /// Starts listening in Bangla and updates [isListening].
-  /// Returns true if listening successfully started.
-  Future<bool> startListening() async {
-    final available = await _ensureInitialized();
-    if (!available || isListening) return false;
-
-    _recognizedText = "";
-    isListening = true;
-
-    // Check if Bengali locale is available, otherwise use default
-    final locales = await _speech.locales();
-    final hasBengali = locales.any((locale) => locale.localeId == 'bn_IN');
-    final localeToUse = hasBengali ? 'bn_IN' : 'en_US';
-
-    print('Available locales: ${locales.map((l) => l.localeId).join(', ')}');
-    print('Using locale: $localeToUse');
-
-    await _speech.listen(
-      localeId: localeToUse,
-      onResult: (result) {
-        _recognizedText = result.recognizedWords;
-        print('Recognized text: $_recognizedText');
+  /// Initialize the speech service
+  Future<void> initialize() async {
+    // Initialize speech to text
+    final hasSpeech = await _speechToText.initialize(
+      onError: (error) {
+        debugPrint('Speech recognition error: $error');
       },
-      onSoundLevelChange: (level) {
-        print('Sound level: $level');
+      onStatus: (status) {
+        debugPrint('Speech recognition status: $status');
       },
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 5),
-      partialResults: true,
     );
-
-    return true;
+    
+    if (!hasSpeech) {
+      throw Exception('Speech recognition not available');
+    }
   }
 
-  /// Stops listening and returns the last recognized Bangla text.
-  Future<String> stopListening() async {
-    if (!isListening) return "";
+  /// Start listening for speech
+  Future<void> startListening({String? locale}) async {
+    if (_isListening) return;
+    
+    try {
+      _isListening = true;
+      if (onRecordingStateChanged != null) {
+        onRecordingStateChanged!(true);
+      }
 
-    await _speech.stop();
-    isListening = false;
-    return _recognizedText;
+      await _speechToText.listen(
+        localeId: locale ?? 'bn-BD',
+        onResult: (result) {
+          if (result.recognizedWords.isNotEmpty) {
+            if (onSpeechResult != null) {
+              onSpeechResult!(result.recognizedWords);
+            }
+          }
+        },
+        listenFor: const Duration(seconds: 10),
+        pauseFor: const Duration(seconds: 3),
+      );
+      
+    } catch (e) {
+      _isListening = false;
+      if (onRecordingStateChanged != null) {
+        onRecordingStateChanged!(false);
+      }
+      rethrow;
+    }
   }
 
-  /// Backwards-compatible helper: starts listening, waits briefly, then stops.
-  /// Prefer using [startListening] and [stopListening] with a UI toggle.
+  /// Stop listening
+  Future<void> stopListening() async {
+    if (!_isListening) return;
+    
+    try {
+      _isListening = false;
+      if (onRecordingStateChanged != null) {
+        onRecordingStateChanged!(false);
+      }
+
+      await _speechToText.stop();
+      
+    } catch (e) {
+      _isListening = false;
+      if (onRecordingStateChanged != null) {
+        onRecordingStateChanged!(false);
+      }
+      rethrow;
+    }
+  }
+
+  /// Listen specifically in Bangla
   Future<String> listenBangla() async {
-    final started = await startListening();
-    if (!started) return "";
+    if (_isListening) {
+      await stopListening();
+    }
+    
+    final completer = Completer<String>();
+    String recognizedText = '';
+    
+    // Set up the result callback
+    final originalCallback = onSpeechResult;
+    onSpeechResult = (text) {
+      recognizedText = text;
+      completer.complete(text);
+    };
+    
+    try {
+      await startListening(locale: 'bn-BD');
+      
+      // Wait for result or timeout
+      final result = await completer.future.timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          stopListening();
+          return '';
+        },
+      );
+      
+      return result;
+    } catch (e) {
+      return '';
+    } finally {
+      // Restore original callback
+      onSpeechResult = originalCallback;
+      await stopListening();
+    }
+  }
 
-    await Future.delayed(const Duration(seconds: 10));
-    return await stopListening();
+  /// Check if currently listening
+  bool get isListening => _isListening;
+
+  /// Check if speech recognition is available
+  Future<bool> isAvailable() async {
+    return await _speechToText.initialize();
+  }
+  
+  /// Get available locales
+  Future<List<String>> getAvailableLocales() async {
+    try {
+      final locales = await _speechToText.locales();
+      return locales.map((locale) => locale.localeId).toList();
+    } catch (e) {
+      return ['en-US', 'bn-BD'];
+    }
+  }
+  
+  /// Get current locale
+  Future<String> getCurrentLocale() async {
+    try {
+      final locales = await _speechToText.locales();
+      return locales.firstWhere(
+        (locale) => locale.localeId == 'bn-BD',
+        orElse: () => locales.first,
+      ).localeId;
+    } catch (e) {
+      return 'bn-BD';
+    }
+  }
+
+  /// Dispose resources
+  Future<void> dispose() async {
+    if (_isListening) {
+      await stopListening();
+    }
+    // No specific dispose method for SpeechToText
   }
 }

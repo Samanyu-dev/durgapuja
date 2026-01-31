@@ -146,11 +146,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       _focusNodes[index - 1].requestFocus();
     }
 
-    // Auto-verify when all digits are entered
+    // Auto-verify when all digits are entered (only if not already verifying)
     final otp = _controllers.map((controller) => controller.text).join();
-    if (otp.length == 6) {
+    if (otp.length == 6 && !_isLoading) {
       Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
+        if (mounted && !_isLoading) {
           _verifyOTP();
         }
       });

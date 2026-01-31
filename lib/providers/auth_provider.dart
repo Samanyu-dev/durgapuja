@@ -72,6 +72,52 @@ class AuthProvider with ChangeNotifier {
     await _authService.resendOTP(phoneNumber);
   }
 
+  // Direct sign-in method (bypasses OTP)
+  Future<void> signInWithPhone(String phoneNumber) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // In test mode, directly create a mock user
+      if (_authService.isTestMode) {
+        final mockUser = _authService.createMockUser(
+          'mock_${phoneNumber.replaceAll('+91', '')}', 
+          phoneNumber
+        );
+        _authService.mockUser = mockUser;
+        _authService.testAuthController.add(mockUser);
+        
+        // Load or create user profile
+        _userModel = await _authService.getUserProfile(mockUser.uid);
+        if (_userModel == null) {
+          _userModel = UserModel(
+            uid: mockUser.uid,
+            phoneNumber: phoneNumber,
+            name: null,
+            email: null,
+            role: UserRole.user,
+            isActive: true,
+            createdAt: DateTime.now(),
+            lastLogin: DateTime.now(),
+          );
+          await _authService.updateUserProfile(
+            mockUser.uid,
+            name: _userModel?.name,
+            email: _userModel?.email,
+          );
+        } else {
+          await _authService.updateLastLogin(mockUser.uid);
+        }
+      } else {
+        // In production mode, still use OTP flow
+        await _authService.sendOTP(phoneNumber);
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> signOut() async {
     await _authService.signOut();
   }

@@ -33,17 +33,16 @@ class _SignInScreenState extends State<SignInScreen> {
       _errorMessage = null;
     });
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final phoneNumber = '+91${_phoneController.text.trim()}';
+      try {
+        final authProvider = context.read<AuthProvider>();
+        final phoneNumber = '+91${_phoneController.text.trim()}';
 
-      await authProvider.sendOTP(phoneNumber);
+        await authProvider.signInWithPhone(phoneNumber);
 
-      if (mounted) {
-        context.push('/otp-verification', extra: {
-          'phoneNumber': phoneNumber,
-        });
-      }
+        if (mounted) {
+          // Navigate directly to home dashboard after successful sign in
+          context.push('/home');
+        }
     } catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e);
@@ -213,7 +212,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: CustomButton(
-                    label: _isLoading ? 'Sending OTP...' : 'Send OTP',
+                    label: _isLoading ? 'Signing In...' : 'Sign In',
                     onPressed: _isLoading ? null : _submit,
                     backgroundColor: AppColors.primaryBrown,
                     isLoading: _isLoading,

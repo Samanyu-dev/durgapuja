@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-import '../services/speech_service.dart';
+import '../services/integrated_speech_service.dart';
 import '../services/translation_service.dart';
 import '../services/gpt_service.dart';
 import '../services/finance_processor.dart';
@@ -20,7 +20,7 @@ class CustomBottomNav extends StatefulWidget {
 }
 
 class _CustomBottomNavState extends State<CustomBottomNav> {
-  final SpeechService _speechService = SpeechService();
+  final IntegratedSpeechService _speechService = IntegratedSpeechService();
   final TranslationService _translationService = TranslationService();
   bool _isListening = false;
 

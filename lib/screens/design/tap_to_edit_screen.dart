@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/tap_to_edit_service.dart';
 import '../../services/speech_service.dart';
+import '../../services/design_validation_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
@@ -33,23 +32,38 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   bool _isListening = false;
   bool _showEditPanel = false;
   bool _showImageSourceOptions = false;
-  bool _isDrawingCircle = false;
+  bool _isTracing = false;
   bool _showConfirmSelection = false;
   
-  // Circle selection state
-  Offset? _circleStart;
-  Offset? _circleEnd;
-  double _circleRadius = 0;
-  Offset? _circleCenter;
+  // Freehand tracing state
+  List<Offset> _tracePoints = [];
+  List<List<Offset>> _completedTraces = [];
+  Path? _currentTracePath;
   
   double _imageWidth = 0;
   double _imageHeight = 0;
   ElementType? _selectedElementType;
+  final GlobalKey _imageKey = GlobalKey();
   
   @override
   void initState() {
     super.initState();
     _currentImage = widget.image;
+    
+    // Get image dimensions after the frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getImageDimensions();
+    });
+  }
+
+  void _getImageDimensions() {
+    final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      setState(() {
+        _imageWidth = renderBox.size.width;
+        _imageHeight = renderBox.size.height;
+      });
+    }
   }
 
   @override
@@ -118,11 +132,10 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   void _resetSelection() {
-    _circleStart = null;
-    _circleEnd = null;
-    _circleRadius = 0;
-    _circleCenter = null;
-    _isDrawingCircle = false;
+    _tracePoints.clear();
+    _completedTraces.clear();
+    _currentTracePath = null;
+    _isTracing = false;
     _showEditPanel = false;
     _selectedElementType = null;
     _promptController.clear();
@@ -136,19 +149,19 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     
     final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
     
-    // Haptic feedback for circle drawing start
+    // Haptic feedback for tracing start
     HapticFeedback.selectionClick();
     
     setState(() {
-      _circleStart = localOffset;
-      _circleEnd = localOffset;
-      _isDrawingCircle = true;
+      _tracePoints = [localOffset];
+      _isTracing = true;
       _showEditPanel = false;
+      _currentTracePath = Path()..moveTo(localOffset.dx, localOffset.dy);
     });
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
-    if (!_isDrawingCircle || _circleStart == null) return;
+    if (!_isTracing) return;
 
     final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -156,22 +169,23 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
     
     setState(() {
-      _circleEnd = localOffset;
-      _circleRadius = (_circleStart! - _circleEnd!).distance;
-      _circleCenter = _circleStart;
+      _tracePoints.add(localOffset);
+      _currentTracePath?.lineTo(localOffset.dx, localOffset.dy);
     });
   }
 
   void _handlePanEnd(DragEndDetails details) {
-    if (!_isDrawingCircle) return;
+    if (!_isTracing) return;
 
     setState(() {
-      _isDrawingCircle = false;
-      if (_circleRadius > 10) { // Minimum circle size
+      _isTracing = false;
+      if (_tracePoints.length > 5) { // Minimum trace length
+        _completedTraces.add(_tracePoints.toList());
         _showConfirmSelection = true;
       } else {
         _resetSelection();
       }
+      _currentTracePath = null;
     });
   }
 
@@ -183,13 +197,16 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     
     final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
     
-    // Default circle radius for tap
-    const double defaultRadius = 50.0;
-    
+    // For single tap, create a small circle trace
     setState(() {
-      _circleStart = localOffset;
-      _circleCenter = localOffset;
-      _circleRadius = defaultRadius;
+      _tracePoints = [
+        localOffset,
+        Offset(localOffset.dx + 25, localOffset.dy),
+        Offset(localOffset.dx + 25, localOffset.dy + 25),
+        Offset(localOffset.dx, localOffset.dy + 25),
+        localOffset,
+      ];
+      _completedTraces.add(_tracePoints.toList());
       _showConfirmSelection = true;
     });
   }
@@ -209,9 +226,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   Future<void> _applyEdit() async {
-    if (_currentImage == null || _circleCenter == null || _selectedElementType == null) {
+    if (_currentImage == null || _completedTraces.isEmpty || _selectedElementType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an area and element type')),
+        const SnackBar(content: Text('Please trace an area and select element type')),
       );
       return;
     }
@@ -229,6 +246,16 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     });
 
     try {
+      // Calculate bounding box of the traced area
+      final allPoints = _completedTraces.expand((trace) => trace).toList();
+      final minX = allPoints.map((p) => p.dx).reduce(math.min);
+      final maxX = allPoints.map((p) => p.dx).reduce(math.max);
+      final minY = allPoints.map((p) => p.dy).reduce(math.min);
+      final maxY = allPoints.map((p) => p.dy).reduce(math.max);
+      
+      final centerX = (minX + maxX) / 2;
+      final centerY = (minY + maxY) / 2;
+
       final editPrompt = _tapToEditService.generateElementEditPrompt(
         _selectedElementType!,
         editDescription,
@@ -237,8 +264,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
       final editedImage = await _tapToEditService.completeTapToEditWorkflow(
         originalImage: _currentImage!,
-        tapX: _circleCenter!.dx,
-        tapY: _circleCenter!.dy,
+        tapX: centerX,
+        tapY: centerY,
         imageWidth: _imageWidth,
         imageHeight: _imageHeight,
         editPrompt: editPrompt,
@@ -251,9 +278,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         _isEditing = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image edited successfully!')),
-      );
+      // Show success dialog with option to view the edited image
+      await _showEditSuccessDialog(editedImage);
     } catch (e) {
       setState(() {
         _isEditing = false;
@@ -269,9 +295,23 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Check if we came from element edit screen or design module
+            if (ModalRoute.of(context)?.settings.name == '/design/tap-to-edit/image/${widget.image?.id}') {
+              // Navigate back to element edit screen
+              context.pop();
+            } else {
+              // Navigate back to design module dashboard
+              context.go('/design/dashboard');
+            }
+          },
+          tooltip: 'Back',
+        ),
         title: const Text('Tap-to-Edit'),
         actions: [
-          if (_circleCenter != null)
+          if (_completedTraces.isNotEmpty || _currentTracePath != null)
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _resetSelection,
@@ -316,7 +356,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               _buildLoadingOverlay(),
 
             // Instructions
-            if (_currentImage != null && _circleCenter == null && !_showEditPanel)
+            if (_currentImage != null && _completedTraces.isEmpty && _currentTracePath == null && !_showEditPanel)
               _buildInstructions(),
           ],
         ),
@@ -338,9 +378,16 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             if (_currentImage != null)
               Center(
                 child: Image.network(
+                  key: _imageKey,
                   _currentImage!.url,
                   loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
+                    if (loadingProgress == null) {
+                      // Update dimensions when image loads
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _getImageDimensions();
+                      });
+                      return child;
+                    }
                     return const Center(
                       child: CircularProgressIndicator(color: AppColors.primaryBrown),
                     );
@@ -374,40 +421,15 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 ),
               ),
 
-            // Circle Selection Overlay
-            if (_circleCenter != null && _circleRadius > 0)
-              Stack(
-                children: [
-                  CustomPaint(
-                    painter: CircleSelectionPainter(
-                      center: _circleCenter!,
-                      radius: _circleRadius,
-                      isDrawing: _isDrawingCircle,
-                    ),
-                    child: Container(),
-                  ),
-                  // Real-time radius display
-                  if (_isDrawingCircle && _circleRadius > 20)
-                    Positioned(
-                      top: _circleCenter!.dy - _circleRadius - 40,
-                      left: _circleCenter!.dx - 30,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_circleRadius.toInt()}px',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+            // Freehand Tracing Overlay
+            if (_completedTraces.isNotEmpty || _currentTracePath != null)
+              CustomPaint(
+                painter: TracingPainter(
+                  completedTraces: _completedTraces,
+                  currentTrace: _currentTracePath,
+                  isTracing: _isTracing,
+                ),
+                child: Container(),
               ),
           ],
         ),
@@ -437,7 +459,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Selection Confirmed',
+              'Tracing Confirmed',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -446,7 +468,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Circle drawn around selected area',
+              'Element traced and ready for editing',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
@@ -492,11 +514,11 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline, color: AppColors.accentOrange, size: 20),
+            Icon(Icons.touch_app, color: AppColors.accentOrange, size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Tap or draw a circle to select an element',
+                'Trace around the element you want to edit with your finger',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: AppConstants.fontSizeSmall,
@@ -578,7 +600,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   Widget _buildEditPanel() {
-    final element = EditableElement.fromType(_selectedElementType ?? ElementType.face);
+    EditableElement.fromType(_selectedElementType ?? ElementType.face);
     
     return Positioned(
       bottom: 0,
@@ -855,6 +877,42 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   ),
                 ],
               ),
+
+              // Success Indicator
+              if (_currentImage != null && _currentImage!.id != widget.image?.id)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      border: Border.all(
+                        color: AppColors.accentOrange.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 20,
+                          color: AppColors.accentOrange,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Image has been edited! View the result above.',
+                            style: TextStyle(
+                              fontSize: AppConstants.fontSizeSmall,
+                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -894,21 +952,182 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     switch (elementType) {
       case ElementType.face:
         return Icons.face;
-      case ElementType.ornaments:
+      case ElementType.jewelry:
         return Icons.diamond;
       case ElementType.clothing:
         return Icons.checkroom;
+      case ElementType.weapon:
+        return Icons.extension;
+      case ElementType.ornaments:
+      case ElementType.ornament:
+        return Icons.diamond;
       case ElementType.pose:
         return Icons.accessibility;
       case ElementType.background:
         return Icons.photo;
       case ElementType.lighting:
         return Icons.lightbulb;
+      case ElementType.lion:
+        return Icons.pets;
     }
+  }
+
+  Future<void> _showEditSuccessDialog(GeneratedImage editedImage) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit Complete!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Your image has been successfully edited.'),
+              const SizedBox(height: 16),
+              const Text(
+                'You can now view the edited image in the viewer above.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
-/// Custom painter for drawing the circle selection overlay
+/// Custom painter for drawing freehand tracing overlay
+class TracingPainter extends CustomPainter {
+  final List<List<Offset>> completedTraces;
+  final Path? currentTrace;
+  final bool isTracing;
+
+  TracingPainter({
+    required this.completedTraces,
+    required this.currentTrace,
+    required this.isTracing,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Draw completed traces
+    for (final trace in completedTraces) {
+      if (trace.length < 2) continue;
+      
+      final path = Path();
+      path.moveTo(trace.first.dx, trace.first.dy);
+      for (int i = 1; i < trace.length; i++) {
+        path.lineTo(trace[i].dx, trace[i].dy);
+      }
+      path.close();
+
+      // Dark overlay outside the traced area
+      final overlayPaint = Paint()
+        ..color = Colors.black.withOpacity(0.5)
+        ..style = PaintingStyle.fill;
+
+      final combinedPath = Path()
+        ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+        ..addPath(path, Offset.zero)
+        ..fillType = PathFillType.evenOdd;
+
+      canvas.drawPath(combinedPath, overlayPaint);
+
+      // Trace border
+      final borderPaint = Paint()
+        ..color = AppColors.accentOrange
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+
+      canvas.drawPath(path, borderPaint);
+
+      // Fill the traced area with semi-transparent color
+      final fillPaint = Paint()
+        ..color = AppColors.accentOrange.withOpacity(0.2)
+        ..style = PaintingStyle.fill;
+
+      canvas.drawPath(path, fillPaint);
+    }
+
+    // Draw current trace being drawn
+    if (currentTrace != null) {
+      // Trace border (dashed while drawing)
+      final borderPaint = Paint()
+        ..color = AppColors.accentOrange
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+
+      // Create dashed effect for current trace
+      final dashPath = _createDashedPath(currentTrace!, 10.0, 5.0);
+      canvas.drawPath(dashPath, borderPaint);
+
+      // Current position indicator
+      final metrics = currentTrace!.computeMetrics().toList();
+      if (metrics.isNotEmpty) {
+        final lastMetric = metrics.last;
+        final pos = lastMetric.getTangentForOffset(lastMetric.length)?.position;
+        
+        if (pos != null) {
+          final centerPaint = Paint()
+            ..color = AppColors.accentOrange
+            ..style = PaintingStyle.fill;
+
+          canvas.drawCircle(pos, 6, centerPaint);
+
+          final centerBorderPaint = Paint()
+            ..color = Colors.white
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.0;
+
+          canvas.drawCircle(pos, 6, centerBorderPaint);
+        }
+      }
+    }
+  }
+
+  Path _createDashedPath(Path path, double dashLength, double dashSpace) {
+    final metrics = path.computeMetrics();
+    final newPath = Path();
+    
+    for (final metric in metrics) {
+      double distance = 0;
+      bool draw = true;
+      
+      while (distance < metric.length) {
+        if (draw) {
+          final startTangent = metric.getTangentForOffset(distance);
+          final endTangent = metric.getTangentForOffset(distance + dashLength);
+          
+          if (startTangent != null && endTangent != null) {
+            newPath.moveTo(startTangent.position.dx, startTangent.position.dy);
+            newPath.lineTo(endTangent.position.dx, endTangent.position.dy);
+          }
+        }
+        
+        distance += dashLength + dashSpace;
+        draw = !draw;
+      }
+    }
+    
+    return newPath;
+  }
+
+  @override
+  bool shouldRepaint(TracingPainter oldDelegate) {
+    return oldDelegate.completedTraces != completedTraces ||
+        oldDelegate.currentTrace != currentTrace ||
+        oldDelegate.isTracing != isTracing;
+  }
+}
+
+/// Custom painter for drawing the circle selection overlay (legacy)
 class CircleSelectionPainter extends CustomPainter {
   final Offset center;
   final double radius;

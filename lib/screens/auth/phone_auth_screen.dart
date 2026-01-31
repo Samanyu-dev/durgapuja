@@ -5,6 +5,7 @@ import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/logging_service.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({Key? key}) : super(key: key);
@@ -37,11 +38,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       final authProvider = context.read<AuthProvider>();
       final phoneNumber = '+91${_phoneController.text.trim()}';
 
-      print('Attempting to send OTP to: $phoneNumber');
+      LoggingService.logInfo('Attempting to send OTP to: $phoneNumber');
 
       await authProvider.sendOTP(phoneNumber);
 
-      print('OTP sent successfully');
+      LoggingService.logInfo('OTP sent successfully to $phoneNumber');
 
       if (mounted) {
         context.push('/otp-verification', extra: {
@@ -49,7 +50,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         });
       }
     } catch (e) {
-      print('OTP send failed with error: $e');
+      LoggingService.logError('OTP send failed with error: $e');
       setState(() {
         _errorMessage = _getDetailedErrorMessage(e);
       });

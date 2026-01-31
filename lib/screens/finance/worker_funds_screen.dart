@@ -61,7 +61,10 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
         backgroundColor: const Color(0xFF9A5222),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            // Navigate back to finance dashboard instead of popping
+            Navigator.pushReplacementNamed(context, '/finance/dashboard');
+          },
         ),
       ),
       body: SafeArea(

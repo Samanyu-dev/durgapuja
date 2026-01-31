@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../services/test_firebase.dart';
-import '../design/ai_design_assistant_screen.dart';
-import '../design/idol_visualization_screen.dart';
-import '../design/fine_detailing_screen.dart';
+import '../design/create_prompt_screen.dart';
 import '../design/create_preview_screen.dart';
 import '../design/create_backdrop_screen.dart';
-import '../design/suggest_lighting_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -79,34 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AIDesignAssistantScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildFeatureCard(
-                  icon: Icons.build_circle_outlined,
-                  title: 'Idol Build',
-                  subtitle: 'Step-by-step guide to building your idol',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const IdolVisualizationScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildFeatureCard(
-                  icon: Icons.palette_outlined,
-                  title: 'Decoration & Detailing',
-                  subtitle: 'Add details and decorations to your idol',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FineDetailingScreen(),
+                        builder: (context) => const CreatePromptScreen(),
                       ),
                     );
                   },
@@ -133,19 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const CreateBackdropScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildFeatureCard(
-                  icon: Icons.lightbulb_circle_outlined,
-                  title: 'Try Lights',
-                  subtitle: 'Showcase your creations',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SuggestLightingScreen(),
                       ),
                     );
                   },

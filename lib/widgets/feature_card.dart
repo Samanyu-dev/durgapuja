@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
+import '../services/logging_service.dart';
 
 class FeatureCard extends StatelessWidget {
   final String title;

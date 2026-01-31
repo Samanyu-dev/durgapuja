@@ -38,5 +38,12 @@
   "tryLights": "Try Lights",
   "tryLightsDesc": "Experiment with lighting effects",
   "clients": "Clients",
-  "searchClients": "Search clients"
+  "searchClients": "Search clients",
+  "chooseYourModule": "Choose Your Module",
+  "selectModuleDescription": "Select the module you want to work with",
+  "designModule": "Design Module",
+  "designModuleDescription": "Create and customize idol designs",
+  "financeModule": "Finance Module",
+  "financeModuleDescription": "Track expenses, materials, and payments",
+  "continueWithDesign": "Continue with Design (Default)"
 }

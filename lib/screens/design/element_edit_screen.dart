@@ -5,7 +5,7 @@ import '../../utils/constants.dart';
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/element_edit_service.dart';
-import '../../services/speech_service.dart';
+import '../../services/integrated_speech_service.dart';
 import '../../widgets/voice_input_button.dart';
 
 class ElementEditScreen extends StatefulWidget {
@@ -22,7 +22,7 @@ class ElementEditScreen extends StatefulWidget {
 
 class _ElementEditScreenState extends State<ElementEditScreen> {
   final ElementEditService _editService = ElementEditService();
-  final SpeechService _speechService = SpeechService();
+      final IntegratedSpeechService _speechService = IntegratedSpeechService();
 
   ElementType _selectedElement = ElementType.face;
   final TextEditingController _editDescriptionController = TextEditingController();
@@ -67,12 +67,9 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
   Future<void> _stopVoiceInput() async {
     try {
-      final text = await _speechService.stopListening();
-      if (text.isNotEmpty) {
-        setState(() {
-          _editDescriptionController.text = text;
-        });
-      }
+      await _speechService.stopListening();
+      // Note: stopListening() just stops recording, it doesn't return text
+      // The text is captured in startVoiceInput() when listenBangla() completes
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to stop voice input: $e')),
@@ -137,6 +134,14 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Navigate back to design module dashboard
+            context.go('/design/dashboard');
+          },
+          tooltip: 'Back',
+        ),
         title: const Text('Edit Design Element'),
         elevation: 0,
       ),

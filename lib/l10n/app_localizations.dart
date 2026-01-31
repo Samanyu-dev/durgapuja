@@ -337,6 +337,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search clients'**
   String get searchClients;
+
+  /// No description provided for @chooseYourModule.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Your Module'**
+  String get chooseYourModule;
+
+  /// No description provided for @selectModuleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the module you want to work with'**
+  String get selectModuleDescription;
+
+  /// No description provided for @designModule.
+  ///
+  /// In en, this message translates to:
+  /// **'Design Module'**
+  String get designModule;
+
+  /// No description provided for @designModuleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and customize idol designs'**
+  String get designModuleDescription;
+
+  /// No description provided for @financeModule.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance Module'**
+  String get financeModule;
+
+  /// No description provided for @financeModuleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track expenses, materials, and payments'**
+  String get financeModuleDescription;
+
+  /// No description provided for @continueWithDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Design (Default)'**
+  String get continueWithDesign;
 }
 
 class _AppLocalizationsDelegate

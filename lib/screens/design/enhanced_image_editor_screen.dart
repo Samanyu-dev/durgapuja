@@ -1,507 +1,627 @@
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import '../../models/editable_element.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import '../../models/generated_image.dart';
-import '../../services/element_edit_service.dart';
-import '../../services/krea_ai_service.dart';
-import '../../services/speech_service.dart';
 import '../../services/tap_to_edit_service.dart';
-import '../../utils/colors.dart';
-import '../../utils/constants.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/voice_input_button.dart';
+import '../../models/editable_element.dart';
 
 class EnhancedImageEditorScreen extends StatefulWidget {
-  final GeneratedImage image;
+  final GeneratedImage generatedImage;
+  final String originalPrompt;
+  final String? originalImagePath;
 
-  const EnhancedImageEditorScreen({Key? key, required this.image}) : super(key: key);
+  const EnhancedImageEditorScreen({
+    super.key,
+    required this.generatedImage,
+    required this.originalPrompt,
+    this.originalImagePath,
+  });
 
   @override
   State<EnhancedImageEditorScreen> createState() => _EnhancedImageEditorScreenState();
 }
 
 class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
-  final ElementEditService _editService = ElementEditService();
-  final KreaAIService _kreaService = KreaAIService();
-  final TapToEditService _tapToEditService = TapToEditService();
-  final TextEditingController _promptController = TextEditingController();
-  
-  List<ElementType> _selectedElements = [];
-  ElementType? _currentElementType;
-  bool _isGenerating = false;
-  bool _isListening = false;
-  bool _showSelectionTools = false;
-  bool _showEditPanel = false;
+  final GlobalKey _imageKey = GlobalKey();
+  final TextEditingController _editPromptController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  final TapToEditService _editService = TapToEditService();
+
+  ui.Image? _image;
+  List<Offset> _tracePoints = [];
+  bool _isTracing = false;
+  bool _isProcessing = false;
+  File? _editReferenceImage;
+  double _imageWidth = 0;
+  double _imageHeight = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
 
   @override
   void dispose() {
-    _promptController.dispose();
+    _editPromptController.dispose();
     super.dispose();
   }
 
-  Future<void> _startVoiceInput() async {
-    if (_isListening) return;
-
+  Future<void> _loadImage() async {
+    final response = await http.get(Uri.parse(widget.generatedImage.url));
+    final bytes = response.bodyBytes;
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    
     setState(() {
-      _isListening = true;
+      _image = frame.image;
+      _imageWidth = frame.image.width.toDouble();
+      _imageHeight = frame.image.height.toDouble();
     });
+  }
+
+  void _startTracing(Offset position) {
+    setState(() {
+      _isTracing = true;
+      _tracePoints = [position];
+    });
+  }
+
+  void _updateTrace(Offset position) {
+    if (_isTracing) {
+      setState(() {
+        _tracePoints.add(position);
+      });
+    }
+  }
+
+  void _endTracing() {
+    setState(() {
+      _isTracing = false;
+    });
+    
+    if (_tracePoints.length >= 3) {
+      _showEditDialog();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please trace a larger area')),
+      );
+      setState(() {
+        _tracePoints.clear();
+      });
+    }
+  }
+
+  void _clearTrace() {
+    setState(() {
+      _tracePoints.clear();
+      _isTracing = false;
+    });
+  }
+
+  Future<void> _pickEditReference() async {
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _editReferenceImage = File(image.path);
+      });
+    }
+  }
+
+  void _showEditDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Edit Selection',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _clearTrace();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              
+              const Divider(),
+              
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Describe your edit',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _editPromptController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          hintText: 'E.g., Change to a blue saree with golden borders...',
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      const Text(
+                        'Reference Image (Optional)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_editReferenceImage != null)
+                        Stack(
+                          children: [
+                            Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                image: DecorationImage(
+                                  image: FileImage(_editReferenceImage!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    _editReferenceImage = null;
+                                  });
+                                  setState(() {
+                                    _editReferenceImage = null;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            await _pickEditReference();
+                            setModalState(() {});
+                          },
+                          icon: const Icon(Icons.add_photo_alternate),
+                          label: const Text('Add Reference Image'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      
+                      const Text(
+                        'Quick Edits',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'More detailed',
+                          'Change color',
+                          'Add jewelry',
+                          'Enhance lighting',
+                        ].map((text) {
+                          return ActionChip(
+                            label: Text(text),
+                            onPressed: () {
+                              _editPromptController.text = text;
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _isProcessing ? null : () {
+                    Navigator.pop(context);
+                    _applyEdit();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF6B35),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  child: const Text(
+                    'Apply Edit',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _applyEdit() async {
+    if (_editPromptController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please describe your edit')),
+      );
+      return;
+    }
+
+    if (_tracePoints.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please trace the area to edit')),
+      );
+      return;
+    }
+
+    setState(() => _isProcessing = true);
 
     try {
-      final speechService = SpeechService();
-      final recognizedText = await speechService.listenBangla();
+      // Calculate center point of traced area
+      double sumX = 0, sumY = 0;
+      for (var point in _tracePoints) {
+        sumX += point.dx;
+        sumY += point.dy;
+      }
+      final centerX = sumX / _tracePoints.length;
+      final centerY = sumY / _tracePoints.length;
+
+      // Get render box for coordinate conversion
+      final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
+
+      final size = renderBox.size;
       
-      if (recognizedText.isNotEmpty) {
-        setState(() {
-          _promptController.text = recognizedText;
-        });
+      // Convert to image coordinates
+      final imageX = (centerX / size.width) * _imageWidth;
+      final imageY = (centerY / size.height) * _imageHeight;
+
+      // Perform edit
+      final editedImage = await _editService.completeTapToEditWorkflow(
+        originalImage: widget.generatedImage,
+        tapX: imageX,
+        tapY: imageY,
+        imageWidth: _imageWidth,
+        imageHeight: _imageHeight,
+        editPrompt: _editPromptController.text,
+        elementType: ElementType.face,
+        applyRelighting: true,
+        preserveColors: true,
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EnhancedImageEditorScreen(
+              generatedImage: editedImage,
+              originalPrompt: widget.originalPrompt,
+            ),
+          ),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice input failed: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Edit failed: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isListening = false;
-      });
-    }
-  }
-
-  void _selectElement(ElementType elementType) {
-    setState(() {
-      _currentElementType = elementType;
-      _showSelectionTools = false;
-      _showEditPanel = true;
-      _promptController.text = '';
-    });
-  }
-
-  void _removeElement(ElementType elementType) {
-    setState(() {
-      _selectedElements.remove(elementType);
-    });
-  }
-
-  Future<void> _regenerateElement() async {
-    if (_currentElementType == null || _promptController.text.trim().isEmpty) return;
-
-    setState(() {
-      _isGenerating = true;
-    });
-
-    try {
-      final editDescription = _promptController.text.trim();
-      final editPrompt = _editService.createElementEditPrompt(
-        _currentElementType!,
-        editDescription,
-        widget.image.prompt,
-      );
-      
-      final images = await _kreaService.generateImages(editPrompt, count: 1);
-      
-      setState(() {
-        _isGenerating = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Element updated successfully!')),
-      );
-      
-      // Navigate to image viewer with the new image
-      context.push('/design/image-viewer', extra: images.first);
-    } catch (e) {
-      setState(() {
-        _isGenerating = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to regenerate element: $e')),
-      );
-    }
-  }
-
-  Future<void> _saveDesign() async {
-    try {
-      // For now, just show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Design saved successfully!')),
-      );
-      context.pop();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
-      );
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _tracePoints.clear();
+          _editPromptController.clear();
+          _editReferenceImage = null;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Enhanced Image Editor'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: const Text('Edit Your Design'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveDesign,
-            tooltip: 'Save Design',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Image Viewer with Zoom
-          Expanded(
-            flex: 3,
-            child: Container(
-              color: Colors.black,
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Image.network(
-                  widget.image.url,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primaryBrown),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.black,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 48,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+          if (_tracePoints.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearTrace,
+              tooltip: 'Clear trace',
             ),
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: _downloadImage,
+            tooltip: 'Download',
           ),
-
-          // Selection Tools
-          if (_showSelectionTools)
-            _buildSelectionTools(),
-
-          // Edit Panel
-          if (_showEditPanel && _currentElementType != null)
-            _buildEditPanel(),
-
-          // Bottom Controls
-          _buildBottomControls(),
         ],
       ),
-    );
-  }
-
-  Widget _buildSelectionTools() {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.mediumPadding),
-      decoration: BoxDecoration(
-        color: AppColors.cardCream,
-        border: Border(top: BorderSide(color: AppColors.primaryBrown.withOpacity(0.3))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Select Element to Edit',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeMedium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
-                    _showSelectionTools = false;
-                    _currentElementType = null;
-                  });
-                },
-                tooltip: 'Cancel',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: ElementType.values.map((elementType) {
-              return FilterChip(
-                label: Row(
+          Center(
+            child: GestureDetector(
+              onPanStart: (details) {
+                final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+                if (renderBox != null) {
+                  final localPosition = renderBox.globalToLocal(details.globalPosition);
+                  _startTracing(localPosition);
+                }
+              },
+              onPanUpdate: (details) {
+                final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+                if (renderBox != null) {
+                  final localPosition = renderBox.globalToLocal(details.globalPosition);
+                  _updateTrace(localPosition);
+                }
+              },
+              onPanEnd: (_) => _endTracing(),
+              child: RepaintBoundary(
+                key: _imageKey,
+                child: Stack(
                   children: [
-                    Icon(_getIconForType(elementType), size: 16),
-                    const SizedBox(width: 4),
-                    Text(elementType.displayName),
+                    Image.network(
+                      widget.generatedImage.url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      },
+                    ),
+                    
+                    if (_tracePoints.isNotEmpty)
+                      CustomPaint(
+                        painter: TracePainter(
+                          points: _tracePoints,
+                          isActive: _isTracing,
+                        ),
+                        size: Size.infinite,
+                      ),
                   ],
                 ),
-                selected: _currentElementType == elementType,
-                onSelected: (selected) {
-                  if (selected) {
-                    _selectElement(elementType);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditPanel() {
-    final element = EditableElement.fromType(_currentElementType!);
-    
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.mediumPadding),
-      decoration: BoxDecoration(
-        color: AppColors.cardCream,
-        border: Border(top: BorderSide(color: AppColors.primaryBrown.withOpacity(0.3))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Edit ${element?.type.displayName ?? 'Element'}',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeMedium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: _regenerateElement,
-                    tooltip: 'Regenerate',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        _showEditPanel = false;
-                        _currentElementType = null;
-                      });
-                    },
-                    tooltip: 'Close',
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
           
-          // Guidance Text
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              border: Border.all(color: AppColors.accentOrange.withOpacity(0.3)),
-            ),
-            child: Text(
-              _editService.getElementGuidance(_currentElementType!),
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeSmall,
-                color: AppColors.textLight,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-          
-          // Prompt Input
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-              border: Border.all(color: AppColors.primaryBrown.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _promptController,
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 16),
-                    decoration: InputDecoration(
-                      hintText: 'Describe changes for ${element?.type.displayName.toLowerCase() ?? 'element'}...',
-                      hintStyle: TextStyle(color: AppColors.textLight),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.all(16),
+          if (_isProcessing)
+            Container(
+              color: Colors.black.withOpacity(0.7),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Color(0xFFFF6B35)),
+                    SizedBox(height: 16),
+                    Text(
+                      'Processing your edit...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                VoiceInputButton(
-                  onPressed: _startVoiceInput,
-                  isListening: _isListening,
-                ),
-              ],
+              ),
             ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Example Prompts
-          if (_editService.getExamplePrompts(_currentElementType!).isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Example Prompts:',
-                  style: TextStyle(
-                    fontSize: AppConstants.fontSizeSmall,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
-                  ),
+          
+          if (!_isTracing && _tracePoints.isEmpty && !_isProcessing)
+            Positioned(
+              bottom: 32,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: _editService.getExamplePrompts(_currentElementType!).map((prompt) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          _promptController.text = prompt;
-                        });
-                      },
-                      child: Chip(
-                        label: Text(prompt, style: TextStyle(fontSize: 12)),
-                        backgroundColor: AppColors.cardCream,
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.touch_app,
+                      size: 32,
+                      color: Color(0xFFFF6B35),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Trace around the area you want to edit',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Draw with your finger to select the object',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomControls() {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.mediumPadding),
-      decoration: BoxDecoration(
-        color: AppColors.cardCream,
-        border: Border(top: BorderSide(color: AppColors.primaryBrown.withOpacity(0.3))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Main Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              CustomButton(
-                onPressed: () {
-                  setState(() {
-                    _showSelectionTools = !_showSelectionTools;
-                    if (!_showSelectionTools) _currentElementType = null;
-                  });
-                },
-                label: _showSelectionTools ? 'Hide Tools' : 'Select Element',
-                icon: _showSelectionTools ? Icons.close : Icons.touch_app,
-                backgroundColor: _showSelectionTools ? AppColors.textLight : AppColors.primaryBrown,
-              ),
-              
-              CustomButton(
-                onPressed: _isGenerating ? null : _regenerateElement,
-                label: 'Regenerate',
-                icon: Icons.refresh,
-                backgroundColor: AppColors.accentOrange,
-                isLoading: _isGenerating,
-              ),
-
-              CustomButton(
-                onPressed: () {
-                  // Navigate to fine detailing
-                  context.push('/design/fine-detailing', extra: widget.image);
-                },
-                label: 'Fine Detail',
-                icon: Icons.edit,
-              ),
-              
-              CustomButton(
-                onPressed: () {
-                  // Navigate to Tap-to-Edit
-                  context.push('/design/tap-to-edit', extra: widget.image);
-                },
-                label: 'Tap-to-Edit',
-                icon: Icons.touch_app,
-                backgroundColor: AppColors.accentOrange,
-              ),
-            ],
-          ),
-
-          // Selected Elements List
-          if (_selectedElements.isNotEmpty)
-            Column(
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  'Selected Elements (${_selectedElements.length})',
-                  style: TextStyle(
-                    fontSize: AppConstants.fontSizeSmall,
-                    color: AppColors.textLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: _selectedElements.map((elementType) {
-                    final element = EditableElement.fromType(elementType);
-                    return Chip(
-                      label: Row(
-                        children: [
-                          Icon(_getIconForType(elementType), size: 16),
-                          const SizedBox(width: 4),
-                          Text(element?.type.displayName ?? elementType.name),
-                        ],
-                      ),
-                      onDeleted: () => _removeElement(elementType),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getIconForType(ElementType elementType) {
-    switch (elementType) {
-      case ElementType.face:
-        return Icons.face;
-      case ElementType.ornaments:
-        return Icons.diamond;
-      case ElementType.clothing:
-        return Icons.checkroom;
-      case ElementType.pose:
-        return Icons.accessibility;
-      case ElementType.background:
-        return Icons.photo;
-      case ElementType.lighting:
-        return Icons.lightbulb;
+  Future<void> _downloadImage() async {
+    try {
+      final response = await http.get(Uri.parse(widget.generatedImage.url));
+      final bytes = response.bodyBytes;
+      
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/durga_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await file.writeAsBytes(bytes);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to ${file.path}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Download failed: $e')),
+        );
+      }
     }
+  }
+}
+
+class TracePainter extends CustomPainter {
+  final List<Offset> points;
+  final bool isActive;
+
+  TracePainter({required this.points, required this.isActive});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    final paint = Paint()
+      ..color = const Color(0xFFFF6B35)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFF6B35).withOpacity(0.3)
+      ..strokeWidth = 10.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+
+    final glowPath = Path();
+    glowPath.moveTo(points[0].dx, points[0].dy);
+    for (var i = 1; i < points.length; i++) {
+      glowPath.lineTo(points[i].dx, points[i].dy);
+    }
+    canvas.drawPath(glowPath, glowPaint);
+
+    final path = Path();
+    path.moveTo(points[0].dx, points[0].dy);
+    for (var i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+    canvas.drawPath(path, paint);
+
+    final dotPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    for (var point in points) {
+      canvas.drawCircle(point, 2, dotPaint);
+    }
+
+    if (isActive && points.isNotEmpty) {
+      final lastPoint = points.last;
+      final pulsePaint = Paint()
+        ..color = const Color(0xFFFF6B35).withOpacity(0.5)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(lastPoint, 8, pulsePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(TracePainter oldDelegate) {
+    return oldDelegate.points != points || oldDelegate.isActive != isActive;
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/speech_service.dart';
+import '../../services/integrated_speech_service.dart';
 import '../../utils/colors.dart';
 import '../../services/translation_service.dart';
 import '../../services/gpt_service.dart';
@@ -16,7 +16,7 @@ class FinanceHomeScreen extends StatefulWidget {
 }
 
 class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
-  final SpeechService _speechService = SpeechService();
+  final IntegratedSpeechService _speechService = IntegratedSpeechService();
   final TranslationService _translationService = TranslationService();
   int _selectedTab = 0; // 0 for Pending Payments, 1 for Upcoming Deliveries
   double _totalIncome = 0.0;
@@ -74,9 +74,22 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "App Name",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          // Navigate back to main module selection
+                          context.go('/');
+                        },
+                        tooltip: 'Back to Modules',
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Finance Module",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                   IconButton(
                     onPressed: () {},
@@ -86,9 +99,9 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               ),
 
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 "Hello, Artisan",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 25),
@@ -300,13 +313,13 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 mainAxisSpacing: 15,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  // Material Tracker
+                  // Enhanced Material Tracker
                   _buildFinanceCard(
                     icon: Icons.category,
                     title: "Material Tracker",
-                    subtitle: "Track material costs and trends",
+                    subtitle: "Track costs, trends & usage analytics",
                     onTap: () {
-                      context.go('/finance/materials');
+                      context.go('/finance/materials/enhanced');
                     },
                   ),
                   
@@ -342,6 +355,26 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                         'budget': '25000',
                         'paid': '12000'
                       });
+                    },
+                  ),
+
+                  // Financial Reports
+                  _buildFinanceCard(
+                    icon: Icons.bar_chart,
+                    title: "Financial Reports",
+                    subtitle: "Detailed analytics and insights",
+                    onTap: () {
+                      context.go('/finance/reports');
+                    },
+                  ),
+
+                  // Budget Management
+                  _buildFinanceCard(
+                    icon: Icons.money,
+                    title: "Budget Management",
+                    subtitle: "Set budgets and track spending",
+                    onTap: () {
+                      context.go('/finance/budget');
                     },
                   ),
                 ],

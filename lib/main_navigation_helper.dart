@@ -8,7 +8,7 @@ import 'screens/reports/reports_screen.dart';
 
 // Helper class to access MainNavigationScreen state from child screens
 class MainNavigationHelper {
-  static _MainNavigationScreenState? navState;
+  static MainNavigationScreenState? navState;
 
   static void navigateToTab(int index) {
     navState?.switchToTab(index);
@@ -19,10 +19,10 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
   @override

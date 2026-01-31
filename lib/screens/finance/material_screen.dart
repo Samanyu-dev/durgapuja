@@ -20,11 +20,14 @@ class MaterialsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6D3),
       appBar: AppBar(
-        title: const Text('Material Tracker'),
+        title: const Text('Materials'),
         backgroundColor: const Color(0xFF9A5222),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            // Navigate back to finance dashboard instead of popping
+            Navigator.pushReplacementNamed(context, '/finance/dashboard');
+          },
         ),
       ),
       body: SafeArea(

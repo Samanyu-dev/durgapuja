@@ -130,4 +130,27 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get searchClients => 'ক্লায়েন্ট খুঁজুন';
+
+  @override
+  String get chooseYourModule => 'Choose Your Module';
+
+  @override
+  String get selectModuleDescription =>
+      'Select the module you want to work with';
+
+  @override
+  String get designModule => 'Design Module';
+
+  @override
+  String get designModuleDescription => 'Create and customize idol designs';
+
+  @override
+  String get financeModule => 'Finance Module';
+
+  @override
+  String get financeModuleDescription =>
+      'Track expenses, materials, and payments';
+
+  @override
+  String get continueWithDesign => 'Continue with Design (Default)';
 }

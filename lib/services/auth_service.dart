@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/user.dart';
+import '../services/logging_service.dart';
+import '../utils/colors.dart';
+import '../utils/constants.dart';
 
 class MockUser implements User {
   final String _uid;
@@ -115,7 +119,7 @@ class AuthService {
   final _MockUserDatabase _mockDb = _MockUserDatabase();
 
   // Test mode flag - SET TO FALSE FOR PRODUCTION
-  bool _isTestMode = true;
+  bool _isTestMode = false;
 
   bool get isTestMode => _isTestMode;
 
@@ -131,18 +135,39 @@ class AuthService {
 
   User? _mockUser;
 
-  User _createMockUser(String uid, String phoneNumber) {
+  User createMockUser(String uid, String phoneNumber) {
     return MockUser(uid: uid, phoneNumber: phoneNumber);
   }
+
+  // Public access to mock user for testing
+  User? get mockUser => _mockUser;
+  set mockUser(User? user) => _mockUser = user;
+
+  // Public access to test controller for testing
+  StreamController<User?> get testAuthController => _testAuthController;
 
   Stream<User?> get authStateChanges => _isTestMode
       ? _testAuthController.stream
       : _auth.authStateChanges();
 
   AuthService() {
-    // In test mode, emit initial null value to indicate no user is logged in
-    if (_isTestMode) {
+    // Initialize Firebase in production mode
+    if (!_isTestMode) {
+      _initializeFirebase();
+    } else {
+      // In test mode, emit initial null value to indicate no user is logged in
       _testAuthController.add(null);
+    }
+  }
+
+  Future<void> _initializeFirebase() async {
+    try {
+      await Firebase.initializeApp();
+      print('Firebase initialized successfully');
+    } catch (e) {
+      print('Firebase initialization error: $e');
+      // Handle the error - Firebase might not be configured properly
+      // This prevents the app from getting stuck in loading state
     }
   }
 
@@ -164,12 +189,13 @@ class AuthService {
   String? get pendingPhoneNumber => _pendingPhoneNumber;
 
   Future<void> sendOTP(String phoneNumber) async {
+    LoggingService.logInfo('Sending OTP to $phoneNumber');
     _pendingPhoneNumber = phoneNumber;
 
     if (_isTestMode) {
       await Future.delayed(const Duration(seconds: 1));
       _verificationId = 'test_verification_${DateTime.now().millisecondsSinceEpoch}';
-      print('Mock OTP sent to $phoneNumber. Use code: 123456');
+      LoggingService.logInfo('Mock OTP sent to $phoneNumber. Use code: 123456');
       return;
     }
 
@@ -178,23 +204,43 @@ class AuthService {
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification (Android only)
-          await _auth.signInWithCredential(credential);
+          try {
+            final UserCredential userCredential = await _auth.signInWithCredential(credential);
+            
+            // Check if user profile exists, if not create it
+            final userExists = await this.userExists(userCredential.user!.uid);
+            if (!userExists) {
+              await _createUserProfile(
+                userCredential.user!,
+                userCredential.user!.phoneNumber ?? _pendingPhoneNumber ?? '',
+              );
+            } else {
+              await updateLastLogin(userCredential.user!.uid);
+            }
+            
+            LoggingService.logInfo('Auto-verification completed successfully for ${userCredential.user!.uid}');
+          } catch (e) {
+            LoggingService.logError('Auto-verification failed: $e');
+            // Don't throw here, let user manually enter OTP
+          }
         },
         verificationFailed: (FirebaseAuthException e) {
-          print('Verification failed: ${e.code} - ${e.message}');
+          LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
           throw e;
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
-          print('OTP sent successfully');
+          LoggingService.logInfo('OTP sent successfully to $phoneNumber');
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
+          LoggingService.logWarning('Auto-retrieval timeout, manual entry required');
         },
         timeout: const Duration(seconds: 60),
       );
     } on FirebaseAuthException catch (e) {
+      LoggingService.logError('Firebase Auth Exception in sendOTP: ${e.code} - ${e.message}');
       throw FirebaseAuthException(
         code: e.code,
         message: _getErrorMessage(e.code),
@@ -223,7 +269,7 @@ class AuthService {
           _mockDb.addUser(newUser);
         }
 
-        _mockUser = _createMockUser(uid, _pendingPhoneNumber!);
+        _mockUser = createMockUser(uid, _pendingPhoneNumber!);
         _mockDb.updateLastLogin(uid);
         _testAuthController.add(_mockUser);
 
