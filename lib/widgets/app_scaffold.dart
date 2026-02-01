@@ -1,0 +1,135 @@
+import 'package:flutter/material.dart';
+import '../utils/colors.dart';
+import 'dynamic_island_nav.dart';
+
+class AppScaffold extends StatelessWidget {
+  final Widget body;
+  final int currentIndex;
+  final Function(int) onNavTap;
+  final VoidCallback? onFabTap;
+  final Widget? floatingActionButton;
+  final bool showHomeIcon;
+  final bool isDesignModule;
+  final bool isFinanceSubModule;
+  final List<NavItem>? customNavItems;
+
+  const AppScaffold({
+    Key? key,
+    required this.body,
+    required this.currentIndex,
+    required this.onNavTap,
+    this.onFabTap,
+    this.floatingActionButton,
+    this.showHomeIcon = false,
+    this.isDesignModule = false,
+    this.isFinanceSubModule = false,
+    this.customNavItems,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Use custom nav items if provided
+    List<NavItem> navItems = customNavItems ?? [];
+
+    if (navItems.isEmpty) {
+      // Define navigation items based on the module
+      if (showHomeIcon) {
+        if (isDesignModule) {
+          // Design module: Dashboard, Design (no finance parts)
+          navItems = [
+            const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+            const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+          ];
+        } else {
+          // Finance module: Dashboard, Orders, Reports (no design parts)
+          navItems = [
+            const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
+            const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+            const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+          ];
+        }
+      } else {
+        // Default or combined navigation
+        navItems = [
+          const NavItem(icon: Icons.home_outlined, label: 'Home'),
+          const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+          const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+          const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
+          const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+        ];
+      }
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundCream,
+      body: Stack(
+        children: [
+          body,
+          DynamicIslandNav(
+            currentIndex: currentIndex,
+            onTap: onNavTap,
+            onVoiceTap: onFabTap ?? () => _showVoiceBottomSheet(context),
+            navItems: navItems,
+          ),
+        ],
+      ),
+      floatingActionButton: floatingActionButton,
+    );
+  }
+
+
+
+  void _showVoiceBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final size = MediaQuery.of(context).size;
+        final pad = size.width * 0.06;
+        return Container(
+          padding: EdgeInsets.all(pad.clamp(16.0, 28.0)),
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Voice Recording',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Tap to start recording your voice note',
+              style: TextStyle(color: AppColors.textLight),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.mic),
+                  label: const Text('Start Recording'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBrown,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        );
+      },
+    );
+  }
+}
