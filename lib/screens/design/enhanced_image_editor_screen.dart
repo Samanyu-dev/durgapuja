@@ -200,14 +200,18 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                               const SizedBox(height: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF6B35)
-                                      .withOpacity(0.12),
+                                  color: const Color(
+                                    0xFFFF6B35,
+                                  ).withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: const Color(0xFFFF6B35)
-                                        .withOpacity(0.4),
+                                    color: const Color(
+                                      0xFFFF6B35,
+                                    ).withOpacity(0.4),
                                     width: 1,
                                   ),
                                 ),
@@ -274,8 +278,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                                   setState(() => _selectedElementType = type);
                                   setModalState(() {});
                                 },
-                                selectedColor:
-                                    const Color(0xFFFF6B35).withOpacity(0.3),
+                                selectedColor: const Color(
+                                  0xFFFF6B35,
+                                ).withOpacity(0.3),
                                 checkmarkColor: const Color(0xFFFF6B35),
                               );
                             }).toList(),
@@ -293,9 +298,10 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                             controller: _editPromptController,
                             maxLines: 3,
                             decoration: InputDecoration(
-                              hintText: EditableElement.fromType(
-                                          _selectedElementType)
-                                      ?.examplePrompts.first ??
+                              hintText:
+                                  EditableElement.fromType(
+                                    _selectedElementType,
+                                  )?.examplePrompts.first ??
                                   'E.g., Make it more detailed...',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -363,10 +369,43 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                               icon: const Icon(Icons.add_photo_alternate),
                               label: const Text('Add Reference Image'),
                               style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                               ),
                             ),
+                          const SizedBox(height: 24),
+
+                          // Apply Edit button (duplicate for easy access)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isProcessing
+                                  ? null
+                                  : () {
+                                      Navigator.pop(context);
+                                      _applyEdit();
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF6B35),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 18,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: const Text(
+                                'Apply Edit',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           const Text(
                             'Quick Edits',
@@ -379,68 +418,194 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: (EditableElement.fromType(
-                                            _selectedElementType)
-                                        ?.examplePrompts ??
-                                    [
-                                      'More detailed',
-                                      'Change color',
-                                      'Enhance'
-                                    ])
-                                .map((text) {
-                              return ActionChip(
-                                label: Text(text),
-                                onPressed: () {
-                                  _editPromptController.text = text;
-                                  setModalState(() {});
-                                },
-                              );
-                            }).toList(),
+                            children:
+                                (EditableElement.fromType(
+                                          _selectedElementType,
+                                        )?.examplePrompts ??
+                                        [
+                                          'More detailed',
+                                          'Change color',
+                                          'Enhance',
+                                        ])
+                                    .map((text) {
+                                      return ActionChip(
+                                        label: Text(text),
+                                        onPressed: () {
+                                          _editPromptController.text = text;
+                                          setModalState(() {});
+                                        },
+                                      );
+                                    })
+                                    .toList(),
                           ),
-                          // Add significant extra space at bottom to ensure button is always visible
-// This accounts for the fixed button height + safe area + extra buffer
-SizedBox(height: 140 + bottomPadding),
+                          const SizedBox(height: 24),
 
-// Dummy content below to ensure scrollability
-Container(
-  padding: const EdgeInsets.all(16),
-  margin: const EdgeInsets.only(bottom: 20),
-  decoration: BoxDecoration(
-    color: Colors.grey.shade50,
-    borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: Colors.grey.shade200),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          Icon(Icons.info_outline, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 8),
-          Text(
-            'Pro Tips',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Text(
-        '• Be specific in your edit description\n'
-        '• Reference images improve accuracy\n'
-        '• Larger traced areas work better',
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey.shade600,
-          height: 1.5,
-        ),
-      ),
-    ],
-  ),
-),
+                          // Additional helpful content to ensure scrollability
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 18,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Pro Tips',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '• Be specific in your edit description\n'
+                                  '• Reference images improve accuracy\n'
+                                  '• Larger traced areas work better',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Additional content for better scrolling experience
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFFF6B35).withOpacity(0.05),
+                                  const Color(0xFFFFB74D).withOpacity(0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFFF6B35).withOpacity(0.2),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFFFF6B35,
+                                        ).withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.lightbulb_outline,
+                                        size: 18,
+                                        color: Color(0xFFFF6B35),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'Edit Suggestions',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'For faces: Try "make more divine", "add intricate tilaka", or "enhance facial features"\n\n'
+                                  'For weapons: Try "add more detail to trident", "make weapon more ornate", or "enhance metallic shine"\n\n'
+                                  'For ornaments: Try "add traditional jewelry", "make more elaborate", or "enhance golden details"\n\n'
+                                  'For lion: Try "make more majestic", "add detailed mane", or "enhance fierce expression"\n\n'
+                                  'For clothing: Try "add intricate patterns", "enhance silk texture", or "make more vibrant"',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                    height: 1.6,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Additional helpful information
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B35).withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(
+                                  0xFFFF6B35,
+                                ).withOpacity(0.25),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.auto_awesome,
+                                      size: 18,
+                                      color: Color(0xFFFF6B35),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Best Practices',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '✓ Trace completely around the element\n'
+                                  '✓ Keep the traced area clear and focused\n'
+                                  '✓ Use descriptive, specific language\n'
+                                  '✓ Select the correct element type\n'
+                                  '✓ Upload reference images when available\n'
+                                  '✓ Allow processing time for best results',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                    height: 1.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Add significant extra space at bottom to ensure button is always visible
+                          // This must be larger than the button container to allow proper scrolling
+                          const SizedBox(height: 250),
+                        ],
+                      ),
+                    ),
+                  ),
 
                   // Fixed Apply Edit button at bottom
                   Container(
@@ -529,9 +694,11 @@ Container(
         traceImagePoints.add([imageX, imageY]);
       }
 
-      final centerX = _tracePoints.map((p) => p.dx).reduce((a, b) => a + b) /
+      final centerX =
+          _tracePoints.map((p) => p.dx).reduce((a, b) => a + b) /
           _tracePoints.length;
-      final centerY = _tracePoints.map((p) => p.dy).reduce((a, b) => a + b) /
+      final centerY =
+          _tracePoints.map((p) => p.dy).reduce((a, b) => a + b) /
           _tracePoints.length;
 
       final imageX = (centerX / size.width) * _imageWidth;
@@ -539,8 +706,7 @@ Container(
 
       final userText = _editPromptController.text.trim();
       final elementName = _selectedElementType.displayName.toLowerCase();
-      final editPrompt =
-          'Edit the $elementName of this Durga idol: $userText';
+      final editPrompt = 'Edit the $elementName of this Durga idol: $userText';
 
       final editedImage = await _editService.completeTapToEditWorkflow(
         originalImage: widget.generatedImage,
@@ -550,8 +716,9 @@ Container(
         imageHeight: _imageHeight,
         editPrompt: editPrompt,
         elementType: _selectedElementType,
-        traceImagePoints:
-            traceImagePoints.length >= 2 ? traceImagePoints : null,
+        traceImagePoints: traceImagePoints.length >= 2
+            ? traceImagePoints
+            : null,
         referenceImage: _editReferenceImage,
         applyRelighting: true,
         preserveColors: true,
@@ -581,10 +748,7 @@ Container(
               right: 16,
               bottom: MediaQuery.of(context).padding.bottom + 16,
             ),
-            action: SnackBarAction(
-              label: 'OK',
-              onPressed: () {},
-            ),
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
           ),
         );
       }
@@ -652,8 +816,9 @@ Container(
                 final RenderBox? renderBox =
                     _imageKey.currentContext?.findRenderObject() as RenderBox?;
                 if (renderBox != null) {
-                  final localPosition =
-                      renderBox.globalToLocal(details.globalPosition);
+                  final localPosition = renderBox.globalToLocal(
+                    details.globalPosition,
+                  );
                   _startTracing(localPosition);
                 }
               },
@@ -661,8 +826,9 @@ Container(
                 final RenderBox? renderBox =
                     _imageKey.currentContext?.findRenderObject() as RenderBox?;
                 if (renderBox != null) {
-                  final localPosition =
-                      renderBox.globalToLocal(details.globalPosition);
+                  final localPosition = renderBox.globalToLocal(
+                    details.globalPosition,
+                  );
                   _updateTrace(localPosition);
                 }
               },
@@ -677,8 +843,7 @@ Container(
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
                         return const Center(
-                          child:
-                              CircularProgressIndicator(color: Colors.white),
+                          child: CircularProgressIndicator(color: Colors.white),
                         );
                       },
                     ),
@@ -721,10 +886,7 @@ Container(
                     SizedBox(height: 16),
                     Text(
                       'Processing your edit...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ],
                 ),
@@ -768,10 +930,7 @@ Container(
                     const Text(
                       'Face, weapons, ornaments, lion, sari — draw around one element',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 12),
                     Container(
@@ -820,7 +979,8 @@ Container(
       final bytes = response.bodyBytes;
       final directory = await getApplicationDocumentsDirectory();
       final file = File(
-          '${directory.path}/durga_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        '${directory.path}/durga_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       await file.writeAsBytes(bytes);
 
       if (mounted) {
@@ -849,8 +1009,8 @@ Container(
         id: widget.generatedImage.id,
         title: widget.generatedImage.prompt.isNotEmpty
             ? widget.generatedImage.prompt.length > 40
-                ? '${widget.generatedImage.prompt.substring(0, 40)}...'
-                : widget.generatedImage.prompt
+                  ? '${widget.generatedImage.prompt.substring(0, 40)}...'
+                  : widget.generatedImage.prompt
             : 'Durga Design ${DateTime.now().day}/${DateTime.now().month}',
         imageUrl: widget.generatedImage.url,
       );
@@ -933,14 +1093,14 @@ class TracePainter extends CustomPainter {
     final gradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: const [
-        Color(0xFFFF6B35),
-        Color(0xFFFF8F50),
-        Color(0xFFFFB74D),
-      ],
+      colors: const [Color(0xFFFF6B35), Color(0xFFFF8F50), Color(0xFFFFB74D)],
     );
     final strokeRect = Rect.fromLTWH(
-        bounds.left - 20, bounds.top - 20, bounds.width + 40, bounds.height + 40);
+      bounds.left - 20,
+      bounds.top - 20,
+      bounds.width + 40,
+      bounds.height + 40,
+    );
     final strokePaint = Paint()
       ..shader = gradient.createShader(strokeRect)
       ..strokeWidth = 4.0
