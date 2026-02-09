@@ -138,13 +138,14 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
       String editedImageUrl;
 
       if (_editReferenceImage != null) {
-        // Style transfer with reference image
-        editedImageUrl = await _imageService.applyStyleTransfer(
+        // Use Krea AI style transfer with reference image as context
+        editedImageUrl = await _imageService.applyStyleTransferWithContext(
           originalImagePath: _tempDownloadedImage!.path,
           referenceImagePath: _editReferenceImage!.path,
+          prompt: _editPromptController.text.trim(),
         );
       } else {
-        // Creative transformation with prompt
+        // Creative transformation with prompt only
         editedImageUrl = await _imageService.applyCreativeTransformation(
           imagePath: _tempDownloadedImage!.path,
           prompt: _editPromptController.text.trim(),

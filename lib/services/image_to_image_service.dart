@@ -131,6 +131,53 @@ class ImageToImageService {
     }
   }
 
+  /// Applies style transfer with Krea AI using reference images as context for the image being designed.
+  /// This method uses the enhanced Krea AI API to apply style transfer with better context understanding.
+  Future<String> applyStyleTransferWithContext({
+    required String originalImagePath,
+    required String referenceImagePath,
+    String prompt = '',
+    String styleStrength = 'medium',
+    String styleType = 'artistic',
+  }) async {
+    if (_apiToken.isEmpty) throw Exception(_tokenError);
+
+    try {
+      print('Starting Krea style transfer with context (original + reference as references)...');
+      final originalFile = File(originalImagePath);
+      final referenceFile = File(referenceImagePath);
+      if (!originalFile.existsSync()) throw Exception('Original image file not found');
+      if (!referenceFile.existsSync()) throw Exception('Reference image file not found');
+
+      // Build enhanced prompt based on user input and style transfer requirements
+      String enhancedPrompt;
+      if (prompt.isNotEmpty) {
+        enhancedPrompt = 'Apply the style and mood from the reference image to the original image. '
+            'Incorporate the following user requirements: "$prompt". '
+            'Preserve the composition and main subject of the original image while matching '
+            'the artistic style, color palette, and mood of the reference image.';
+      } else {
+        enhancedPrompt = 'Transform the original image to match the style, mood and color palette '
+            'of the reference image. Preserve the composition and main subject of the original image. '
+            'Apply the artistic style of the reference image with $styleStrength strength and $styleType style type.';
+      }
+
+      print('Using enhanced prompt: $enhancedPrompt');
+
+      // Use Krea AI service to generate image with references
+      final result = await KreaAIService().generateImageWithReferences(
+        enhancedPrompt,
+        [originalFile, referenceFile],
+      );
+      
+      print('Style transfer completed successfully');
+      return result.url;
+    } catch (e) {
+      print('Error in Krea style transfer with context: $e');
+      rethrow;
+    }
+  }
+
   /// Creative transformation of image with text prompt (upload + enhance).
   Future<String> applyCreativeTransformation({
     required String imagePath,

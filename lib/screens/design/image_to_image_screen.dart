@@ -178,7 +178,6 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             builder: (context) => EnhancedImageEditorScreen(
               generatedImage: resultImage,
               originalPrompt: _promptController.text,
-              originalImagePath: _originalImage!.path,
             ),
           ),
         );
@@ -236,7 +235,6 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             builder: (context) => EnhancedImageEditorScreen(
               generatedImage: resultImage,
               originalPrompt: enhancementType,
-              originalImagePath: _originalImage!.path,
             ),
           ),
         );
