@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/krea_ai_service.dart';
+import '../../services/language_service.dart';
 import '../../models/generated_image.dart';
 import 'image_viewer_screen.dart';
 
@@ -17,7 +19,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
   final TextEditingController _backdropController = TextEditingController();
   final List<GeneratedImage> _generatedImages = [];
   bool _isGenerating = false;
-  final KreaAIService _kreaService = KreaAIService();
+  final KreaAIService _imageService = KreaAIService();
 
   final List<String> _backdropStyles = [
     'Traditional Bengali',
@@ -33,7 +35,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
   Future<void> _generateBackdrop() async {
     if (_backdropController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter backdrop description first')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('backdrop_description_first'))),
       );
       return;
     }
@@ -45,7 +47,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
     try {
       final prompt = 'Create beautiful Durga Puja backdrop in ${_selectedBackdropStyle.toLowerCase()} style: ${_backdropController.text.trim()}. Traditional Bengali pandal background, festive decorations, intricate details, cultural elements.';
 
-      final images = await _kreaService.generateImages(prompt, count: 2);
+      final images = await _imageService.generateImages(prompt, count: 2);
 
       setState(() {
         _generatedImages.addAll(images);
@@ -63,6 +65,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Container(
       color: AppColors.backgroundCream,
       child: Column(
@@ -77,10 +80,10 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () => context.go('/design/welcome'),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Backdrop Generator',
-                    style: TextStyle(
+                    lang.getText('backdrop_generator'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,

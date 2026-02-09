@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../models/generated_image.dart';
 import '../../services/concepts_store_service.dart';
+import '../../services/language_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class MyConceptsScreen extends StatefulWidget {
   const MyConceptsScreen({Key? key}) : super(key: key);
@@ -69,16 +72,18 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: const Text('My Concepts'),
+        title: Text(lang.getText('my_concepts')),
         automaticallyImplyLeading: false,
         actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.go('/design/create'),
-            tooltip: 'Create new concept',
+            tooltip: lang.getText('create_new_concept'),
           ),
         ],
       ),
@@ -92,7 +97,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search concepts',
+                hintText: lang.getText('search_concepts'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.mic_outlined),
@@ -115,9 +120,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
               ),
             ),
             const SizedBox(height: AppConstants.largePadding),
-            const Text(
-              'Filters',
-              style: TextStyle(
+            Text(
+              lang.getText('filters'),
+              style: const TextStyle(
                 fontSize: AppConstants.fontSizeBody,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textDark,
@@ -128,7 +133,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
               children: [
                 Expanded(
                   child: _buildDropdownFilter(
-                    'Theme',
+                    lang.getText('theme'),
                     _selectedTheme,
                     _themes,
                     (value) {
@@ -141,7 +146,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                 const SizedBox(width: AppConstants.mediumPadding),
                 Expanded(
                   child: _buildDropdownFilter(
-                    'Date',
+                    lang.getText('date'),
                     _selectedDate,
                     _dates,
                     (value) {

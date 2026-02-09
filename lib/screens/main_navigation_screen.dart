@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/app_scaffold.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 import 'home/home_dashboard_screen.dart';
 import 'design/design_welcome_screen.dart';
 import 'orders/add_client_screen.dart';
@@ -20,11 +22,10 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<String> _routes = ['/', '/design', '/orders', '/finance', '/reports'];
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final lang = context.watch<LanguageService>();
 
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
@@ -33,6 +34,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         automaticallyImplyLeading: false,
         elevation: 0,
         actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.go('/settings'),
@@ -74,31 +76,31 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               children: [
                 _buildNavItem(
                   icon: Icons.home_outlined,
-                  label: 'Home',
+                  label: lang.getText('home'),
                   index: 0,
                   isActive: _currentIndex == 0,
                 ),
                 _buildNavItem(
                   icon: Icons.palette_outlined,
-                  label: 'Design',
+                  label: lang.getText('design'),
                   index: 1,
                   isActive: _currentIndex == 1,
                 ),
                 _buildNavItem(
                   icon: Icons.shopping_bag_outlined,
-                  label: 'Orders',
+                  label: lang.getText('orders'),
                   index: 2,
                   isActive: _currentIndex == 2,
                 ),
                 _buildNavItem(
                   icon: Icons.wallet_outlined,
-                  label: 'Finance',
+                  label: lang.getText('finance'),
                   index: 3,
                   isActive: _currentIndex == 3,
                 ),
                 _buildNavItem(
                   icon: Icons.bar_chart_outlined,
-                  label: 'Reports',
+                  label: lang.getText('reports'),
                   index: 4,
                   isActive: _currentIndex == 4,
                 ),

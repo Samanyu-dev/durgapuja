@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/database_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class WorkerDetailsScreen extends StatefulWidget {
   final String workerName;
@@ -73,15 +75,23 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
         double.tryParse(widget.budget.replaceAll(",", ""))! -
         double.tryParse(widget.paid.replaceAll(",", ""))!;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/finance/dashboard');
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5E6D3),
+        appBar: AppBar(
         title: Text(widget.workerName),
         backgroundColor: const Color(0xFF9A5222),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.go('/finance/dashboard'),
         ),
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
@@ -250,6 +260,7 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

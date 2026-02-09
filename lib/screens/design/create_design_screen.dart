@@ -1,9 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../services/openai_image_service.dart';
 import '../../services/krea_ai_service.dart';
+import '../../services/language_service.dart';
 import '../../models/generated_image.dart';
+import '../../widgets/language_toggle_action.dart';
 import 'enhanced_image_editor_screen.dart';
 
 class CreateDesignScreen extends StatefulWidget {
@@ -16,6 +21,7 @@ class CreateDesignScreen extends StatefulWidget {
 class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _promptController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
+  final OpenAIImageService _openAIImageService = OpenAIImageService();
   final KreaAIService _kreaService = KreaAIService();
   final List<File> _referenceImages = [];
   
@@ -83,7 +89,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
   Future<void> _pickImageFromGallery() async {
     if (_referenceImages.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum 3 reference images allowed')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('max_3_images'))),
       );
       return;
     }
@@ -103,7 +109,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
   Future<void> _pickImageFromCamera() async {
     if (_referenceImages.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum 3 reference images allowed')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('max_3_images'))),
       );
       return;
     }
@@ -128,11 +134,11 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
 
   String _sanitizeError(Object e) {
     final s = e.toString();
-    if (s.contains('Krea API token not found') || s.contains('KREA_API')) {
-      return 'API key missing. Add KREA_API_TOKEN in .env or at krea.ai/settings/api-tokens.';
+    if (s.contains('OpenAI API key missing') || s.contains('api_keys.dart')) {
+      return 'API key missing. Set ApiKeys.openAIKey in lib/config/api_keys.dart (for reference-image generation).';
     }
     if (s.contains('<html') || s.contains('<!doctype') || s.contains('401') || s.contains('403')) {
-      return 'Server error. Check your Krea API key and try again.';
+      return 'Server error. Check your API key and try again.';
     }
     if (s.length > 120) return '${s.substring(0, 117)}...';
     return s.replaceFirst(RegExp(r'^Exception:\s*'), '');
@@ -141,7 +147,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
   Future<void> _generateImage() async {
     if (_promptController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a prompt')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_enter_prompt'))),
       );
       return;
     }
@@ -152,12 +158,13 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
       GeneratedImage generatedImage;
       
       if (_referenceImages.isNotEmpty) {
-        generatedImage = await _kreaService.generateImageWithReferences(
-          _promptController.text,
-          _referenceImages,
+        // Only this flow uses OpenAI (reference image + prompt).
+        generatedImage = await _openAIImageService.generateImageWithReference(
+          referenceImage: _referenceImages.first,
+          prompt: _promptController.text.trim(),
         );
       } else {
-        generatedImage = await _kreaService.generateImage(_promptController.text);
+        generatedImage = await _kreaService.generateImage(_promptController.text.trim());
       }
 
       if (mounted) {
@@ -191,41 +198,52 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Durga Idol Designer',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    final lang = context.watch<LanguageService>();
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            lang.getText('durga_idol_designer'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          actions: const [
+            LanguageToggleAction(),
+          ],
         ),
-      ),
-      body: SafeArea(
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 160), // Increased bottom padding to prevent navbar overlap
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildHeaderSection(),
+              _buildHeaderSection(lang),
               const SizedBox(height: 24),
-              _buildPromptSection(),
+              _buildPromptSection(lang),
               const SizedBox(height: 24),
-              _buildReferenceImagesSection(),
+              _buildReferenceImagesSection(lang),
               const SizedBox(height: 32),
-              _buildGenerateButton(),
+              _buildGenerateButton(lang),
               const SizedBox(height: 16),
-              _buildQuickPrompts(),
+              _buildQuickPrompts(lang),
               // Additional content to ensure the page is scrollable and button is accessible
               const SizedBox(height: 40),
-              _buildAccessibilityInfo(),
+              _buildAccessibilityInfo(lang),
               const SizedBox(height: 60),
-              _buildAdditionalContent(),
+              _buildAdditionalContent(lang),
             ],
           ),
         ),
       ),
+      ),
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeaderSection(LanguageService lang) {
     return Card(
       color: const Color(0xFFFF6B35),
       child: Padding(
@@ -238,9 +256,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               color: Colors.white,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Create Your Durga Idol',
-              style: TextStyle(
+            Text(
+              lang.getText('create_your_durga_idol'),
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -248,7 +266,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             ),
             const SizedBox(height: 8),
             Text(
-              'Use text, voice, or reference images',
+              lang.getText('use_text_voice_or_reference'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.white.withOpacity(0.9),
@@ -260,7 +278,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildPromptSection() {
+  Widget _buildPromptSection(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -271,9 +289,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               children: [
                 const Icon(Icons.edit, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Describe Your Design',
-                  style: TextStyle(
+                Text(
+                  lang.getText('describe_your_design'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -285,7 +303,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               controller: _promptController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'E.g., Traditional Bengali Durga idol with golden jewelry and red saree...',
+                hintText: lang.getText('prompt_hint_durga'),
                 suffixIcon: _isListening
                     ? ScaleTransition(
                         scale: _pulseAnimation,
@@ -304,7 +322,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Confidence: $_confidence%',
+                  '${lang.getText('confidence_label')}: $_confidence%',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
@@ -317,7 +335,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildReferenceImagesSection() {
+  Widget _buildReferenceImagesSection(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -328,9 +346,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               children: [
                 const Icon(Icons.photo_library, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Reference Images',
-                  style: TextStyle(
+                Text(
+                  lang.getText('reference_images'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -347,7 +365,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             ),
             const SizedBox(height: 12),
             Text(
-              'Add up to 3 reference images to guide the AI',
+              lang.getText('reference_images_help'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade600,
@@ -361,13 +379,13 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 children: [
                   _buildAddImageButton(
                     icon: Icons.photo_library,
-                    label: 'Gallery',
+                    label: lang.getText('gallery'),
                     onTap: _pickImageFromGallery,
                   ),
                   const SizedBox(width: 12),
                   _buildAddImageButton(
                     icon: Icons.camera_alt,
-                    label: 'Camera',
+                    label: lang.getText('camera'),
                     onTap: _pickImageFromCamera,
                   ),
                   const SizedBox(width: 12),
@@ -471,7 +489,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildGenerateButton() {
+  Widget _buildGenerateButton(LanguageService lang) {
     return ElevatedButton(
       onPressed: _isGenerating ? null : _generateImage,
       style: ElevatedButton.styleFrom(
@@ -491,14 +509,14 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             )
-          : const Row(
+          : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.auto_awesome),
-                SizedBox(width: 8),
+                const Icon(Icons.auto_awesome),
+                const SizedBox(width: 8),
                 Text(
-                  'Generate Design',
-                  style: TextStyle(
+                  lang.getText('generate_design'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -508,7 +526,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildQuickPrompts() {
+  Widget _buildQuickPrompts(LanguageService lang) {
     final prompts = [
       'Traditional Bengali Durga',
       'Modern fusion design',
@@ -520,7 +538,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Prompts',
+          lang.getText('quick_prompts'),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -548,7 +566,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildAccessibilityInfo() {
+  Widget _buildAccessibilityInfo(LanguageService lang) {
     return Card(
       color: const Color(0xFFFF6B35).withOpacity(0.1),
       child: Padding(
@@ -560,9 +578,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               children: [
                 const Icon(Icons.accessibility, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Accessibility Tips',
-                  style: TextStyle(
+                Text(
+                  lang.getText('accessibility_tips'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -571,7 +589,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             ),
             const SizedBox(height: 12),
             Text(
-              'If you\'re having trouble accessing the Generate Design button, try scrolling down the page. The button is positioned at the bottom of the content area to ensure it\'s accessible even when navigation bars are present.',
+              lang.getText('accessibility_button_help'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade700,
@@ -584,7 +602,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.touch_app, size: 16, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
                 Text(
-                  'Scroll down to access the Generate Design button',
+                  lang.getText('scroll_for_button'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -598,7 +616,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.arrow_downward, size: 16, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
                 Text(
-                  'The page is designed to be scrollable for better accessibility',
+                  lang.getText('page_scrollable'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -612,7 +630,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     );
   }
 
-  Widget _buildAdditionalContent() {
+  Widget _buildAdditionalContent(LanguageService lang) {
     return Card(
       color: Colors.white,
       child: Padding(
@@ -624,9 +642,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               children: [
                 const Icon(Icons.info_outline, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 8),
-                const Text(
-                  'Design Tips',
-                  style: TextStyle(
+                Text(
+                  lang.getText('design_tips'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -635,7 +653,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             ),
             const SizedBox(height: 12),
             Text(
-              'For best results, use detailed descriptions that include:',
+              lang.getText('best_results_include'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade700,
@@ -647,7 +665,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.circle, size: 6, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 12),
                 Text(
-                  'Specific materials (gold, silver, wood)',
+                  lang.getText('specific_materials'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -661,7 +679,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.circle, size: 6, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 12),
                 Text(
-                  'Color schemes and patterns',
+                  lang.getText('color_schemes'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -675,7 +693,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.circle, size: 6, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 12),
                 Text(
-                  'Traditional vs modern styles',
+                  lang.getText('traditional_vs_modern'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -689,7 +707,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const Icon(Icons.circle, size: 6, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 12),
                 Text(
-                  'Specific cultural elements',
+                  lang.getText('cultural_elements'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -699,7 +717,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             ),
             const SizedBox(height: 16),
             Text(
-              'Tip: The more specific your description, the better the AI can create your vision!',
+              lang.getText('tip_specific'),
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade600,

@@ -5,6 +5,7 @@ import '../../services/test_firebase.dart';
 import '../design/create_prompt_screen.dart';
 import '../design/create_preview_screen.dart';
 import '../design/create_backdrop_screen.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -55,6 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Welcome, artisan'),
         automaticallyImplyLeading: false,
         elevation: 0,
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

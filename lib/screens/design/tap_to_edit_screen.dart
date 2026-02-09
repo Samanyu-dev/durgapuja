@@ -4,14 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/tap_to_edit_service.dart';
 import '../../services/speech_service.dart';
+import '../../services/language_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/voice_input_button.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class TapToEditScreen extends StatefulWidget {
   final GeneratedImage? image;
@@ -84,7 +87,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       if (!started) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Voice input failed to start')),
+            SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('voice_input_failed'))),
           );
         }
       }
@@ -253,7 +256,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   Future<void> _applyEdit() async {
     if (_currentImage == null || _completedTraces.isEmpty || _selectedElementType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please trace an area and select element type')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_trace_and_select'))),
       );
       return;
     }
@@ -261,7 +264,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     final editDescription = _promptController.text.trim();
     if (editDescription.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please describe the changes')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_describe_changes'))),
       );
       return;
     }
@@ -342,42 +345,43 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // If we were opened with an image (e.g. from element edit), pop back; else go to design
             if (widget.image != null && context.canPop()) {
               context.pop();
             } else {
               context.go('/design/welcome');
             }
           },
-          tooltip: 'Back',
+          tooltip: lang.getText('back'),
         ),
-        title: const Text('Tap-to-Edit'),
+        title: Text(lang.getText('tap_to_edit_title')),
         actions: [
+          const LanguageToggleAction(),
           if (_completedTraces.isNotEmpty || _currentTracePath != null)
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _resetSelection,
-              tooltip: 'Clear Selection',
+              tooltip: lang.getText('clear_selection'),
             ),
           IconButton(
             icon: const Icon(Icons.image),
             onPressed: _selectImageSource,
-            tooltip: 'Select Image',
+            tooltip: lang.getText('select_image'),
           ),
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Image saved successfully!')),
+                SnackBar(content: Text(lang.getText('image_saved'))),
               );
             },
-            tooltip: 'Save',
+            tooltip: lang.getText('save'),
           ),
         ],
       ),
@@ -387,20 +391,20 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             // Image Viewer (ignore pointer when overlay or edit panel is shown so buttons work)
             IgnorePointer(
               ignoring: _showConfirmSelection || _showEditPanel,
-              child: _buildImageViewer(),
+              child: _buildImageViewer(context),
             ),
 
             // Image Source Options
             if (_showImageSourceOptions)
-              _buildImageSourceOptions(),
+              _buildImageSourceOptions(context),
 
             // Confirm Selection Overlay (positioned above navbar so it's visible and tappable)
             if (_showConfirmSelection)
-              _buildConfirmSelectionOverlay(),
+              _buildConfirmSelectionOverlay(context),
 
             // Edit Panel
             if (_showEditPanel)
-              _buildEditPanel(),
+              _buildEditPanel(context),
 
             // Loading Overlay
             if (_isEditing)
@@ -480,7 +484,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     );
   }
 
-  Widget _buildImageViewer() {
+  Widget _buildImageViewer(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return GestureDetector(
       onPanStart: _handlePanStart,
       onPanUpdate: _handlePanUpdate,
@@ -504,11 +509,11 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             else
               Container(
                 color: Colors.black,
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'No image selected\nTap the image icon to select one',
+                    lang.getText('no_image_selected'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: AppConstants.fontSizeLarge,
                     ),
@@ -532,8 +537,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     );
   }
 
-  Widget _buildConfirmSelectionOverlay() {
-    // Position above the bottom navbar (~100px) so overlay is visible and tappable
+  Widget _buildConfirmSelectionOverlay(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     const double navBarClearance = 100;
     return Positioned(
       bottom: navBarClearance,
@@ -558,7 +563,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Tracing Confirmed',
+                lang.getText('tracing_confirmed'),
                 style: TextStyle(
                   fontSize: AppConstants.fontSizeMedium,
                   fontWeight: FontWeight.w600,
@@ -567,7 +572,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Element traced and ready for editing',
+                lang.getText('element_traced_ready'),
                 style: TextStyle(
                   fontSize: AppConstants.fontSizeSmall,
                   color: AppColors.textLight,
@@ -579,7 +584,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   Expanded(
                     child: CustomButton(
                       onPressed: _cancelSelection,
-                      label: 'Cancel',
+                      label: lang.getText('cancel'),
                       backgroundColor: AppColors.textLight,
                     ),
                   ),
@@ -587,7 +592,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   Expanded(
                     child: CustomButton(
                       onPressed: _confirmSelection,
-                      label: 'Confirm Selection',
+                      label: lang.getText('confirm_selection'),
                       icon: Icons.check,
                       backgroundColor: AppColors.accentOrange,
                     ),
@@ -631,7 +636,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     );
   }
 
-  Widget _buildImageSourceOptions() {
+  Widget _buildImageSourceOptions(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Positioned(
       bottom: 20,
       left: 20,
@@ -653,7 +659,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Select Image Source',
+              lang.getText('select_image_source'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -667,7 +673,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 Expanded(
                   child: CustomButton(
                     onPressed: () => _pickImage(ImageSource.gallery),
-                    label: 'Gallery',
+                    label: lang.getText('gallery'),
                     icon: Icons.photo_library,
                     backgroundColor: AppColors.primaryBrown,
                   ),
@@ -676,7 +682,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 Expanded(
                   child: CustomButton(
                     onPressed: () => _pickImage(ImageSource.camera),
-                    label: 'Camera',
+                    label: lang.getText('camera'),
                     icon: Icons.camera_alt,
                     backgroundColor: AppColors.accentOrange,
                   ),
@@ -690,7 +696,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   _showImageSourceOptions = false;
                 });
               },
-              label: 'Cancel',
+              label: lang.getText('cancel'),
               backgroundColor: AppColors.textLight,
             ),
           ],
@@ -699,7 +705,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     );
   }
 
-  Widget _buildEditPanel() {
+  Widget _buildEditPanel(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     EditableElement.fromType(_selectedElementType ?? ElementType.face);
     
     return Positioned(
@@ -746,7 +753,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 Column(
                   children: [
                     Text(
-                      'Select Element to Edit',
+                      lang.getText('select_element_to_edit_short'),
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeMedium,
                         fontWeight: FontWeight.w600,
@@ -804,7 +811,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Selected: ${_selectedElementType!.displayName}',
+                          '${lang.getText('selected')}: ${_selectedElementType!.displayName}',
                           style: TextStyle(
                             fontSize: AppConstants.fontSizeSmall,
                             color: AppColors.textDark,
@@ -820,7 +827,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                             _selectedElementType = null;
                           });
                         },
-                        tooltip: 'Change selection',
+                        tooltip: lang.getText('change_selection'),
                       ),
                     ],
                   ),
@@ -961,7 +968,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   Expanded(
                     child: CustomButton(
                       onPressed: _resetSelection,
-                      label: 'Cancel',
+                      label: lang.getText('cancel'),
                       backgroundColor: AppColors.textLight,
                     ),
                   ),
@@ -970,7 +977,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                     flex: 2,
                     child: CustomButton(
                       onPressed: _applyEdit,
-                      label: 'Apply Edit',
+                      label: lang.getText('apply_edit'),
                       icon: Icons.auto_fix_high,
                       backgroundColor: AppColors.accentOrange,
                       isLoading: _isEditing,
@@ -1002,7 +1009,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Image has been edited! View the result above.',
+                            lang.getText('image_edited_view_above'),
                             style: TextStyle(
                               fontSize: AppConstants.fontSizeSmall,
                               color: AppColors.textDark,

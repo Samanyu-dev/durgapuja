@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/generated_image.dart';
+import '../../services/language_service.dart';
 import '../../utils/colors.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class ImageViewerScreen extends StatefulWidget {
   final List<GeneratedImage> images;
@@ -56,6 +59,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         ),
         centerTitle: true,
         actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
             onPressed: _shareImage,
@@ -78,13 +82,14 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         itemCount: widget.images.length,
         itemBuilder: (context, index) {
           final image = widget.images[index];
-          return _buildImageViewer(image);
+          return _buildImageViewer(context, image);
         },
       ),
     );
   }
 
-  Widget _buildImageViewer(GeneratedImage image) {
+  Widget _buildImageViewer(BuildContext context, GeneratedImage image) {
+    final lang = context.watch<LanguageService>();
     return GestureDetector(
       onScaleStart: (details) {
         _previousScale = _scale;
@@ -126,19 +131,19 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: AppColors.cardCream,
-                    child: const Center(
+                    child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.broken_image,
                             size: 64,
                             color: AppColors.textLight,
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
-                            'Failed to load image',
-                            style: TextStyle(
+                            lang.getText('failed_to_load_image'),
+                            style: const TextStyle(
                               color: AppColors.textLight,
                               fontSize: 16,
                             ),

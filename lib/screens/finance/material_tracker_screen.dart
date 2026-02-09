@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 import 'samiti_funds_screen.dart';
 
 class MaterialTrackerScreen extends StatefulWidget {
@@ -92,14 +96,23 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Finance'),
+    final lang = context.watch<LanguageService>();
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/finance/dashboard');
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/finance/dashboard'),
+          ),
+        title: Text(lang.getText('finance')),
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       body: Column(
         children: [
@@ -140,6 +153,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
         currentIndex: 3,
         onTap: (index) {
         },
+      ),
       ),
     );
   }

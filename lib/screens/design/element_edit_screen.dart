@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/element_edit_service.dart';
 import '../../services/speech_service.dart';
+import '../../services/language_service.dart';
 import '../../widgets/voice_input_button.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class ElementEditScreen extends StatefulWidget {
   final GeneratedImage originalImage;
@@ -42,7 +45,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
       if (!started) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Voice input failed to start')),
+            SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('voice_input_failed'))),
           );
         }
       }
@@ -61,7 +64,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
     
     if (!_editService.validateEditDescription(description)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid edit description')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_enter_valid_edit'))),
       );
       return;
     }
@@ -84,14 +87,14 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Element edited successfully!')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('element_edited_success'))),
       );
     } catch (e) {
       setState(() {
         _isEditing = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to edit element: $e')),
+        SnackBar(content: Text('${Provider.of<LanguageService>(context, listen: false).getText('failed_to_edit_element')}: $e')),
       );
     }
   }
@@ -144,21 +147,28 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final element = EditableElement.fromType(_selectedElement);
+    final lang = context.watch<LanguageService>();
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/design/create');
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Navigate back to design module dashboard
-            context.go('/design/dashboard');
+            context.go('/design/create');
           },
-          tooltip: 'Back',
+          tooltip: lang.getText('back'),
         ),
-        title: const Text('Edit Design Element'),
+        title: Text(lang.getText('edit_design_element')),
         elevation: 0,
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -168,7 +178,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
             children: [
             // Original Image
             Text(
-              'Original Design',
+              lang.getText('original_design'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.w600,
@@ -199,7 +209,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
             // Element Selection
             Text(
-              'Select Element to Edit',
+              lang.getText('select_element_to_edit'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.w600,
@@ -243,7 +253,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
             // Edit Description
             Text(
-              'Edit Description',
+              lang.getText('edit_description'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.w600,
@@ -280,7 +290,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                       maxLines: 3,
                       style: const TextStyle(fontSize: 16),
                       decoration: InputDecoration(
-                        hintText: 'Describe what you want to change...',
+                        hintText: lang.getText('describe_what_to_change'),
                         hintStyle: TextStyle(color: AppColors.textLight),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(16),
@@ -301,7 +311,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
             // Example Prompts
             Text(
-              'Example Prompts',
+              lang.getText('example_prompts'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -343,10 +353,10 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                   ),
                 ),
                 child: _isEditing
-                    ? const Row(
+                    ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
@@ -354,16 +364,16 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Text('Editing Element...'),
+                          const SizedBox(width: 12),
+                          Text(lang.getText('editing_element')),
                         ],
                       )
-                    : const Row(
+                    : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit),
-                          SizedBox(width: 8),
-                          Text('Apply Element Edit'),
+                          const Icon(Icons.edit),
+                          const SizedBox(width: 8),
+                          Text(lang.getText('apply_element_edit')),
                         ],
                       ),
               ),
@@ -380,7 +390,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                     extra: widget.originalImage);
                 },
                 icon: const Icon(Icons.touch_app),
-                label: const Text('Try Tap-to-Edit'),
+                label: Text(lang.getText('try_tap_to_edit')),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: AppColors.primaryBrown),
                   foregroundColor: AppColors.primaryBrown,
@@ -419,7 +429,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Editing ${element?.type.displayName ?? 'Element'}...',
+                            lang.getText('editing_element'),
                             style: TextStyle(
                               fontSize: AppConstants.fontSizeMedium,
                               fontWeight: FontWeight.w600,
@@ -428,7 +438,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'AI is modifying the selected element while preserving the rest of your design',
+                            lang.getText('ai_modifying_element'),
                             style: TextStyle(
                               fontSize: AppConstants.fontSizeSmall,
                               color: AppColors.textLight,
@@ -450,7 +460,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Edited Design',
+                    lang.getText('edited_design'),
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
                       fontWeight: FontWeight.w600,
@@ -512,11 +522,11 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                           onPressed: () {
                             // Save edited image
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Edited image saved')),
+                              SnackBar(content: Text(lang.getText('edited_image_saved'))),
                             );
                           },
                           icon: const Icon(Icons.save),
-                          label: const Text('Save'),
+                          label: Text(lang.getText('save')),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: AppColors.accentOrange),
                             foregroundColor: AppColors.accentOrange,
@@ -534,7 +544,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                             });
                           },
                           icon: const Icon(Icons.edit),
-                          label: const Text('Edit More'),
+                          label: Text(lang.getText('edit_more')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryBrown,
                             foregroundColor: Colors.white,
@@ -548,7 +558,8 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
           ],
         ),
       ),
-    )
+      ),
+      ),
     );
   }
 }

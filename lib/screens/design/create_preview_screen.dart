@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/krea_ai_service.dart';
+import '../../services/language_service.dart';
 import '../../models/generated_image.dart';
+import '../../widgets/language_toggle_action.dart';
 import 'image_viewer_screen.dart';
 
 class CreatePreviewScreen extends StatefulWidget {
@@ -17,7 +20,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
   final TextEditingController _sceneController = TextEditingController();
   final List<GeneratedImage> _generatedImages = [];
   bool _isGenerating = false;
-  final KreaAIService _kreaService = KreaAIService();
+  final KreaAIService _imageService = KreaAIService();
 
   final List<String> _previewTypes = [
     'Full Idol View',
@@ -33,7 +36,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
   Future<void> _generatePreview() async {
     if (_sceneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter scene description first')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_enter_scene'))),
       );
       return;
     }
@@ -45,7 +48,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
     try {
       final prompt = 'Create ${_selectedPreviewType.toLowerCase()} preview of Durga Puja scene: ${_sceneController.text.trim()}. Realistic lighting, traditional Bengali setting, festive atmosphere.';
 
-      final images = await _kreaService.generateImages(prompt, count: 2);
+      final images = await _imageService.generateImages(prompt, count: 2);
 
       setState(() {
         _generatedImages.addAll(images);
@@ -63,6 +66,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Container(
       color: AppColors.backgroundCream,
       child: Column(
@@ -77,10 +81,10 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () => context.go('/design/welcome'),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Idol Preview Generator',
-                    style: TextStyle(
+                    lang.getText('idol_preview_generator'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -88,7 +92,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 48),
+                const LanguageToggleAction(),
               ],
             ),
           ),
@@ -98,8 +102,8 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Choose preview type',
+                  Text(
+                    lang.getText('choose_preview_type'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -131,9 +135,9 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Describe the scene and setting',
-                    style: TextStyle(
+                  Text(
+                    lang.getText('describe_scene'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -141,7 +145,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                   ),
                   const SizedBox(height: 12),
                   CustomTextField(
-                    hintText: 'e.g., "traditional Bengali pandal with colorful lights"',
+                    hintText: lang.getText('scene_hint'),
                     controller: _sceneController,
                     maxLines: 3,
                   ),
@@ -153,10 +157,10 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                       color: AppColors.accentOrange,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'AI will generate realistic scene previews',
+                    child: Text(
+                      lang.getText('ai_generate_previews'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -176,12 +180,12 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Row(
+                          : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.preview),
-                                SizedBox(width: 8),
-                                Text('Generate Preview'),
+                                const Icon(Icons.preview),
+                                const SizedBox(width: 8),
+                                Text(lang.getText('generate_preview')),
                               ],
                             ),
                     ),
@@ -319,7 +323,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                             ),
                                             const SizedBox(height: 8),
                                             const Text(
-                                              'Scene Preview',
+                                              lang.getText('scene_preview'),
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 16,
@@ -328,7 +332,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Tap to zoom and explore the full scene',
+                                              lang.getText('tap_to_zoom'),
                                               style: TextStyle(
                                                 color: Colors.white.withOpacity(0.9),
                                                 fontSize: 12,

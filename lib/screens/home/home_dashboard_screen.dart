@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_button.dart';
-import '../../providers/locale_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({Key? key}) : super(key: key);
@@ -32,22 +31,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         automaticallyImplyLeading: false,
         elevation: 0,
         actions: [
-          Consumer<LocaleProvider>(
-            builder: (context, localeProvider, child) {
-              return IconButton(
-                icon: Text(
-                  localeProvider.locale.languageCode == 'en' ? 'বাং' : 'EN',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryBrown,
-                  ),
-                ),
-                onPressed: () => localeProvider.toggleLanguage(),
-                tooltip: l10n.language,
-              );
-            },
-          ),
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/settings'),

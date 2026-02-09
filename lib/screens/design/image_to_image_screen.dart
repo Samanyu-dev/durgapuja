@@ -2,12 +2,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/image_to_image_service.dart';
+import '../../services/language_service.dart';
 import '../../models/generated_image.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/language_toggle_action.dart';
 import 'enhanced_image_editor_screen.dart';
 
 class ImageToImageScreen extends StatefulWidget {
@@ -112,7 +115,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
   Future<void> _processImageToImage() async {
     if (_originalImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an original image')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_select_original_image'))),
       );
       return;
     }
@@ -139,7 +142,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
         // Style transfer
         if (_referenceImage == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a reference image for style transfer')),
+            SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_select_reference_style'))),
           );
           return;
         }
@@ -209,7 +212,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
   Future<void> _applyQuickEnhancement(String enhancementType) async {
     if (_originalImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an original image')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('please_select_original_image'))),
       );
       return;
     }
@@ -255,11 +258,19 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        title: const Text('Image-to-Image Generation'),
-        actions: [
+    final lang = context.watch<LanguageService>();
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(lang.getText('image_to_image_gen')),
+          actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -278,30 +289,31 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildImageSelectionSection(),
+              _buildImageSelectionSection(lang),
               const SizedBox(height: AppConstants.mediumPadding),
-              _buildEnhancementModeSection(),
+              _buildEnhancementModeSection(lang),
               const SizedBox(height: AppConstants.mediumPadding),
-              _buildPromptSection(),
+              _buildPromptSection(lang),
               const SizedBox(height: AppConstants.mediumPadding),
               _buildQuickEnhancementsSection(),
               const SizedBox(height: AppConstants.mediumPadding),
-              _buildProcessButton(),
+              _buildProcessButton(lang),
               const SizedBox(height: AppConstants.mediumPadding),
-              _buildBottomSpacerSection(),
+              _buildBottomSpacerSection(lang),
             ],
           ),
         ),
+      ),
       ),
     );
   }
 
   /// Section below the transform button so the navbar covers this instead of the button.
-  Widget _buildBottomSpacerSection() {
+  Widget _buildBottomSpacerSection(LanguageService lang) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Text(
-        'Tip: Try different enhancement modes (Enhance, Style Transfer, Creative) for the best results.',
+        lang.getText('tip_try_modes'),
         style: TextStyle(
           fontSize: AppConstants.fontSizeSmall,
           color: AppColors.textLight,
@@ -312,7 +324,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
     );
   }
 
-  Widget _buildImageSelectionSection() {
+  Widget _buildImageSelectionSection(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -320,7 +332,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Image Selection',
+              lang.getText('image_selection'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -331,8 +343,8 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             
             // Original Image
             _buildImageCard(
-              title: 'Original Image',
-              subtitle: 'Select the image you want to transform',
+              title: lang.getText('original_image'),
+              subtitle: lang.getText('select_image_to_transform'),
               image: _originalImage,
               onTap: _pickOriginalImage,
               icon: Icons.image,
@@ -344,8 +356,8 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             // Reference Image (for style transfer)
             if (_enhancementMode == 'style_transfer')
               _buildImageCard(
-                title: 'Reference Image',
-                subtitle: 'Select style reference image',
+                title: lang.getText('reference_image'),
+                subtitle: lang.getText('select_style_reference'),
                 image: _referenceImage,
                 onTap: _pickReferenceImage,
                 icon: Icons.collections,
@@ -441,7 +453,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
     );
   }
 
-  Widget _buildEnhancementModeSection() {
+  Widget _buildEnhancementModeSection(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -449,7 +461,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Enhancement Mode',
+              lang.getText('enhancement_mode'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -458,7 +470,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             ),
             const SizedBox(height: AppConstants.smallPadding),
             Text(
-              'Choose how you want to transform your image',
+              lang.getText('choose_how_to_transform'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
@@ -470,21 +482,21 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
               runSpacing: 8,
               children: [
                 _buildModeChip(
-                  label: 'Enhance',
+                  label: lang.getText('enhance'),
                   icon: Icons.auto_fix_high,
                   isSelected: _enhancementMode == 'enhance',
                   color: AppColors.primaryBrown,
                   onTap: () => setState(() => _enhancementMode = 'enhance'),
                 ),
                 _buildModeChip(
-                  label: 'Style Transfer',
+                  label: lang.getText('style_transfer'),
                   icon: Icons.palette,
                   isSelected: _enhancementMode == 'style_transfer',
                   color: AppColors.accentOrange,
                   onTap: () => setState(() => _enhancementMode = 'style_transfer'),
                 ),
                 _buildModeChip(
-                  label: 'Creative Transform',
+                  label: lang.getText('creative_transform'),
                   icon: Icons.transform,
                   isSelected: _enhancementMode == 'creative',
                   color: Colors.purple,
@@ -530,7 +542,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
     );
   }
 
-  Widget _buildPromptSection() {
+  Widget _buildPromptSection(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -542,7 +554,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
                 const Icon(Icons.edit, color: AppColors.primaryBrown),
                 const SizedBox(width: 8),
                 Text(
-                  'Describe Your Transformation',
+                  lang.getText('describe_transformation'),
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeMedium,
                     fontWeight: FontWeight.w600,
@@ -553,7 +565,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             ),
             const SizedBox(height: AppConstants.smallPadding),
             Text(
-              'Describe what you want to change or enhance in your image',
+              lang.getText('describe_change_enhance'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
@@ -708,7 +720,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
     );
   }
 
-  Widget _buildProcessButton() {
+  Widget _buildProcessButton(LanguageService lang) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -716,7 +728,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Transform Your Image',
+              lang.getText('transform_your_image'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
                 fontWeight: FontWeight.w600,
@@ -725,7 +737,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
             ),
             const SizedBox(height: AppConstants.smallPadding),
             Text(
-              'This will apply AI transformations to your selected image',
+              lang.getText('this_will_apply_ai'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
                 color: AppColors.textLight,
@@ -737,7 +749,7 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
                 Expanded(
                   child: CustomButton(
                     onPressed: _originalImage != null ? _processImageToImage : null,
-                    label: _isProcessing ? 'Processing...' : 'Transform Image',
+                    label: _isProcessing ? lang.getText('processing') : lang.getText('transform_image'),
                     icon: Icons.auto_awesome,
                     backgroundColor: AppColors.accentOrange,
                     isLoading: _isProcessing,
@@ -746,8 +758,8 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
                 const SizedBox(width: AppConstants.mediumPadding),
                 Expanded(
                   child: CustomButton(
-                    onPressed: () => context.go('/design/welcome'),
-                    label: 'Cancel',
+                    onPressed: () => context.pop(),
+                    label: lang.getText('cancel'),
                     backgroundColor: AppColors.textLight,
                   ),
                 ),

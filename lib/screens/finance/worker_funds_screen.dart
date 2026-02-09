@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'samiti_funds_screen.dart';
 import 'worker_details_screen.dart';
+import 'package:provider/provider.dart';
 import '../../services/database_service.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class WorkerFundsScreen extends StatefulWidget {
   const WorkerFundsScreen({super.key});
@@ -54,15 +56,24 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
-      appBar: AppBar(
-        title: const Text('Worker Funds'),
-        backgroundColor: const Color(0xFF9A5222),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/finance/dashboard'),
-        ),
+    final lang = context.watch<LanguageService>();
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/finance/dashboard');
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5E6D3),
+        appBar: AppBar(
+          title: Text(lang.getText('worker_funds')),
+          backgroundColor: const Color(0xFF9A5222),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/finance/dashboard'),
+          ),
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -158,6 +169,7 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -3,11 +3,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../../models/generated_image.dart';
 import '../../services/image_to_image_service.dart';
 import '../../services/concepts_store_service.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class EnhancedImageEditorScreen extends StatefulWidget {
   final GeneratedImage generatedImage;
@@ -120,14 +123,14 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
   Future<void> _applyEdit() async {
     if (_editPromptController.text.trim().isEmpty && _editReferenceImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a prompt or add a reference image')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('enter_prompt_or_reference'))),
       );
       return;
     }
 
     if (_tempDownloadedImage == null || !_tempDownloadedImage!.existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image not ready. Please wait...')),
+        SnackBar(content: Text(Provider.of<LanguageService>(context, listen: false).getText('image_not_ready'))),
       );
       return;
     }
@@ -235,8 +238,8 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Saved to My Concepts'),
+          SnackBar(
+            content: Text(Provider.of<LanguageService>(context, listen: false).getText('saved_to_my_concepts')),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -259,6 +262,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -267,19 +271,20 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/design/welcome'),
-          tooltip: 'Back to Design',
+          tooltip: lang.getText('back_to_design'),
         ),
-        title: const Text('Your Design'),
+        title: Text(lang.getText('your_design')),
         actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.bookmark_add_outlined),
             onPressed: _saveToMyConcepts,
-            tooltip: 'Save to My Concepts',
+            tooltip: lang.getText('save_to_my_concepts'),
           ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: _downloadImage,
-            tooltip: 'Download',
+            tooltip: lang.getText('download'),
           ),
         ],
       ),
@@ -314,28 +319,28 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
           if (_isProcessing)
             Container(
               color: Colors.black.withOpacity(0.8),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Color(0xFFFF6B35)),
-                    SizedBox(height: 16),
+                    const CircularProgressIndicator(color: Color(0xFFFF6B35)),
+                    const SizedBox(height: 16),
                     Text(
-                      'Creating your design...',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      lang.getText('creating_your_design'),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ],
                 ),
               ),
             )
           else
-            _buildEditPanel(),
+            _buildEditPanel(lang),
         ],
       ),
     );
   }
 
-  Widget _buildEditPanel() {
+  Widget _buildEditPanel(LanguageService lang) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -354,9 +359,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Edit Your Design',
-                style: TextStyle(
+              Text(
+                lang.getText('edit_your_design'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -368,7 +373,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                 controller: _editPromptController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'Describe how you want to edit...',
+                  hintText: lang.getText('describe_how_to_edit'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -380,9 +385,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
               // Reference Image Section
               Row(
                 children: [
-                  const Text(
-                    'Reference Image',
-                    style: TextStyle(
+                  Text(
+                    lang.getText('reference_image'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -392,7 +397,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                     TextButton.icon(
                       onPressed: _removeReferenceImage,
                       icon: const Icon(Icons.close, size: 18),
-                      label: const Text('Remove'),
+                      label: Text(lang.getText('remove')),
                     ),
                 ],
               ),
@@ -413,7 +418,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                 OutlinedButton.icon(
                   onPressed: _pickReferenceImage,
                   icon: const Icon(Icons.add_photo_alternate),
-                  label: const Text('Add Reference Image'),
+                  label: Text(lang.getText('add_reference_image')),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -431,9 +436,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Generate Edit',
-                  style: TextStyle(
+                child: Text(
+                  lang.getText('generate_edit'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -450,7 +455,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Create New Design'),
+                child: Text(lang.getText('create_new_design_btn')),
               ),
             ],
           ),

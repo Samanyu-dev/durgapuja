@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../services/speech_service.dart';
 import '../../utils/colors.dart';
 import '../../services/translation_service.dart';
@@ -7,6 +8,8 @@ import '../../services/gpt_service.dart';
 import '../../services/database_service.dart';
 import '../../services/finance_processor.dart';
 import '../../utils/dummy_data.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class FinanceHomeScreen extends StatefulWidget {
   const FinanceHomeScreen({super.key});
@@ -93,12 +96,18 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     final size = MediaQuery.of(context).size;
     final horizontalPad = size.width * 0.05;
     final verticalPad = size.height * 0.012;
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/main');
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPad.clamp(16.0, 24.0),
@@ -115,13 +124,13 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back),
-                          onPressed: () => context.go('/'),
+                          onPressed: () => context.go('/main'),
                           tooltip: 'Back to Modules',
                         ),
                         SizedBox(width: size.width * 0.02),
                         Flexible(
                           child: Text(
-                            "Finance Module",
+                            lang.getText('finance'),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -132,6 +141,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                       ],
                     ),
                   ),
+                  const LanguageToggleAction(),
                   IconButton(
                     onPressed: () {},
                     icon: Icon(Icons.settings, size: size.width * 0.065),
@@ -141,7 +151,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
 
               SizedBox(height: size.height * 0.01),
               Text(
-                "Hello, Artisan",
+                lang.getText('hello_artisan'),
                 style: TextStyle(
                   fontSize: (size.width * 0.065).clamp(20.0, 28.0),
                   fontWeight: FontWeight.bold,
@@ -204,8 +214,8 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "Record Voice Note",
-                            style: TextStyle(
+                            lang.getText('record_voice_note'),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
@@ -213,9 +223,9 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                           SizedBox(height: size.height * 0.008),
                           Text(
                             _speechService.isListening
-                                ? "Listening... tap again to stop"
-                                : "Tap to record your transaction details",
-                            style: TextStyle(fontSize: 14),
+                                ? lang.getText('tap_again_to_stop')
+                                : lang.getText('tap_to_record'),
+                            style: const TextStyle(fontSize: 14),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: size.height * 0.02),
@@ -241,8 +251,8 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                           ),
                           SizedBox(height: size.height * 0.02),
                           Text(
-                            "Example inputs:",
-                            style: TextStyle(
+                            lang.getText('example_inputs'),
+                            style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
                             ),
@@ -276,7 +286,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               // Total Income Card
               _buildFinancialCard(
                 icon: Icons.account_balance_wallet,
-                title: "Total Income",
+                title: lang.getText('total_income'),
                 amount: "₹ ${_formatCurrency(_totalIncome)}",
                 changePercent: "3%",
                 isPositive: true,
@@ -288,7 +298,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               // Total Expenses Card
               _buildFinancialCard(
                 icon: Icons.shopping_basket,
-                title: "Total Expenses",
+                title: lang.getText('total_expenses'),
                 amount: "₹ ${_formatCurrency(_totalExpenses)}",
                 changePercent: "3%",
                 isPositive: false,
@@ -300,7 +310,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               // Current Balance Card
               _buildFinancialCard(
                 icon: Icons.account_balance,
-                title: "Current Balance",
+                title: lang.getText('current_balance'),
                 amount: "₹ ${_formatCurrency(_currentBalance)}",
                 changePercent: null,
                 isPositive: true,
@@ -310,9 +320,9 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               const SizedBox(height: 30),
 
               // Finance Navigation Grid
-              const Text(
-                "Finance Management",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              Text(
+                lang.getText('finance_management'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
 
               const SizedBox(height: 15),
@@ -327,26 +337,26 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 children: [
                   _buildFinanceCard(
                     icon: Icons.category,
-                    title: "Material Tracker",
-                    subtitle: "Track costs, trends & usage analytics",
+                    title: lang.getText('material_tracker'),
+                    subtitle: lang.getText('material_tracker_subtitle'),
                     onTap: () => context.go('/finance/materials'),
                   ),
                   _buildFinanceCard(
                     icon: Icons.account_balance_wallet,
-                    title: "Samiti Funds",
-                    subtitle: "Manage community fund sources",
+                    title: lang.getText('samiti_funds'),
+                    subtitle: lang.getText('samiti_funds_subtitle'),
                     onTap: () => context.go('/finance/samiti-funds'),
                   ),
                   _buildFinanceCard(
                     icon: Icons.people,
-                    title: "Worker Funds",
-                    subtitle: "Track worker payments and budgets",
+                    title: lang.getText('worker_funds'),
+                    subtitle: lang.getText('worker_funds_subtitle'),
                     onTap: () => context.go('/finance/worker-funds'),
                   ),
                   _buildFinanceCard(
                     icon: Icons.person,
-                    title: "Worker Details",
-                    subtitle: "View and manage worker information",
+                    title: lang.getText('worker_details'),
+                    subtitle: lang.getText('worker_details_subtitle'),
                     onTap: () => context.go('/finance/worker-details', extra: {
                       'name': 'Ramesh',
                       'category': 'Durga Idol / Claymaking',
@@ -356,8 +366,8 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                   ),
                   _buildFinanceCard(
                     icon: Icons.bar_chart,
-                    title: "Financial Reports",
-                    subtitle: "Detailed analytics and insights",
+                    title: lang.getText('financial_reports'),
+                    subtitle: lang.getText('financial_reports_subtitle'),
                     onTap: () => context.go('/finance/reports'),
                   ),
                 ],
@@ -367,8 +377,8 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
 
               // Tabs for Pending Payments and Upcoming Deliveries
               Row(
-                children: [
-                  GestureDetector(
+              children: [
+              GestureDetector(
                     onTap: () {
                       setState(() {
                         _selectedTab = 0;
@@ -377,7 +387,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                     child: Column(
                       children: [
                         Text(
-                          "Pending Payments",
+                          lang.getText('pending_payments'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -406,7 +416,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                     child: Column(
                       children: [
                         Text(
-                          "Upcoming Deliveries",
+                          lang.getText('upcoming_deliveries'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -438,6 +448,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -696,12 +707,12 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
     final pendingClients = DummyData.clients.where((client) => client.pendingAmount > 0).toList();
 
     if (pendingClients.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(40.0),
+          padding: const EdgeInsets.all(40.0),
           child: Text(
-            "No pending payments",
-            style: TextStyle(fontSize: 16, color: AppColors.textLight),
+            context.read<LanguageService>().getText('no_pending_payments'),
+            style: const TextStyle(fontSize: 16, color: AppColors.textLight),
           ),
         ),
       );
@@ -814,12 +825,12 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
     upcomingDeliveries.sort((a, b) => a['deliveryDate'].compareTo(b['deliveryDate']));
 
     if (upcomingDeliveries.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(40.0),
+          padding: const EdgeInsets.all(40.0),
           child: Text(
-            "No upcoming deliveries",
-            style: TextStyle(fontSize: 16, color: AppColors.textLight),
+            context.read<LanguageService>().getText('no_upcoming_deliveries'),
+            style: const TextStyle(fontSize: 16, color: AppColors.textLight),
           ),
         ),
       );
@@ -930,7 +941,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
         scrollDirection: Axis.horizontal,
         children: [
           _buildQuickChip(
-            label: "Dashboard",
+            label: context.read<LanguageService>().getText('dashboard_tab'),
             isSelected: !_showManagementView,
             onTap: () {
               setState(() {
@@ -940,7 +951,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
           ),
           const SizedBox(width: 8),
           _buildQuickChip(
-            label: "All Sections",
+            label: context.read<LanguageService>().getText('all_sections_tab'),
             isSelected: _showManagementView,
             onTap: () {
               setState(() {
@@ -950,7 +961,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
           ),
           const SizedBox(width: 8),
           _buildQuickChip(
-            label: "Materials",
+            label: context.read<LanguageService>().getText('materials_tab'),
             isSelected: false,
             onTap: () {
               context.go('/finance/materials');

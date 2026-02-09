@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_bottom_nav.dart';
+import '../../widgets/language_toggle_action.dart';
+import '../../services/language_service.dart';
 
 class CreatePromptScreen extends StatefulWidget {
   const CreatePromptScreen({super.key});
@@ -46,6 +49,7 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
@@ -53,16 +57,19 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Create Prompt'),
+        title: Text(lang.getText('create_prompt')),
+        actions: const [
+          LanguageToggleAction(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'What are you designing?',
-              style: TextStyle(
+            Text(
+              lang.getText('what_are_you_designing'),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textDark,
@@ -70,7 +77,7 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
             ),
             const SizedBox(height: 12),
             CustomTextField(
-              hintText: 'e.g., Idol Design for durga pooja',
+              hintText: lang.getText('hint_idol_design'),
               controller: _promptController,
               hasVoiceInput: true,
               maxLines: 3,
@@ -79,16 +86,16 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
             ),
             const SizedBox(height: 32),
             if (_generatedPrompts.isNotEmpty) ...[
-              const Text(
-                'Generated Prompts',
-                style: TextStyle(
+              Text(
+                lang.getText('generated_prompts'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
                 ),
               ),
               const SizedBox(height: 16),
-              ..._generatedPrompts.map((prompt) => _buildPromptCard(prompt)),
+              ..._generatedPrompts.map((prompt) => _buildPromptCard(context, prompt)),
             ],
             const SizedBox(height: 24),
             if (_isLoading)
@@ -98,12 +105,12 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _generatePrompts,
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.auto_awesome),
-                      SizedBox(width: 8),
-                      Text('Generate Prompts'),
+                      const Icon(Icons.auto_awesome),
+                      const SizedBox(width: 8),
+                      Text(lang.getText('generate_prompts')),
                     ],
                   ),
                 ),
@@ -119,7 +126,8 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
     );
   }
 
-  Widget _buildPromptCard(Map<String, String> prompt) {
+  Widget _buildPromptCard(BuildContext context, Map<String, String> prompt) {
+    final lang = context.watch<LanguageService>();
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -154,7 +162,7 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Edit & Refine'),
+                label: Text(lang.getText('edit_refine')),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.accentOrange,
                 ),
@@ -163,7 +171,7 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.copy, size: 16),
-                label: const Text('Copy'),
+                label: Text(lang.getText('copy')),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white70,
                 ),

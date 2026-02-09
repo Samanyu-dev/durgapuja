@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/material_tracker_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class EnhancedMaterialTrackerScreen extends StatefulWidget {
   const EnhancedMaterialTrackerScreen({super.key});
@@ -172,11 +175,13 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: const Text('Material Tracker'),
+        title: Text(lang.getText('material_tracker')),
         actions: [
+          const LanguageToggleAction(),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => setState(() => _refreshData()),

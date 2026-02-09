@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../l10n/app_localizations.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class DesignWelcomeScreen extends StatefulWidget {
   const DesignWelcomeScreen({Key? key}) : super(key: key);
@@ -14,16 +16,24 @@ class DesignWelcomeScreen extends StatefulWidget {
 class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final lang = context.watch<LanguageService>();
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        title: Text(l10n.welcomeArtisan),
-        automaticallyImplyLeading: false,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(lang.getText('welcome_artisan')),
+          elevation: 0,
+          actions: const [
+            LanguageToggleAction(),
+          ],
+        ),
+        body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +61,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Durga Idol Design Studio',
+                    lang.getText('durga_idol_design_studio'),
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
                       fontWeight: FontWeight.w700,
@@ -61,7 +71,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Create beautiful Durga Puja designs with AI assistance',
+                    lang.getText('create_beautiful_with_ai'),
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeBody,
                       color: AppColors.textLight,
@@ -75,7 +85,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
 
             // Main options
             Text(
-              'Choose Your Design Path',
+              lang.getText('choose_design_path'),
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.w600,
@@ -88,32 +98,32 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
               children: [
                 _buildMainOption(
                   icon: Icons.auto_awesome,
-                  title: 'Create New Design',
-                  subtitle: 'Generate a new Durga idol design using text or voice prompts',
-                  onTap: () => context.go('/design/create'),
+                  title: lang.getText('create_new_design'),
+                  subtitle: lang.getText('new_design_subtitle'),
+                  onTap: () => context.push('/design/create'),
                   color: AppColors.primaryBrown,
                 ),
                 const SizedBox(height: AppConstants.mediumPadding),
                 _buildMainOption(
                   icon: Icons.image_search,
-                  title: 'Image-to-Image Generation',
-                  subtitle: 'Transform existing images with AI enhancement and style transfer',
-                  onTap: () => context.go('/design/image-to-image'),
+                  title: lang.getText('image_to_image'),
+                  subtitle: lang.getText('image_to_image_subtitle'),
+                  onTap: () => context.push('/design/image-to-image'),
                   color: AppColors.accentOrange,
                 ),
                 const SizedBox(height: AppConstants.mediumPadding),
                 _buildMainOption(
                   icon: Icons.edit_outlined,
-                  title: 'Edit Existing Design',
-                  subtitle: 'Modify and enhance previously created designs',
+                  title: lang.getText('edit_existing_design'),
+                  subtitle: lang.getText('edit_existing_subtitle'),
                   onTap: () => context.go('/design/edit'),
                   color: AppColors.primaryBrown,
                 ),
                 const SizedBox(height: AppConstants.mediumPadding),
                 _buildMainOption(
                   icon: Icons.touch_app,
-                  title: 'Tap-to-Edit',
-                  subtitle: 'Trace and edit specific elements in your designs',
+                  title: lang.getText('tap_to_edit'),
+                  subtitle: lang.getText('tap_to_edit_subtitle'),
                   onTap: () => context.go('/design/tap-to-edit'),
                   color: AppColors.accentOrange,
                 ),
@@ -133,7 +143,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Design Tips',
+                    lang.getText('design_tips'),
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeMedium,
                       fontWeight: FontWeight.w600,
@@ -141,16 +151,17 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildTip('Use descriptive prompts for better results'),
-                  _buildTip('Try voice input for natural language descriptions'),
-                  _buildTip('Upload reference images for image-to-image generation'),
-                  _buildTip('Use tap-to-edit for precise element modifications'),
-                  _buildTip('Experiment with different styles and themes'),
+                  _buildTip(lang.getText('tip_descriptive')),
+                  _buildTip(lang.getText('tip_voice')),
+                  _buildTip(lang.getText('tip_upload')),
+                  _buildTip(lang.getText('tip_tap_edit')),
+                  _buildTip(lang.getText('tip_experiment')),
                 ],
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }

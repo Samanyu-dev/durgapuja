@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../services/database_service.dart';
+import '../../services/language_service.dart';
+import '../../widgets/language_toggle_action.dart';
 
 class ReportsScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -87,26 +91,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      body: SafeArea(
+    final lang = context.watch<LanguageService>();
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) context.go('/finance/dashboard');
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/finance/dashboard'),
+          ),
+          title: Text(lang.getText('profits')),
+          actions: const [
+            LanguageToggleAction(),
+          ],
+        ),
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              const Text(
-                "Profits",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
               // Overview Section
               Row(
                 children: [
@@ -120,9 +128,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Total Income",
-                            style: TextStyle(
+                          Text(
+                            lang.getText('total_income'),
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
                             ),
@@ -151,9 +159,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Total Expenses",
-                            style: TextStyle(
+                          Text(
+                            lang.getText('total_expenses'),
+                            style: const TextStyle(
                               fontSize: 14,
                               color: AppColors.textLight,
                             ),
@@ -187,9 +195,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Total profit",
-                      style: TextStyle(
+                    Text(
+                      lang.getText('total_profit'),
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textLight,
                       ),
@@ -210,9 +218,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 30),
 
               // Recent Transactions Section (latest 3 from DB)
-              const Text(
-                "Recent Transactions",
-                style: TextStyle(
+              Text(
+                lang.getText('recent_transactions'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -226,9 +234,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
-                    "No recent transactions",
-                    style: TextStyle(color: AppColors.textLight),
+                  child: Text(
+                    lang.getText('no_transactions'),
+                    style: const TextStyle(color: AppColors.textLight),
                   ),
                 )
               else
@@ -261,9 +269,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 30),
 
               // Project Profits Section
-              const Text(
-                "Project Profits",
-                style: TextStyle(
+              Text(
+                lang.getText('project_profits'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -275,11 +283,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
               // Time Filter Buttons
               Row(
                 children: [
-                  Expanded(child: _buildTimeFilterButton("Last 6 months")),
+                  Expanded(child: _buildTimeFilterButton(lang.getText('last_6_months'))),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildTimeFilterButton("Last year")),
+                  Expanded(child: _buildTimeFilterButton(lang.getText('last_year'))),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildTimeFilterButton("All years")),
+                  Expanded(child: _buildTimeFilterButton(lang.getText('all_years'))),
                 ],
               ),
 
@@ -312,9 +320,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 30),
 
               // Material Expenses Section
-              const Text(
-                "Material Expenses",
-                style: TextStyle(
+              Text(
+                lang.getText('material_expenses'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -366,9 +374,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 30),
 
               // Transactions Section
-              const Text(
-                "Transactions",
-                style: TextStyle(
+              Text(
+                lang.getText('transactions'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -379,14 +387,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
               // Transaction Items
               _buildTransactionItem(
-                "Payment from Samiti 1",
+                '${lang.getText('payment_from_samiti')} 1',
                 "Oct 15",
                 "+ ₹16,000",
                 Colors.green,
               ),
               const SizedBox(height: 12),
               _buildTransactionItem(
-                "Purchase of Clay",
+                lang.getText('purchase_of_clay'),
                 "Oct 15",
                 "- ₹16,000",
                 Colors.red,
@@ -395,9 +403,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 30),
 
               // Detailed Reports Section
-              const Text(
-                "Detailed Reports",
-                style: TextStyle(
+              Text(
+                lang.getText('detailed_reports'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -407,14 +415,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 15),
 
               // Report List Items
-              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+              _buildReportItem(lang.getText('durga_puja_idols'), "+₹16,000", Colors.green),
               const SizedBox(height: 12),
-              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+              _buildReportItem(lang.getText('durga_puja_idols'), "+₹16,000", Colors.green),
 
               const SizedBox(height: 100),
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -494,7 +503,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               TextButton.icon(
                 onPressed: () => onUndo(id),
                 icon: const Icon(Icons.undo, size: 18),
-                label: const Text('Undo'),
+                label: Text(context.read<LanguageService>().getText('undo')),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
                   textStyle: const TextStyle(

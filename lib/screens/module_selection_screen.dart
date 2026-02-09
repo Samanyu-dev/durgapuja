@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
@@ -14,9 +15,14 @@ class ModuleSelectionScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final padding = size.width * 0.04;
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) SystemNavigator.pop();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(padding.clamp(12.0, 24.0)),
           child: Column(
@@ -77,7 +83,7 @@ class ModuleSelectionScreen extends StatelessWidget {
                 description: l10n.designModuleDescription,
                 icon: Icons.palette_outlined,
                 color: AppColors.primaryBrown,
-                onTap: () => context.go('/design'),
+                onTap: () => context.push('/design/welcome'),
               ),
 
               SizedBox(height: size.height * 0.02),
@@ -89,14 +95,14 @@ class ModuleSelectionScreen extends StatelessWidget {
                 description: l10n.financeModuleDescription,
                 icon: Icons.wallet_outlined,
                 color: AppColors.successGreen,
-                onTap: () => context.go('/finance'),
+                onTap: () => context.push('/finance/dashboard'),
               ),
 
               SizedBox(height: size.height * 0.02),
 
               // Skip for now option
               TextButton(
-                onPressed: () => context.go('/design'),
+                onPressed: () => context.push('/design/welcome'),
                 child: Text(
                   l10n.continueWithDesign,
                   style: TextStyle(
@@ -110,6 +116,7 @@ class ModuleSelectionScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

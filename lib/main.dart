@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'utils/colors.dart';
 import 'router.dart';
-import 'providers/locale_provider.dart';
 import 'providers/auth_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'services/logging_service.dart';
@@ -53,7 +52,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => LanguageService()),
       ],
@@ -67,8 +65,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocaleProvider>(
-      builder: (context, localeProvider, child) {
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        final isBn = languageService.currentLanguage == AppLanguage.bn;
+
         return MaterialApp.router(
           title: 'Durga Idol Maker',
           theme: ThemeData(
@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
             scaffoldBackgroundColor: AppColors.backgroundCream,
           ),
-          locale: localeProvider.locale,
+          locale: isBn ? const Locale('bn') : const Locale('en'),
           supportedLocales: const [
             Locale('en'),
             Locale('bn'),

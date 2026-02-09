@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../config/api_keys.dart';
-import '../../models/generated_image.dart';
 import 'krea_ai_service.dart';
 import 'krea_enhancement_service.dart';
 
@@ -169,7 +168,7 @@ class ImageToImageService {
         enhancedPrompt,
         [originalFile, referenceFile],
       );
-      
+
       print('Style transfer completed successfully');
       return result.url;
     } catch (e) {

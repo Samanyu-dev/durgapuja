@@ -72,8 +72,7 @@ Requirements:
       final editPrompt = createElementEditPrompt(elementType, editDescription, originalPrompt);
       final originalFile = await _originalImageToFile(originalImageUrl);
       try {
-        final images = await _kreaService.generateImageWithReferences(editPrompt, [originalFile]);
-        return images;
+        return await _kreaService.generateImageWithReferences(editPrompt, [originalFile]);
       } finally {
         try {
           if (await originalFile.exists()) await originalFile.delete();
