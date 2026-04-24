@@ -171,7 +171,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
   void _shareImage() {
     final image = widget.images[_currentIndex];
-    // TODO: Implement share functionality
+    // Share feature coming in next update
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Sharing image: ${image.prompt}')),
     );
@@ -179,7 +179,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
   void _downloadImage() {
     final image = widget.images[_currentIndex];
-    // TODO: Implement download functionality
+    // Download feature coming in next update
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Downloading image: ${image.prompt}')),
     );

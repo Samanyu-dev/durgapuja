@@ -1,8 +1,13 @@
 import 'dart:convert';
+import 'logging_service.dart';
 import 'dart:math' as math;
+import 'logging_service.dart';
 import 'package:http/http.dart' as http;
+import 'logging_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'logging_service.dart';
 import '../../models/generated_image.dart';
+import 'logging_service.dart';
 
 class KreaGenerativeFillService {
   static const String _baseUrl = 'https://api.krea.ai';
@@ -29,10 +34,10 @@ class KreaGenerativeFillService {
     }
 
     try {
-      print('Starting Krea generative fill...');
-      print('Original image: $originalImageUrl');
-      print('Mask image: $maskImageUrl');
-      print('Prompt: $prompt');
+      LoggingService.logDebug('Starting Krea generative fill...');
+      LoggingService.logDebug('Original image: $originalImageUrl');
+      LoggingService.logDebug('Mask image: $maskImageUrl');
+      LoggingService.logDebug('Prompt: $prompt');
 
       // Step 1: Submit the inpainting job
       final generateUrl = Uri.parse('$_baseUrl/generate/inpainting/$model');
@@ -50,8 +55,8 @@ class KreaGenerativeFillService {
         }),
       );
 
-      print('Inpainting submit response status: ${generateResponse.statusCode}');
-      print('Inpainting submit response body: ${generateResponse.body}');
+      LoggingService.logDebug('Inpainting submit response status: ${generateResponse.statusCode}');
+      LoggingService.logDebug('Inpainting submit response body: ${generateResponse.body}');
 
       if (generateResponse.statusCode != 200) {
         String errorMessage = 'Failed to submit inpainting job';
@@ -66,7 +71,7 @@ class KreaGenerativeFillService {
 
       final jobData = jsonDecode(generateResponse.body);
       final jobId = jobData['job_id'] as String;
-      print('Inpainting job submitted: $jobId');
+      LoggingService.logDebug('Inpainting job submitted: $jobId');
 
       // Step 2: Poll for completion
       final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
@@ -91,7 +96,7 @@ class KreaGenerativeFillService {
         final statusData = jsonDecode(statusResponse.body);
         status = statusData['status'] as String;
         
-        print('Inpainting job $jobId status: $status');
+        LoggingService.logDebug('Inpainting job $jobId status: $status');
 
         if (status == 'completed') {
           result = statusData['result'] as Map<String, dynamic>?;
@@ -114,11 +119,11 @@ class KreaGenerativeFillService {
       }
 
       final editedImageUrl = urls[0] as String;
-      print('Inpainting completed successfully: $editedImageUrl');
+      LoggingService.logDebug('Inpainting completed successfully: $editedImageUrl');
       
       return editedImageUrl;
     } catch (e) {
-      print('Error in Krea generative fill: $e');
+      LoggingService.logDebug('Error in Krea generative fill: $e');
       throw Exception('Generative fill failed: $e');
     }
   }
@@ -140,7 +145,7 @@ class KreaGenerativeFillService {
         steps: steps,
       );
     } catch (e) {
-      print('Krea generative fill workflow failed: $e');
+      LoggingService.logDebug('Krea generative fill workflow failed: $e');
       throw Exception('Krea generative fill workflow failed: $e');
     }
   }

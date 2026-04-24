@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'logging_service.dart';
 import '../models/client.dart';
+import 'logging_service.dart';
 import '../models/transaction.dart' as models; // Avoid naming conflict with Firestore Transaction
+import 'logging_service.dart';
 
 class FirestoreService {
   final firestore.FirebaseFirestore _firestore = 
@@ -22,7 +25,7 @@ class FirestoreService {
     try {
       await _clientsCollection.doc(client.id).set(client.toMap());
     } catch (e) {
-      print('Error adding client: $e');
+      LoggingService.logDebug('Error adding client: $e');
       rethrow;
     }
   }
@@ -34,7 +37,7 @@ class FirestoreService {
           .map((doc) => Client.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting clients: $e');
+      LoggingService.logDebug('Error getting clients: $e');
       return [];
     }
   }
@@ -47,7 +50,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error getting client by ID: $e');
+      LoggingService.logDebug('Error getting client by ID: $e');
       return null;
     }
   }
@@ -56,7 +59,7 @@ class FirestoreService {
     try {
       await _clientsCollection.doc(client.id).update(client.toMap());
     } catch (e) {
-      print('Error updating client: $e');
+      LoggingService.logDebug('Error updating client: $e');
       rethrow;
     }
   }
@@ -65,7 +68,7 @@ class FirestoreService {
     try {
       await _clientsCollection.doc(id).delete();
     } catch (e) {
-      print('Error deleting client: $e');
+      LoggingService.logDebug('Error deleting client: $e');
       rethrow;
     }
   }
@@ -88,7 +91,7 @@ class FirestoreService {
           .map((doc) => Client.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting paginated clients: $e');
+      LoggingService.logDebug('Error getting paginated clients: $e');
       return [];
     }
   }
@@ -105,7 +108,7 @@ class FirestoreService {
           .map((doc) => Client.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error searching clients: $e');
+      LoggingService.logDebug('Error searching clients: $e');
       return [];
     }
   }
@@ -118,7 +121,7 @@ class FirestoreService {
           .doc(transaction.id)
           .set(transaction.toMap());
     } catch (e) {
-      print('Error adding transaction: $e');
+      LoggingService.logDebug('Error adding transaction: $e');
       rethrow;
     }
   }
@@ -134,7 +137,7 @@ class FirestoreService {
               doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting transactions: $e');
+      LoggingService.logDebug('Error getting transactions: $e');
       return [];
     }
   }
@@ -148,7 +151,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error getting transaction by ID: $e');
+      LoggingService.logDebug('Error getting transaction by ID: $e');
       return null;
     }
   }
@@ -159,7 +162,7 @@ class FirestoreService {
           .doc(transaction.id)
           .update(transaction.toMap());
     } catch (e) {
-      print('Error updating transaction: $e');
+      LoggingService.logDebug('Error updating transaction: $e');
       rethrow;
     }
   }
@@ -168,7 +171,7 @@ class FirestoreService {
     try {
       await _transactionsCollection.doc(id).delete();
     } catch (e) {
-      print('Error deleting transaction: $e');
+      LoggingService.logDebug('Error deleting transaction: $e');
       rethrow;
     }
   }
@@ -187,7 +190,7 @@ class FirestoreService {
               doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting transactions by client: $e');
+      LoggingService.logDebug('Error getting transactions by client: $e');
       return [];
     }
   }
@@ -209,7 +212,7 @@ class FirestoreService {
               doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting transactions by date range: $e');
+      LoggingService.logDebug('Error getting transactions by date range: $e');
       return [];
     }
   }
@@ -220,7 +223,7 @@ class FirestoreService {
     try {
       await _materialsCollection.doc(material.id).set(material.toMap());
     } catch (e) {
-      print('Error adding material: $e');
+      LoggingService.logDebug('Error adding material: $e');
       rethrow;
     }
   }
@@ -235,7 +238,7 @@ class FirestoreService {
           .map((doc) => models.MaterialRate.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting materials: $e');
+      LoggingService.logDebug('Error getting materials: $e');
       return [];
     }
   }
@@ -248,7 +251,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error getting material by ID: $e');
+      LoggingService.logDebug('Error getting material by ID: $e');
       return null;
     }
   }
@@ -257,7 +260,7 @@ class FirestoreService {
     try {
       await _materialsCollection.doc(material.id).update(material.toMap());
     } catch (e) {
-      print('Error updating material: $e');
+      LoggingService.logDebug('Error updating material: $e');
       rethrow;
     }
   }
@@ -266,7 +269,7 @@ class FirestoreService {
     try {
       await _materialsCollection.doc(id).delete();
     } catch (e) {
-      print('Error deleting material: $e');
+      LoggingService.logDebug('Error deleting material: $e');
       rethrow;
     }
   }
@@ -283,7 +286,7 @@ class FirestoreService {
           .map((doc) => models.MaterialRate.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error getting active materials: $e');
+      LoggingService.logDebug('Error getting active materials: $e');
       return [];
     }
   }

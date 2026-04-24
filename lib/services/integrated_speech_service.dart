@@ -1,11 +1,19 @@
 import 'dart:io';
+import 'logging_service.dart';
 import 'dart:async';
+import 'logging_service.dart';
 import 'package:flutter/foundation.dart';
+import 'logging_service.dart';
 import 'package:record/record.dart';
+import 'logging_service.dart';
 import 'package:path_provider/path_provider.dart';
+import 'logging_service.dart';
 import 'package:path/path.dart' as path;
+import 'logging_service.dart';
 import 'openai_speech_service.dart';
+import 'logging_service.dart';
 import '../config/api_keys.dart';
+import 'logging_service.dart';
 
 /// Integrated speech service that handles recording and transcription
 /// Uses OpenAI's Whisper API for excellent Bengali speech recognition
@@ -25,7 +33,7 @@ class IntegratedSpeechService {
     try {
       return await _recorder.hasPermission();
     } catch (e) {
-      print('Error checking permission: $e');
+      LoggingService.logDebug('Error checking permission: $e');
       return false;
     }
   }
@@ -36,14 +44,14 @@ class IntegratedSpeechService {
   Future<bool> startRecording() async {
     try {
       if (_isRecording) {
-        print('Already recording');
+        LoggingService.logDebug('Already recording');
         return false;
       }
 
       // Check permission
       final hasPermission = await this.hasPermission();
       if (!hasPermission) {
-        print('No microphone permission');
+        LoggingService.logDebug('No microphone permission');
         return false;
       }
 
@@ -66,10 +74,10 @@ class IntegratedSpeechService {
       _isRecording = true;
       _recordedAudioFile = File(filePath);
       
-      print('Recording started: $filePath');
+      LoggingService.logDebug('Recording started: $filePath');
       return true;
     } catch (e) {
-      print('Error starting recording: $e');
+      LoggingService.logDebug('Error starting recording: $e');
       _isRecording = false;
       return false;
     }
@@ -80,7 +88,7 @@ class IntegratedSpeechService {
   /// Returns the File object of the recorded audio, or null if recording failed
   Future<File?> stopRecording() async {
     if (!_isRecording) {
-      print('Not currently recording');
+      LoggingService.logDebug('Not currently recording');
       return null;
     }
 
@@ -90,29 +98,29 @@ class IntegratedSpeechService {
 
       if (recordPath != null && recordPath.isNotEmpty) {
         _recordedAudioFile = File(recordPath);
-        print('Recording stopped: $recordPath');
+        LoggingService.logDebug('Recording stopped: $recordPath');
         
         // Validate file
         if (await _recordedAudioFile!.exists()) {
           final fileSize = await _recordedAudioFile!.length();
-          print('Recorded file size: ${fileSize / 1024} KB');
+          LoggingService.logDebug('Recorded file size: ${fileSize / 1024} KB');
           
           if (fileSize == 0) {
-            print('Warning: Recorded file is empty');
+            LoggingService.logDebug('Warning: Recorded file is empty');
             return null;
           }
           
           return _recordedAudioFile;
         } else {
-          print('Error: Recorded file does not exist');
+          LoggingService.logDebug('Error: Recorded file does not exist');
           return null;
         }
       }
 
-      print('No recording path returned');
+      LoggingService.logDebug('No recording path returned');
       return null;
     } catch (e) {
-      print('Error stopping recording: $e');
+      LoggingService.logDebug('Error stopping recording: $e');
       _isRecording = false;
       return null;
     }
@@ -132,9 +140,9 @@ class IntegratedSpeechService {
       }
       
       _recordedAudioFile = null;
-      print('Recording cancelled');
+      LoggingService.logDebug('Recording cancelled');
     } catch (e) {
-      print('Error cancelling recording: $e');
+      LoggingService.logDebug('Error cancelling recording: $e');
     }
   }
 
@@ -165,7 +173,7 @@ class IntegratedSpeechService {
       // Transcribe to Bengali
       return await _openAIService.transcribeToBengali(audioFile);
     } catch (e) {
-      print('Error in recordAndTranscribeBengali: $e');
+      LoggingService.logDebug('Error in recordAndTranscribeBengali: $e');
       return '';
     }
   }
@@ -197,7 +205,7 @@ class IntegratedSpeechService {
       // Transcribe and translate
       return await _openAIService.transcribeAndTranslate(audioFile);
     } catch (e) {
-      print('Error in recordAndTranscribe: $e');
+      LoggingService.logDebug('Error in recordAndTranscribe: $e');
       return {'bengali': '', 'english': ''};
     }
   }
@@ -215,13 +223,13 @@ class IntegratedSpeechService {
     try {
       // Validate format
       if (!OpenAISpeechService.isFormatSupported(audioFile.path)) {
-        print('Unsupported audio format: ${path.extension(audioFile.path)}');
+        LoggingService.logDebug('Unsupported audio format: ${path.extension(audioFile.path)}');
         return '';
       }
 
       // Validate size
       if (!await OpenAISpeechService.isFileSizeValid(audioFile)) {
-        print('Audio file is too large (max 25 MB)');
+        LoggingService.logDebug('Audio file is too large (max 25 MB)');
         return '';
       }
 
@@ -230,7 +238,7 @@ class IntegratedSpeechService {
         prompt: prompt,
       );
     } catch (e) {
-      print('Error transcribing audio file: $e');
+      LoggingService.logDebug('Error transcribing audio file: $e');
       return '';
     }
   }
@@ -244,19 +252,19 @@ class IntegratedSpeechService {
     try {
       // Validate format
       if (!OpenAISpeechService.isFormatSupported(audioFile.path)) {
-        print('Unsupported audio format: ${path.extension(audioFile.path)}');
+        LoggingService.logDebug('Unsupported audio format: ${path.extension(audioFile.path)}');
         return {'bengali': '', 'english': ''};
       }
 
       // Validate size
       if (!await OpenAISpeechService.isFileSizeValid(audioFile)) {
-        print('Audio file is too large (max 25 MB)');
+        LoggingService.logDebug('Audio file is too large (max 25 MB)');
         return {'bengali': '', 'english': ''};
       }
 
       return await _openAIService.transcribeAndTranslate(audioFile);
     } catch (e) {
-      print('Error transcribing audio file: $e');
+      LoggingService.logDebug('Error transcribing audio file: $e');
       return {'bengali': '', 'english': ''};
     }
   }
@@ -270,7 +278,7 @@ class IntegratedSpeechService {
     try {
       return await _openAIService.translateBengaliTextToEnglish(bengaliText);
     } catch (e) {
-      print('Error translating text: $e');
+      LoggingService.logDebug('Error translating text: $e');
       return '';
     }
   }

@@ -70,7 +70,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _completeOnboarding() {
-    // Temporarily just navigate without persistence due to SharedPreferences issues
+    // Note: SharedPreferences is temporarily disabled.
+    // Onboarding will show on every fresh app launch.
     if (mounted) {
       context.go('/');
     }

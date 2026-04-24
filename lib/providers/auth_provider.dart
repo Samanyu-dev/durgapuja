@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/logging_service.dart';
 import '../models/user.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -26,12 +27,12 @@ class AuthProvider with ChangeNotifier {
 
   void _initializeAuth() {
     _authService.authStateChanges.listen((User? user) async {
-      print('AuthProvider: User changed: ${user?.uid}');
+      LoggingService.logInfo('AuthProvider: User changed: ${user?.uid}');
       _firebaseUser = user;
       if (user != null) {
-        print('AuthProvider: Loading user profile for ${user.uid}');
+        LoggingService.logInfo('AuthProvider: Loading user profile for ${user.uid}');
         _userModel = await _authService.getUserProfile(user.uid);
-        print('AuthProvider: User model loaded: ${_userModel?.name}');
+        LoggingService.logInfo('AuthProvider: User model loaded: ${_userModel?.name}');
         if (_userModel != null) {
           await _authService.updateLastLogin(user.uid);
         }

@@ -1,7 +1,11 @@
 import 'dart:io';
+import 'logging_service.dart';
 import 'dart:convert';
+import 'logging_service.dart';
 import 'package:http/http.dart' as http;
+import 'logging_service.dart';
 import 'package:path/path.dart' as path;
+import 'logging_service.dart';
 
 /// Service for speech-to-text using OpenAI's Whisper API
 /// Provides excellent Bengali speech recognition
@@ -64,12 +68,12 @@ class OpenAISpeechService {
         final jsonResponse = json.decode(response.body);
         return jsonResponse['text'] ?? '';
       } else {
-        print('OpenAI Whisper API error: ${response.statusCode}');
-        print('Response: ${response.body}');
+        LoggingService.logDebug('OpenAI Whisper API error: ${response.statusCode}');
+        LoggingService.logDebug('Response: ${response.body}');
         throw Exception('Failed to transcribe audio: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in transcribeToBengali: $e');
+      LoggingService.logDebug('Error in transcribeToBengali: $e');
       rethrow;
     }
   }
@@ -110,12 +114,12 @@ class OpenAISpeechService {
         final jsonResponse = json.decode(response.body);
         return jsonResponse['text'] ?? '';
       } else {
-        print('OpenAI Translation API error: ${response.statusCode}');
-        print('Response: ${response.body}');
+        LoggingService.logDebug('OpenAI Translation API error: ${response.statusCode}');
+        LoggingService.logDebug('Response: ${response.body}');
         throw Exception('Failed to translate audio: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in translateToEnglish: $e');
+      LoggingService.logDebug('Error in translateToEnglish: $e');
       rethrow;
     }
   }
@@ -146,7 +150,7 @@ class OpenAISpeechService {
         'english': englishText,
       };
     } catch (e) {
-      print('Error in transcribeAndTranslate: $e');
+      LoggingService.logDebug('Error in transcribeAndTranslate: $e');
       return {
         'bengali': '',
         'english': '',
@@ -190,12 +194,12 @@ class OpenAISpeechService {
         final jsonResponse = json.decode(response.body);
         return jsonResponse['choices'][0]['message']['content'] ?? '';
       } else {
-        print('OpenAI Chat API error: ${response.statusCode}');
-        print('Response: ${response.body}');
+        LoggingService.logDebug('OpenAI Chat API error: ${response.statusCode}');
+        LoggingService.logDebug('Response: ${response.body}');
         throw Exception('Failed to translate text: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in translateBengaliTextToEnglish: $e');
+      LoggingService.logDebug('Error in translateBengaliTextToEnglish: $e');
       return '';
     }
   }

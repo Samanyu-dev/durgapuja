@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'logging_service.dart';
 import 'package:http/http.dart' as http;
+import 'logging_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'logging_service.dart';
 import '../../models/generated_image.dart';
+import 'logging_service.dart';
 
 class KreaEnhancementService {
   static const String _baseUrl = 'https://api.krea.ai';
@@ -25,8 +29,8 @@ class KreaEnhancementService {
     }
 
     try {
-      print('Starting Krea image enhancement...');
-      print('Original image: $imageUrl');
+      LoggingService.logDebug('Starting Krea image enhancement...');
+      LoggingService.logDebug('Original image: $imageUrl');
 
       // Step 1: Submit the enhancement job
       final enhanceUrl = Uri.parse('$_baseUrl/generate/enhance');
@@ -43,8 +47,8 @@ class KreaEnhancementService {
         }),
       );
 
-      print('Enhancement submit response status: ${enhanceResponse.statusCode}');
-      print('Enhancement submit response body: ${enhanceResponse.body}');
+      LoggingService.logDebug('Enhancement submit response status: ${enhanceResponse.statusCode}');
+      LoggingService.logDebug('Enhancement submit response body: ${enhanceResponse.body}');
 
       if (enhanceResponse.statusCode != 200) {
         String errorMessage = 'Failed to submit enhancement job';
@@ -59,7 +63,7 @@ class KreaEnhancementService {
 
       final jobData = jsonDecode(enhanceResponse.body);
       final jobId = jobData['job_id'] as String;
-      print('Enhancement job submitted: $jobId');
+      LoggingService.logDebug('Enhancement job submitted: $jobId');
 
       // Step 2: Poll for completion
       final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
@@ -84,7 +88,7 @@ class KreaEnhancementService {
         final statusData = jsonDecode(statusResponse.body);
         status = statusData['status'] as String;
         
-        print('Enhancement job $jobId status: $status');
+        LoggingService.logDebug('Enhancement job $jobId status: $status');
 
         if (status == 'completed') {
           result = statusData['result'] as Map<String, dynamic>?;
@@ -107,11 +111,11 @@ class KreaEnhancementService {
       }
 
       final enhancedImageUrl = urls[0] as String;
-      print('Enhancement completed successfully: $enhancedImageUrl');
+      LoggingService.logDebug('Enhancement completed successfully: $enhancedImageUrl');
       
       return enhancedImageUrl;
     } catch (e) {
-      print('Error in Krea enhancement: $e');
+      LoggingService.logDebug('Error in Krea enhancement: $e');
       throw Exception('Image enhancement failed: $e');
     }
   }
@@ -145,7 +149,7 @@ class KreaEnhancementService {
 
       return currentImageUrl;
     } catch (e) {
-      print('Krea enhancement workflow failed: $e');
+      LoggingService.logDebug('Krea enhancement workflow failed: $e');
       throw Exception('Krea enhancement workflow failed: $e');
     }
   }

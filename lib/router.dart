@@ -34,20 +34,38 @@ final GoRouter router = GoRouter(
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentPath = state.uri.toString();
 
-    print('Router redirect: path=$currentPath, isAuthenticated=${authProvider.isAuthenticated}, isLoading=${authProvider.isLoading}'); // Debug log
-
     // Don't redirect while auth is loading to avoid race conditions
     if (authProvider.isLoading) {
-      print('Router: Auth is loading, not redirecting'); // Debug log
       return null;
     }
 
-    // Skip authentication for demo purposes - always redirect to main app
-    if (currentPath == '/onboarding' ||
+    // DEMO MODE: Set to false to enable real authentication
+    const bool demoMode = false;
+
+    if (demoMode) {
+      // In demo mode, skip auth screens and go directly to main app
+      if (currentPath == '/onboarding' ||
+          currentPath.startsWith('/auth') ||
+          currentPath.startsWith('/sign-in') ||
+          currentPath.startsWith('/otp-verification')) {
+        return '/main';
+      }
+      return null;
+    }
+
+    // PRODUCTION MODE: Enforce authentication
+    final isPublicRoute = currentPath == '/onboarding' ||
         currentPath.startsWith('/auth') ||
         currentPath.startsWith('/sign-in') ||
-        currentPath.startsWith('/otp-verification')) {
-      print('Router: Skipping auth, redirecting to /main (demo mode)'); // Debug log
+        currentPath.startsWith('/otp-verification');
+
+    // Redirect unauthenticated users to onboarding
+    if (!authProvider.isAuthenticated && !isPublicRoute) {
+      return '/onboarding';
+    }
+
+    // Redirect authenticated users away from auth screens
+    if (authProvider.isAuthenticated && isPublicRoute) {
       return '/main';
     }
 

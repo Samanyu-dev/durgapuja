@@ -123,7 +123,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implement re-record functionality
+              // Re-record feature coming soon
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please record again')),
               );
@@ -133,7 +133,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Process the voice note (e.g., extract payment info)
+              // Voice note processing enhancement coming soon
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Voice note confirmed')),
               );

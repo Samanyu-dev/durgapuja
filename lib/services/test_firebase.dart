@@ -1,10 +1,15 @@
 // ignore_for_file: avoid_print
 
 import 'firestore_service.dart';
+import 'logging_service.dart';
 import '../models/client.dart';
+import 'logging_service.dart';
 import '../models/transaction.dart';
+import 'logging_service.dart';
 import '../models/idol_order.dart';
+import 'logging_service.dart';
 import 'dart:math';
+import 'logging_service.dart';
 
 class FirebaseTestService {
   final FirestoreService _firestore = FirestoreService();
@@ -19,45 +24,45 @@ class FirebaseTestService {
   Future<Map<String, dynamic>> testFirebaseConnection() async {
     try {
       // Test 1: Create and add dynamic clients
-      print('Testing Firebase: Creating and adding dynamic clients...');
+      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic clients...');
       final testClients = _generateTestClients(3);
       for (var client in testClients) {
         await _firestore.addClient(client);
-        print('✓ Added client: ${client.name}');
+        LoggingService.logDebug('✓ Added client: ${client.name}');
       }
 
       // Test 2: Create and add dynamic materials
-      print('Testing Firebase: Creating and adding dynamic materials...');
+      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic materials...');
       final testMaterials = _generateTestMaterials(3);
       for (var material in testMaterials) {
         await _firestore.addMaterial(material);
-        print('✓ Added material: ${material.materialName}');
+        LoggingService.logDebug('✓ Added material: ${material.materialName}');
       }
 
       // Test 3: Create and add dynamic transactions
-      print('Testing Firebase: Creating and adding dynamic transactions...');
+      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic transactions...');
       final testTransactions = _generateTestTransactions(3);
       for (var transaction in testTransactions) {
         await _firestore.addTransaction(transaction);
-        print('✓ Added transaction: ${transaction.title}');
+        LoggingService.logDebug('✓ Added transaction: ${transaction.title}');
       }
 
       // Test 4: Retrieve all data
-      print('Testing Firebase: Retrieving all data...');
+      LoggingService.logDebug('Testing Firebase: Retrieving all data...');
       final clients = await _firestore.getClients();
       final materials = await _firestore.getMaterials();
       final transactions = await _firestore.getTransactions();
 
-      print('✓ Retrieved ${clients.length} clients');
-      print('✓ Retrieved ${materials.length} materials');
-      print('✓ Retrieved ${transactions.length} transactions');
+      LoggingService.logDebug('✓ Retrieved ${clients.length} clients');
+      LoggingService.logDebug('✓ Retrieved ${materials.length} materials');
+      LoggingService.logDebug('✓ Retrieved ${transactions.length} transactions');
 
       // Test 5: Verify data integrity by checking a specific client
       if (clients.isNotEmpty) {
         final firstClient = clients.first;
         final retrievedClient = await _firestore.getClientById(firstClient.id);
         if (retrievedClient != null) {
-          print('✓ Client data integrity verified: ${retrievedClient.name}');
+          LoggingService.logDebug('✓ Client data integrity verified: ${retrievedClient.name}');
         } else {
           throw Exception('Client retrieval failed - data integrity check failed');
         }
@@ -75,7 +80,7 @@ class FirebaseTestService {
         }
       };
     } catch (e) {
-      print('✗ Firebase test failed: $e');
+      LoggingService.logDebug('✗ Firebase test failed: $e');
       return {
         'success': false,
         'message': 'Firebase test failed: $e',

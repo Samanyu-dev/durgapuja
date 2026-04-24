@@ -78,8 +78,8 @@ class _MockUserDatabase {
   final Map<String, String> _phoneToUid = {};
 
   _MockUserDatabase() {
-    _addTestUser('+919000012025', UserRole.admin, 'Test Admin');
-    _addTestUser('+919876543210', UserRole.user, 'Test User');
+    // No default test users in production.
+    // Use AuthService.setTestMode(true) to enable mock authentication during development.
   }
 
   void _addTestUser(String phone, UserRole role, String name) {
@@ -163,9 +163,9 @@ class AuthService {
   Future<void> _initializeFirebase() async {
     try {
       await Firebase.initializeApp();
-      print('Firebase initialized successfully');
+      LoggingService.logInfo('Firebase initialized successfully');
     } catch (e) {
-      print('Firebase initialization error: $e');
+      LoggingService.logError('Firebase initialization error: $e');
       // Handle the error - Firebase might not be configured properly
       // This prevents the app from getting stuck in loading state
     }
@@ -333,13 +333,13 @@ class AuthService {
           await _auth.signInWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
-          print('Verification failed: ${e.code} - ${e.message}');
+          LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
           throw e;
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
-          print('OTP resent successfully');
+          LoggingService.logInfo('OTP resent successfully');
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
@@ -361,14 +361,12 @@ class AuthService {
     String? name,
     String? email,
   }) async {
-    final isTestAdmin = phoneNumber == '+919000012025';
-
     final userModel = UserModel(
       uid: user.uid,
       phoneNumber: phoneNumber,
       email: email,
       name: name,
-      role: isTestAdmin ? UserRole.admin : UserRole.user,
+      role: UserRole.user,
       isActive: true,
       createdAt: DateTime.now(),
       lastLogin: DateTime.now(),
@@ -390,7 +388,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error getting user profile: $e');
+      LoggingService.logError('Error getting user profile: $e');
       return null;
     }
   }

@@ -530,7 +530,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               TextButton(
                 onPressed: () {
-                  // TODO: Implement undo functionality
+                  // Undo functionality coming in next release
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Transaction undone')),
                   );

@@ -1,8 +1,13 @@
 import 'dart:convert';
+import 'logging_service.dart';
 import 'dart:io';
+import 'logging_service.dart';
 import 'package:http/http.dart' as http;
+import 'logging_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'logging_service.dart';
 import '../../models/generated_image.dart';
+import 'logging_service.dart';
 
 class ImageToImageService {
   static const String _baseUrl = 'https://api.krea.ai';
@@ -29,10 +34,10 @@ class ImageToImageService {
     }
 
     try {
-      print('Starting Krea image-to-image generation...');
-      print('Original image: $originalImagePath');
-      print('Prompt: $prompt');
-      print('Enhancement type: $enhancementType');
+      LoggingService.logDebug('Starting Krea image-to-image generation...');
+      LoggingService.logDebug('Original image: $originalImagePath');
+      LoggingService.logDebug('Prompt: $prompt');
+      LoggingService.logDebug('Enhancement type: $enhancementType');
 
       // For now, we'll simulate the API call since we need to handle file uploads
       // In a real implementation, you would upload the image to Krea's API
@@ -49,7 +54,7 @@ class ImageToImageService {
       return 'https://example.com/generated_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
     } catch (e) {
-      print('Error in Krea image-to-image generation: $e');
+      LoggingService.logDebug('Error in Krea image-to-image generation: $e');
       throw Exception('Image-to-image generation failed: $e');
     }
   }
@@ -71,16 +76,16 @@ class ImageToImageService {
     }
 
     try {
-      print('Starting Krea image enhancement...');
-      print('Image path: $imagePath');
-      print('Enhancement type: $enhancementType');
+      LoggingService.logDebug('Starting Krea image enhancement...');
+      LoggingService.logDebug('Image path: $imagePath');
+      LoggingService.logDebug('Enhancement type: $enhancementType');
 
       // Similar to above, this would be a real API call in production
       // For now, return a mock URL
       return 'https://example.com/enhanced_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
     } catch (e) {
-      print('Error in Krea image enhancement: $e');
+      LoggingService.logDebug('Error in Krea image enhancement: $e');
       throw Exception('Image enhancement failed: $e');
     }
   }
@@ -100,17 +105,17 @@ class ImageToImageService {
     }
 
     try {
-      print('Starting Krea style transfer...');
-      print('Original image: $originalImagePath');
-      print('Reference image: $referenceImagePath');
-      print('Style strength: $styleStrength');
+      LoggingService.logDebug('Starting Krea style transfer...');
+      LoggingService.logDebug('Original image: $originalImagePath');
+      LoggingService.logDebug('Reference image: $referenceImagePath');
+      LoggingService.logDebug('Style strength: $styleStrength');
 
       // Similar to above, this would be a real API call in production
       // For now, return a mock URL
       return 'https://example.com/style_transferred_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
     } catch (e) {
-      print('Error in Krea style transfer: $e');
+      LoggingService.logDebug('Error in Krea style transfer: $e');
       throw Exception('Style transfer failed: $e');
     }
   }
@@ -130,17 +135,17 @@ class ImageToImageService {
     }
 
     try {
-      print('Starting Krea creative transformation...');
-      print('Image path: $imagePath');
-      print('Prompt: $prompt');
-      print('Transformation type: $transformationType');
+      LoggingService.logDebug('Starting Krea creative transformation...');
+      LoggingService.logDebug('Image path: $imagePath');
+      LoggingService.logDebug('Prompt: $prompt');
+      LoggingService.logDebug('Transformation type: $transformationType');
 
       // Similar to above, this would be a real API call in production
       // For now, return a mock URL
       return 'https://example.com/creative_transformed_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
     } catch (e) {
-      print('Error in Krea creative transformation: $e');
+      LoggingService.logDebug('Error in Krea creative transformation: $e');
       throw Exception('Creative transformation failed: $e');
     }
   }

@@ -14,15 +14,16 @@ class LocaleProvider with ChangeNotifier {
 
   // Temporarily disabled shared_preferences loading
   // Future<void> _loadLocale() async {
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final languageCode = prefs.getString(_localeKey) ?? 'en';
-  //     _locale = Locale(languageCode);
-  //     notifyListeners();
-  //   } catch (e) {
-  //     // Fallback to default locale if shared_preferences fails
-  //     print('Failed to load locale from shared_preferences: $e');
-  //   }
+    //   try {
+    //     final prefs = await SharedPreferences.getInstance();
+    //     final languageCode = prefs.getString(_localeKey) ?? 'en';
+    //     _locale = Locale(languageCode);
+    //     notifyListeners();
+    //   } catch (e) {
+    //     // Fallback to default locale if shared_preferences fails
+    //     // ignore: avoid_print
+    //     print('Failed to load locale from shared_preferences: $e');
+    //   }
   // }
 
   Future<void> setLocale(Locale locale) async {
@@ -36,6 +37,7 @@ class LocaleProvider with ChangeNotifier {
     //   final prefs = await SharedPreferences.getInstance();
     //   await prefs.setString(_localeKey, locale.languageCode);
     // } catch (e) {
+    //   // ignore: avoid_print
     //   print('Failed to save locale to shared_preferences: $e');
     // }
   }

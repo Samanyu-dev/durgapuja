@@ -423,7 +423,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      // TODO: Implement stock adjustment
+                      // Stock adjustment feature coming soon
                       Navigator.pop(context);
                     },
                     child: const Text('Adjust Stock'),
@@ -433,7 +433,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      // TODO: Implement reorder
+                      // Reorder alerts coming soon
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(

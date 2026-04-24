@@ -1,10 +1,17 @@
 import 'dart:convert';
+import 'logging_service.dart';
 import 'dart:math' as math;
+import 'logging_service.dart';
 import 'dart:io';
+import 'logging_service.dart';
 import 'package:http/http.dart' as http;
+import 'logging_service.dart';
 import 'package:http_parser/http_parser.dart';
+import 'logging_service.dart';
 import '../config/api_keys.dart';
+import 'logging_service.dart';
 import '../models/generated_image.dart';
+import 'logging_service.dart';
 
 class KreaAIService {
   static const String _baseUrl = 'https://api.krea.ai';
@@ -16,32 +23,32 @@ class KreaAIService {
 
   /// Debug helper to log detailed request/response information
   void _logRequest(String method, Uri url, Map<String, String>? headers, dynamic body) {
-    print('=== KREA API DEBUG ===');
-    print('Method: $method');
-    print('URL: $url');
-    print('Headers: ${headers ?? {}}');
+    LoggingService.logDebug('=== KREA API DEBUG ===');
+    LoggingService.logDebug('Method: $method');
+    LoggingService.logDebug('URL: $url');
+    LoggingService.logDebug('Headers: ${headers ?? {}}');
     if (body != null) {
-      print('Body: ${body is String ? body : jsonEncode(body)}');
+      LoggingService.logDebug('Body: ${body is String ? body : jsonEncode(body)}');
     }
-    print('=====================');
+    LoggingService.logDebug('=====================');
   }
 
   /// Debug helper to log response details
   void _logResponse(int statusCode, String body) {
-    print('=== KREA API RESPONSE ===');
-    print('Status: $statusCode');
-    print('Response starts with: ${body.substring(0, math.min(200, body.length))}${body.length > 200 ? '...' : ''}');
+    LoggingService.logDebug('=== KREA API RESPONSE ===');
+    LoggingService.logDebug('Status: $statusCode');
+    LoggingService.logDebug('Response starts with: ${body.substring(0, math.min(200, body.length))}${body.length > 200 ? '...' : ''}');
     
     // Check if response is HTML (the error we're trying to fix)
     if (body.trim().startsWith('<!doctype html') || body.trim().startsWith('<html')) {
-      print('⚠️  WARNING: Received HTML response instead of JSON!');
-      print('This usually means:');
-      print('  1. Wrong endpoint URL (missing /v1/ prefix)');
-      print('  2. Missing Accept: application/json header');
-      print('  3. Invalid API key or permissions');
-      print('  4. Using UI endpoint instead of API endpoint');
+      LoggingService.logDebug('⚠️  WARNING: Received HTML response instead of JSON!');
+      LoggingService.logDebug('This usually means:');
+      LoggingService.logDebug('  1. Wrong endpoint URL (missing /v1/ prefix)');
+      LoggingService.logDebug('  2. Missing Accept: application/json header');
+      LoggingService.logDebug('  3. Invalid API key or permissions');
+      LoggingService.logDebug('  4. Using UI endpoint instead of API endpoint');
     }
-    print('========================');
+    LoggingService.logDebug('========================');
   }
 
   /// Enhances simple prompts for Durga idols with detailed specifications
@@ -104,8 +111,8 @@ Original theme: $prompt
     // Generate images sequentially
     for (int i = 0; i < count; i++) {
       try {
-        print('Generating image ${i + 1} of $count with ${referenceImages.length} reference images...');
-        print('Using prompt: ${enhancedPrompt.substring(0, math.min(100, enhancedPrompt.length))}${enhancedPrompt.length > 100 ? '...' : ''}');
+        LoggingService.logDebug('Generating image ${i + 1} of $count with ${referenceImages.length} reference images...');
+        LoggingService.logDebug('Using prompt: ${enhancedPrompt.substring(0, math.min(100, enhancedPrompt.length))}${enhancedPrompt.length > 100 ? '...' : ''}');
 
         // Step 1: Submit the generation job with reference images (using Flux model)
         final generateUrl = Uri.parse('$_baseUrl/generate/image/bfl/flux-1-dev');
@@ -140,8 +147,8 @@ Original theme: $prompt
         // Log the response details
         _logResponse(response.statusCode, responseString);
 
-        print('Submit response status: ${response.statusCode}');
-        print('Submit response body: $responseString');
+        LoggingService.logDebug('Submit response status: ${response.statusCode}');
+        LoggingService.logDebug('Submit response body: $responseString');
 
         if (response.statusCode != 200) {
           String errorMessage = 'Failed to submit job';
@@ -156,7 +163,7 @@ Original theme: $prompt
 
         final jobData = jsonDecode(responseString);
         final jobId = jobData['job_id'] as String;
-        print('Job submitted: $jobId');
+        LoggingService.logDebug('Job submitted: $jobId');
 
         // Step 2: Poll for completion
         final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
@@ -181,7 +188,7 @@ Original theme: $prompt
           final statusData = jsonDecode(statusResponse.body);
           status = statusData['status'] as String;
           
-          print('Job $jobId status: $status');
+          LoggingService.logDebug('Job $jobId status: $status');
 
           if (status == 'completed') {
             result = statusData['result'] as Map<String, dynamic>?;
@@ -211,9 +218,9 @@ Original theme: $prompt
           createdAt: currentTime,
         ));
 
-        print('Image ${i + 1} generated successfully');
+        LoggingService.logDebug('Image ${i + 1} generated successfully');
       } catch (e) {
-        print('Error generating image ${i + 1}: $e');
+        LoggingService.logDebug('Error generating image ${i + 1}: $e');
         rethrow;
       }
     }
@@ -239,8 +246,8 @@ Original theme: $prompt
     // Generate images sequentially
     for (int i = 0; i < count; i++) {
       try {
-        print('Generating image ${i + 1} of $count...');
-        print('Using prompt: ${enhancedPrompt.substring(0, math.min(100, enhancedPrompt.length))}${enhancedPrompt.length > 100 ? '...' : ''}');
+        LoggingService.logDebug('Generating image ${i + 1} of $count...');
+        LoggingService.logDebug('Using prompt: ${enhancedPrompt.substring(0, math.min(100, enhancedPrompt.length))}${enhancedPrompt.length > 100 ? '...' : ''}');
 
         // Step 1: Submit the generation job (using Flux model)
         final generateUrl = Uri.parse('$_baseUrl/generate/image/bfl/flux-1-dev');
@@ -270,8 +277,8 @@ Original theme: $prompt
         final responseString = generateResponse.body;
         _logResponse(generateResponse.statusCode, responseString);
 
-        print('Submit response status: ${generateResponse.statusCode}');
-        print('Submit response body: $responseString');
+        LoggingService.logDebug('Submit response status: ${generateResponse.statusCode}');
+        LoggingService.logDebug('Submit response body: $responseString');
 
         if (generateResponse.statusCode != 200) {
           String errorMessage = 'Failed to submit job';
@@ -286,7 +293,7 @@ Original theme: $prompt
 
         final jobData = jsonDecode(generateResponse.body);
         final jobId = jobData['job_id'] as String;
-        print('Job submitted: $jobId');
+        LoggingService.logDebug('Job submitted: $jobId');
 
         // Step 2: Poll for completion
         final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
@@ -311,7 +318,7 @@ Original theme: $prompt
           final statusData = jsonDecode(statusResponse.body);
           status = statusData['status'] as String;
           
-          print('Job $jobId status: $status');
+          LoggingService.logDebug('Job $jobId status: $status');
 
           if (status == 'completed') {
             result = statusData['result'] as Map<String, dynamic>?;
@@ -341,9 +348,9 @@ Original theme: $prompt
           createdAt: currentTime,
         ));
 
-        print('Image ${i + 1} generated successfully');
+        LoggingService.logDebug('Image ${i + 1} generated successfully');
       } catch (e) {
-        print('Error generating image ${i + 1}: $e');
+        LoggingService.logDebug('Error generating image ${i + 1}: $e');
         rethrow;
       }
     }
@@ -377,7 +384,7 @@ Original theme: $prompt
 
     for (int i = 0; i < count; i++) {
       try {
-        print('Generating image ${i + 1} of $count with $model...');
+        LoggingService.logDebug('Generating image ${i + 1} of $count with $model...');
 
         // Build endpoint URL
         final generateUrl = Uri.parse('$_baseUrl/generate/image/$model');
@@ -462,14 +469,14 @@ Original theme: $prompt
               createdAt: currentTime,
             ));
             
-            print('Image ${i + 1} generated successfully');
+            LoggingService.logDebug('Image ${i + 1} generated successfully');
             break;
           } else if (status == 'failed') {
             throw Exception('Generation failed: ${statusData['error']}');
           }
         }
       } catch (e) {
-        print('Error generating image ${i + 1}: $e');
+        LoggingService.logDebug('Error generating image ${i + 1}: $e');
         rethrow;
       }
     }
@@ -502,8 +509,8 @@ Original theme: $prompt
       throw Exception('Krea API token not found. Please add KREA_API_TOKEN to your .env file.');
     }
 
-    print('=== TESTING KREA API CONNECTION ===');
-    print('Testing with a simple prompt...');
+    LoggingService.logDebug('=== TESTING KREA API CONNECTION ===');
+    LoggingService.logDebug('Testing with a simple prompt...');
 
     try {
       // Test with a simple prompt
@@ -533,28 +540,28 @@ Original theme: $prompt
       _logResponse(response.statusCode, response.body);
 
       if (response.statusCode == 200) {
-        print('✅ API connection successful!');
-        print('The HTML response issue has been fixed.');
+        LoggingService.logDebug('✅ API connection successful!');
+        LoggingService.logDebug('The HTML response issue has been fixed.');
         
         // Try to parse the response to make sure it's valid JSON
         try {
           final jobData = jsonDecode(response.body);
           if (jobData.containsKey('job_id')) {
-            print('✅ Response contains valid job data');
-            print('Job ID: ${jobData['job_id']}');
+            LoggingService.logDebug('✅ Response contains valid job data');
+            LoggingService.logDebug('Job ID: ${jobData['job_id']}');
           } else {
-            print('⚠️  Response structure unexpected');
+            LoggingService.logDebug('⚠️  Response structure unexpected');
           }
         } catch (e) {
-          print('❌ Response is not valid JSON: $e');
+          LoggingService.logDebug('❌ Response is not valid JSON: $e');
         }
       } else {
-        print('❌ API connection failed');
-        print('Status: ${response.statusCode}');
-        print('Response: ${response.body}');
+        LoggingService.logDebug('❌ API connection failed');
+        LoggingService.logDebug('Status: ${response.statusCode}');
+        LoggingService.logDebug('Response: ${response.body}');
       }
     } catch (e) {
-      print('❌ Test failed with error: $e');
+      LoggingService.logDebug('❌ Test failed with error: $e');
     }
   }
 
@@ -564,7 +571,7 @@ Original theme: $prompt
       throw Exception('Krea API token not found. Please add KREA_API_TOKEN to your .env file.');
     }
 
-    print('=== VERIFYING API KEY ===');
+    LoggingService.logDebug('=== VERIFYING API KEY ===');
     
     try {
       // Try to make a simple request to check if the API key is valid
@@ -583,19 +590,19 @@ Original theme: $prompt
       );
 
       if (response.statusCode == 200) {
-        print('✅ API key is valid and working');
+        LoggingService.logDebug('✅ API key is valid and working');
       } else if (response.statusCode == 401) {
-        print('❌ Invalid API key');
-        print('Please check your KREA_API_TOKEN in .env file');
+        LoggingService.logDebug('❌ Invalid API key');
+        LoggingService.logDebug('Please check your KREA_API_TOKEN in .env file');
       } else if (response.statusCode == 403) {
-        print('❌ API key valid but project not enabled');
-        print('Please check your Krea dashboard to ensure your project is active');
+        LoggingService.logDebug('❌ API key valid but project not enabled');
+        LoggingService.logDebug('Please check your Krea dashboard to ensure your project is active');
       } else {
-        print('❌ Unexpected status: ${response.statusCode}');
-        print('Response: ${response.body}');
+        LoggingService.logDebug('❌ Unexpected status: ${response.statusCode}');
+        LoggingService.logDebug('Response: ${response.body}');
       }
     } catch (e) {
-      print('❌ Verification failed: $e');
+      LoggingService.logDebug('❌ Verification failed: $e');
     }
   }
 }

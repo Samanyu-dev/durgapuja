@@ -6,6 +6,7 @@ import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/logging_service.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({Key? key}) : super(key: key);
@@ -96,7 +97,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         context.go('/');
       }
     } catch (e) {
-      print('OTP verification failed: $e');
+      LoggingService.logError('OTP verification failed: $e');
       setState(() {
         _errorMessage = 'Invalid OTP. Please try again.';
         // Clear OTP fields on error
@@ -132,7 +133,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         );
       }
     } catch (e) {
-      print('OTP resend failed: $e');
+      LoggingService.logError('OTP resend failed: $e');
       setState(() {
         _errorMessage = 'Failed to resend OTP. Please try again.';
       });
