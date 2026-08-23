@@ -114,8 +114,17 @@ class _MockUserDatabase {
 }
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Lazily resolved so that in test mode (where no real Firebase app is
+  // initialized) these platform singletons are never touched — accessing
+  // FirebaseAuth.instance/FirebaseFirestore.instance before Firebase.initializeApp()
+  // has run throws, and every call site below already branches on _isTestMode
+  // before touching these.
+  FirebaseAuth? __auth;
+  FirebaseAuth get _auth => __auth ??= FirebaseAuth.instance;
+
+  FirebaseFirestore? __firestore;
+  FirebaseFirestore get _firestore => __firestore ??= FirebaseFirestore.instance;
+
   final _MockUserDatabase _mockDb = _MockUserDatabase();
 
   // Test mode flag - SET TO FALSE FOR PRODUCTION
@@ -150,7 +159,8 @@ class AuthService {
       ? _testAuthController.stream
       : _auth.authStateChanges();
 
-  AuthService() {
+  AuthService({bool testMode = false}) {
+    _isTestMode = testMode;
     // Initialize Firebase in production mode
     if (!_isTestMode) {
       _initializeFirebase();
@@ -199,6 +209,8 @@ class AuthService {
       return;
     }
 
+    final completer = Completer<void>();
+
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -206,7 +218,7 @@ class AuthService {
           // Auto-verification (Android only)
           try {
             final UserCredential userCredential = await _auth.signInWithCredential(credential);
-            
+
             // Check if user profile exists, if not create it
             final userExists = await this.userExists(userCredential.user!.uid);
             if (!userExists) {
@@ -217,21 +229,28 @@ class AuthService {
             } else {
               await updateLastLogin(userCredential.user!.uid);
             }
-            
+
             LoggingService.logInfo('Auto-verification completed successfully for ${userCredential.user!.uid}');
           } catch (e) {
             LoggingService.logError('Auto-verification failed: $e');
             // Don't throw here, let user manually enter OTP
           }
+          if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
           LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
-          throw e;
+          if (!completer.isCompleted) {
+            completer.completeError(FirebaseAuthException(
+              code: e.code,
+              message: _getErrorMessage(e.code),
+            ));
+          }
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
           LoggingService.logInfo('OTP sent successfully to $phoneNumber');
+          if (!completer.isCompleted) completer.complete();
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
@@ -241,11 +260,15 @@ class AuthService {
       );
     } on FirebaseAuthException catch (e) {
       LoggingService.logError('Firebase Auth Exception in sendOTP: ${e.code} - ${e.message}');
-      throw FirebaseAuthException(
-        code: e.code,
-        message: _getErrorMessage(e.code),
-      );
+      if (!completer.isCompleted) {
+        completer.completeError(FirebaseAuthException(
+          code: e.code,
+          message: _getErrorMessage(e.code),
+        ));
+      }
     }
+
+    return completer.future;
   }
 
   Future<UserCredential> verifyOTP(String smsCode) async {
@@ -325,21 +348,34 @@ class AuthService {
 
     _pendingPhoneNumber = phoneNumber;
 
+    final completer = Completer<void>();
+
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         forceResendingToken: _resendToken,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await _auth.signInWithCredential(credential);
+          try {
+            await _auth.signInWithCredential(credential);
+          } catch (e) {
+            LoggingService.logError('Auto-verification on resend failed: $e');
+          }
+          if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
           LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
-          throw e;
+          if (!completer.isCompleted) {
+            completer.completeError(FirebaseAuthException(
+              code: e.code,
+              message: _getErrorMessage(e.code),
+            ));
+          }
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
           LoggingService.logInfo('OTP resent successfully');
+          if (!completer.isCompleted) completer.complete();
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
@@ -347,11 +383,15 @@ class AuthService {
         timeout: const Duration(seconds: 60),
       );
     } on FirebaseAuthException catch (e) {
-      throw FirebaseAuthException(
-        code: e.code,
-        message: _getErrorMessage(e.code),
-      );
+      if (!completer.isCompleted) {
+        completer.completeError(FirebaseAuthException(
+          code: e.code,
+          message: _getErrorMessage(e.code),
+        ));
+      }
     }
+
+    return completer.future;
   }
 
   // Create user profile in Firestore

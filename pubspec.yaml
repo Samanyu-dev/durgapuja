@@ -58,6 +58,8 @@ dependencies:
   path_provider: ^2.1.1
   # Tap-to-Edit dependencies
   http: ^1.2.0
+  gal: ^2.3.3
+  share_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:

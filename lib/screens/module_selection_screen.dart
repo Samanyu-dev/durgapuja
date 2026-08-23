@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
 
 class ModuleSelectionScreen extends StatelessWidget {
   const ModuleSelectionScreen({Key? key}) : super(key: key);
@@ -10,6 +12,7 @@ class ModuleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isAdmin = context.watch<AuthProvider>().isAdmin;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
@@ -91,6 +94,20 @@ class ModuleSelectionScreen extends StatelessWidget {
                         color: AppColors.successGreen,
                         onTap: () => context.go('/finance'),
                       ),
+
+                      if (isAdmin) ...[
+                        const SizedBox(height: AppConstants.largePadding),
+
+                        // Admin Panel Card (admins only)
+                        _buildModuleCard(
+                          context: context,
+                          title: 'Admin Panel',
+                          description: 'Manage users, roles, and system settings',
+                          icon: Icons.admin_panel_settings,
+                          color: AppColors.errorRed,
+                          onTap: () => context.go('/admin'),
+                        ),
+                      ],
                     ],
                   ),
                 ),

@@ -1,17 +1,10 @@
 import 'dart:io';
-import 'logging_service.dart';
 import 'dart:async';
-import 'logging_service.dart';
 import 'package:flutter/foundation.dart';
-import 'logging_service.dart';
 import 'package:record/record.dart';
-import 'logging_service.dart';
 import 'package:path_provider/path_provider.dart';
-import 'logging_service.dart';
 import 'package:path/path.dart' as path;
-import 'logging_service.dart';
 import 'openai_speech_service.dart';
-import 'logging_service.dart';
 import '../config/api_keys.dart';
 import 'logging_service.dart';
 

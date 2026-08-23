@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/krea_ai_service.dart';
-import '../../services/design_validation_service.dart';
 import '../../models/generated_image.dart';
 import 'enhanced_image_editor_screen.dart';
 
@@ -56,11 +55,19 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
   }
 
   Future<void> _startListening() async {
-    if (!_isListening) {
-      bool available = await _speechToText.initialize();
+    if (_isListening) return;
+    try {
+      final available = await _speechToText.initialize(
+        onStatus: (status) {
+          if ((status == 'done' || status == 'notListening') && mounted && _isListening) {
+            setState(() => _isListening = false);
+          }
+        },
+      );
       if (available) {
         setState(() => _isListening = true);
-        _speechToText.listen(
+        await _speechToText.listen(
+          localeId: 'bn-BD',
           onResult: (result) {
             setState(() {
               _promptController.text = result.recognizedWords;
@@ -70,7 +77,18 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             });
           },
         );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Speech recognition is not available on this device')),
+        );
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Voice input failed: $e')),
+        );
+      }
+      setState(() => _isListening = false);
     }
   }
 

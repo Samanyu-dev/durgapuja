@@ -1,62 +1,26 @@
-import 'dart:convert';
-import 'logging_service.dart';
 import 'dart:io';
 import 'logging_service.dart';
-import 'package:http/http.dart' as http;
-import 'logging_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'logging_service.dart';
-import '../../models/generated_image.dart';
-import 'logging_service.dart';
+import 'krea_ai_service.dart';
 
+/// Performs image-to-image style transformations by submitting the
+/// source (and, for style transfer, a reference) image to Krea via
+/// [KreaAIService.generateImagesWithReferences] — the same request/poll
+/// pipeline already proven to work for text-to-image generation
+/// elsewhere in the app.
 class ImageToImageService {
-  static const String _baseUrl = 'https://api.krea.ai';
+  final KreaAIService _kreaService = KreaAIService();
 
-  final String _apiToken;
-
-  ImageToImageService()
-      : _apiToken = dotenv.env['KREA_API_TOKEN'] ?? '';
-
-  /// Performs image-to-image generation with style transfer
-  Future<String> generateImageToImage({
-    required String originalImagePath,
+  Future<String> _runWithReferences({
     required String prompt,
-    String enhancementType = 'enhance',
-    String? referenceImagePath,
-    double strength = 0.7,
-    int steps = 30,
+    required List<String> imagePaths,
   }) async {
-    if (_apiToken.isEmpty) {
-      throw Exception(
-        'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
-      );
-    }
-
-    try {
-      LoggingService.logDebug('Starting Krea image-to-image generation...');
-      LoggingService.logDebug('Original image: $originalImagePath');
-      LoggingService.logDebug('Prompt: $prompt');
-      LoggingService.logDebug('Enhancement type: $enhancementType');
-
-      // For now, we'll simulate the API call since we need to handle file uploads
-      // In a real implementation, you would upload the image to Krea's API
-      // and get back a job ID to poll for completion
-      
-      // This is a placeholder implementation
-      // In production, you would:
-      // 1. Upload the original image to Krea's API
-      // 2. Submit the image-to-image generation job
-      // 3. Poll for completion
-      // 4. Return the generated image URL
-      
-      // For now, return a mock URL
-      return 'https://example.com/generated_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
-    } catch (e) {
-      LoggingService.logDebug('Error in Krea image-to-image generation: $e');
-      throw Exception('Image-to-image generation failed: $e');
-    }
+    final referenceImages = imagePaths.map((path) => File(path)).toList();
+    final images = await _kreaService.generateImagesWithReferences(
+      prompt,
+      referenceImages,
+      count: 1,
+    );
+    return images.first.url;
   }
 
   /// Enhances an existing image with AI improvements
@@ -68,22 +32,23 @@ class ImageToImageService {
     bool enhanceColors = true,
     bool enhanceLighting = true,
   }) async {
-    if (_apiToken.isEmpty) {
-      throw Exception(
-        'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
-      );
-    }
-
     try {
       LoggingService.logDebug('Starting Krea image enhancement...');
       LoggingService.logDebug('Image path: $imagePath');
       LoggingService.logDebug('Enhancement type: $enhancementType');
 
-      // Similar to above, this would be a real API call in production
-      // For now, return a mock URL
-      return 'https://example.com/enhanced_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
+      final aspects = <String>[
+        if (enhanceDetails) 'sharper fine details',
+        if (enhanceColors) 'richer, more vibrant colors',
+        if (enhanceLighting) 'improved, natural lighting',
+      ];
+      final enhancePrompt = '''
+Enhance this Durga idol design image: improve ${aspects.isEmpty ? 'overall quality' : aspects.join(', ')}.
+Keep the composition, pose and identity of the idol exactly the same.
+${prompt != null && prompt.trim().isNotEmpty ? 'Additional guidance: ${prompt.trim()}' : ''}
+'''.trim();
+
+      return await _runWithReferences(prompt: enhancePrompt, imagePaths: [imagePath]);
     } catch (e) {
       LoggingService.logDebug('Error in Krea image enhancement: $e');
       throw Exception('Image enhancement failed: $e');
@@ -97,23 +62,21 @@ class ImageToImageService {
     String styleStrength = 'medium',
     String styleType = 'artistic',
   }) async {
-    if (_apiToken.isEmpty) {
-      throw Exception(
-        'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
-      );
-    }
-
     try {
       LoggingService.logDebug('Starting Krea style transfer...');
       LoggingService.logDebug('Original image: $originalImagePath');
       LoggingService.logDebug('Reference image: $referenceImagePath');
       LoggingService.logDebug('Style strength: $styleStrength');
 
-      // Similar to above, this would be a real API call in production
-      // For now, return a mock URL
-      return 'https://example.com/style_transferred_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
+      final stylePrompt = '''
+Redraw the first reference image (the original Durga idol design), applying the visual style ($styleType style) of the second reference image with $styleStrength strength.
+Preserve the pose, composition and identity of the idol from the first image; only its artistic style should change.
+'''.trim();
+
+      return await _runWithReferences(
+        prompt: stylePrompt,
+        imagePaths: [originalImagePath, referenceImagePath],
+      );
     } catch (e) {
       LoggingService.logDebug('Error in Krea style transfer: $e');
       throw Exception('Style transfer failed: $e');
@@ -127,23 +90,17 @@ class ImageToImageService {
     String transformationType = 'creative',
     double creativityLevel = 0.8,
   }) async {
-    if (_apiToken.isEmpty) {
-      throw Exception(
-        'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
-      );
-    }
-
     try {
       LoggingService.logDebug('Starting Krea creative transformation...');
       LoggingService.logDebug('Image path: $imagePath');
       LoggingService.logDebug('Prompt: $prompt');
       LoggingService.logDebug('Transformation type: $transformationType');
 
-      // Similar to above, this would be a real API call in production
-      // For now, return a mock URL
-      return 'https://example.com/creative_transformed_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
+      final creativePrompt = '''
+Creatively transform this Durga idol design image ($transformationType transformation): $prompt
+'''.trim();
+
+      return await _runWithReferences(prompt: creativePrompt, imagePaths: [imagePath]);
     } catch (e) {
       LoggingService.logDebug('Error in Krea creative transformation: $e');
       throw Exception('Creative transformation failed: $e');

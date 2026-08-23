@@ -9,6 +9,7 @@ class DatabaseService {
   static const String _samitiFundsTableName = 'samiti_funds';
   static const String _workerFundsTableName = 'worker_funds';
   static const String _workerPaymentsTableName = 'worker_payments';
+  static const String _conceptsTableName = 'concepts';
 
   static Future<Database> getDatabase() async {
     if (_database != null) return _database!;
@@ -20,7 +21,7 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), 'idolkaker.db');
     return await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE $_tableName (
@@ -59,6 +60,7 @@ class DatabaseService {
             payment_method TEXT,
             special_requirements TEXT,
             whatsapp_link TEXT,
+            delivered INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL
           )
         ''');
@@ -91,6 +93,17 @@ class DatabaseService {
             worker_type TEXT NOT NULL,
             idol_type TEXT,
             amount REAL NOT NULL,
+            created_at TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE $_conceptsTableName (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            image_url TEXT NOT NULL,
+            theme TEXT NOT NULL,
+            prompt TEXT,
             created_at TEXT NOT NULL
           )
         ''');
@@ -268,8 +281,63 @@ class DatabaseService {
             )
           ''');
         }
+
+        if (oldVersion < 7) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS $_conceptsTableName (
+              id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              image_url TEXT NOT NULL,
+              theme TEXT NOT NULL,
+              prompt TEXT,
+              created_at TEXT NOT NULL
+            )
+          ''');
+        }
+
+        if (oldVersion < 8) {
+          try {
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN delivered INTEGER NOT NULL DEFAULT 0',
+            );
+          } catch (_) {
+            // Column probably already exists.
+          }
+        }
       },
     );
+  }
+
+  static Future<void> insertConcept({
+    required String id,
+    required String title,
+    required String imageUrl,
+    required String theme,
+    String? prompt,
+  }) async {
+    final db = await getDatabase();
+    await db.insert(
+      _conceptsTableName,
+      {
+        'id': id,
+        'title': title,
+        'image_url': imageUrl,
+        'theme': theme,
+        'prompt': prompt,
+        'created_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getConcepts() async {
+    final db = await getDatabase();
+    return db.query(_conceptsTableName, orderBy: 'created_at DESC');
+  }
+
+  static Future<void> deleteConcept(String id) async {
+    final db = await getDatabase();
+    await db.delete(_conceptsTableName, where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<Map<String, dynamic>> getFinanceData() async {
@@ -310,6 +378,34 @@ class DatabaseService {
       'UPDATE $_tableName SET total_expenses = total_expenses + ? WHERE id = 1',
       [amount],
     );
+  }
+
+  static Future<List<Map<String, dynamic>>> getTransactions() async {
+    final db = await getDatabase();
+    return db.query(_transactionsTableName, orderBy: 'created_at DESC');
+  }
+
+  /// Deletes a transaction and reverses its effect on the running income/expense totals.
+  static Future<void> deleteTransaction(int id) async {
+    final db = await getDatabase();
+    final rows = await db.query(
+      _transactionsTableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (rows.isEmpty) return;
+
+    final row = rows.first;
+    final amount = (row['amount'] as num).toDouble();
+    final type = row['type'] as String;
+
+    await db.delete(_transactionsTableName, where: 'id = ?', whereArgs: [id]);
+
+    if (type == 'income') {
+      await updateIncome(-amount);
+    } else if (type == 'expense') {
+      await updateExpenses(-amount);
+    }
   }
 
   static Future<void> insertTransaction({
@@ -527,6 +623,23 @@ class DatabaseService {
     await updateExpenses(additionalPaid);
   }
 
+  static Future<List<Map<String, dynamic>>> getOrders() async {
+    final db = await getDatabase();
+    return db.query(_ordersTableName, orderBy: 'created_at DESC');
+  }
+
+  static Future<List<Map<String, dynamic>>> getOrdersByCustomerName(
+    String customerName,
+  ) async {
+    final db = await getDatabase();
+    return db.query(
+      _ordersTableName,
+      where: 'customer_name = ?',
+      whereArgs: [customerName],
+      orderBy: 'created_at DESC',
+    );
+  }
+
   static Future<void> deleteOrdersByCustomerName(String customerName) async {
     final db = await getDatabase();
     await db.delete(
@@ -568,6 +681,16 @@ class DatabaseService {
         whereArgs: [id],
       );
     }
+  }
+
+  static Future<void> markOrderDelivered(int id) async {
+    final db = await getDatabase();
+    await db.update(
+      _ordersTableName,
+      {'delivered': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   static Future<void> updateClientDetails({

@@ -1,15 +1,9 @@
 import 'dart:convert';
-import 'logging_service.dart';
 import 'dart:math' as math;
-import 'logging_service.dart';
 import 'dart:io';
-import 'logging_service.dart';
 import 'package:http/http.dart' as http;
-import 'logging_service.dart';
 import 'package:http_parser/http_parser.dart';
-import 'logging_service.dart';
 import '../config/api_keys.dart';
-import 'logging_service.dart';
 import '../models/generated_image.dart';
 import 'logging_service.dart';
 

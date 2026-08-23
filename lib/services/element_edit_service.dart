@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/krea_ai_service.dart';
@@ -39,10 +41,15 @@ Requirements:
     try {
       // Create element-specific prompt
       final editPrompt = createElementEditPrompt(elementType, editDescription, originalPrompt);
-      
-      // Generate edited image
-      final images = await _kreaService.generateImages(editPrompt, count: 1);
-      
+
+      // Feed the original image in as a reference so the model has
+      // something to preserve — without it, "editing an element" would
+      // just be generating an unrelated new image from text alone.
+      final referenceFile = await _resolveAsFile(originalImageUrl);
+      final images = referenceFile != null
+          ? await _kreaService.generateImagesWithReferences(editPrompt, [referenceFile], count: 1)
+          : await _kreaService.generateImages(editPrompt, count: 1);
+
       if (images.isNotEmpty) {
         return images.first;
       } else {
@@ -51,6 +58,26 @@ Requirements:
     } catch (e) {
       debugPrint('Element edit failed: $e');
       throw Exception('Failed to edit element: $e');
+    }
+  }
+
+  /// Resolves an image URL/path to a local [File] usable as a reference
+  /// image, downloading it first if it's a remote URL.
+  Future<File?> _resolveAsFile(String imageUrl) async {
+    try {
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode != 200) return null;
+        final directory = await getTemporaryDirectory();
+        final file = File('${directory.path}/edit_ref_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await file.writeAsBytes(response.bodyBytes);
+        return file;
+      }
+      final file = File(imageUrl);
+      return await file.exists() ? file : null;
+    } catch (e) {
+      debugPrint('Failed to resolve reference image: $e');
+      return null;
     }
   }
 

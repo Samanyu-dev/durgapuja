@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
+import '../../services/database_service.dart';
 
 class RecordPaymentScreen extends StatefulWidget {
   final String clientId;
@@ -46,7 +47,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
     }
   }
 
-  void _confirmPayment() {
+  void _confirmPayment() async {
     if (_amountController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -68,6 +69,34 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
       return;
     }
 
+    try {
+      final orders = await DatabaseService.getOrdersByCustomerName(widget.clientId);
+      if (orders.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No order found for this client')),
+        );
+        return;
+      }
+      final targetOrder = orders.firstWhere(
+        (o) => ((o['amount_received'] as num?) ?? 0) <= 0,
+        orElse: () => orders.first,
+      );
+      await DatabaseService.updateOrder(
+        id: targetOrder['id'] as int,
+        amountReceived: double.tryParse(_amountController.text) ?? 0,
+        paymentDate: _selectedDate?.toIso8601String(),
+        paymentMethod: _selectedPaymentMethod,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save payment: $e')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

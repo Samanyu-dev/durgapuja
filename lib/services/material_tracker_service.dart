@@ -88,6 +88,42 @@ class MaterialTrackerService {
     );
   }
 
+  static Future<void> updateMaterial({
+    required int materialId,
+    required String name,
+    required String category,
+    required String unit,
+    required double currentRate,
+    String? supplier,
+  }) async {
+    final db = await DatabaseService.getDatabase();
+
+    await db.update(
+      _materialsTableName,
+      {
+        'name': name,
+        'category': category,
+        'unit': unit,
+        'current_rate': currentRate,
+        'supplier': supplier,
+        'last_updated': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [materialId],
+    );
+
+    // Add to price history
+    await db.insert(
+      _priceHistoryTableName,
+      {
+        'material_id': materialId,
+        'rate': currentRate,
+        'date': DateTime.now().toIso8601String(),
+        'source': 'Manual Update',
+      },
+    );
+  }
+
   static Future<void> updateMaterialRate(int materialId, double newRate) async {
     final db = await DatabaseService.getDatabase();
     

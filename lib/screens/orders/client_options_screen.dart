@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import 'client_details_screen.dart';
 import 'record_payment_screen.dart';
+import 'send_update_screen.dart';
+import 'delivery_dates_screen.dart';
 
 class ClientOptionsScreen extends StatelessWidget {
   final String clientName;
@@ -40,7 +42,14 @@ class ClientOptionsScreen extends StatelessWidget {
                       Icons.camera_alt_outlined,
                       color: Colors.black54,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SendUpdateScreen(clientId: clientName),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -142,7 +151,14 @@ class ClientOptionsScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DeliveryDatesScreen(clientId: clientName),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.cardCream,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -154,10 +170,10 @@ class ClientOptionsScreen extends StatelessWidget {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check, color: Colors.green, size: 20),
+                          Icon(Icons.local_shipping_outlined, color: Colors.green, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            "Delivery done",
+                            "Manage Delivery",
                             style: TextStyle(
                               fontSize: 16,
                               color: AppColors.primaryBrown,

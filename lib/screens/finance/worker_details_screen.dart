@@ -37,6 +37,26 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
     super.dispose();
   }
 
+  /// Parses a currency-formatted string like "₹ 25,000" into a double,
+  /// falling back to 0.0 instead of crashing when it isn't parseable.
+  static double _parseCurrency(String value) {
+    final cleaned = value.replaceAll(RegExp(r'[^0-9.\-]'), '');
+    return double.tryParse(cleaned) ?? 0.0;
+  }
+
+  /// Maps a free-form category string (e.g. "Durga Idol / Claymaking" or
+  /// "Clay Modeling") to the canonical worker-type key used elsewhere in the
+  /// app (clay/painting/decoration/transport), so payments recorded here
+  /// actually count towards the matching totals on the Worker Funds screen.
+  static String _normalizeWorkerType(String category) {
+    final lower = category.toLowerCase();
+    if (lower.contains('clay')) return 'clay';
+    if (lower.contains('paint')) return 'painting';
+    if (lower.contains('decorat')) return 'decoration';
+    if (lower.contains('transport')) return 'transport';
+    return 'other';
+  }
+
   Future<void> _confirmDetails() async {
     final amountPaid = double.tryParse(_amountPaidController.text) ?? 0.0;
     if (amountPaid <= 0) {
@@ -49,14 +69,23 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
     // Parse category to extract idol_type and worker_type
     final parts = widget.category.split(' / ');
     final idolType = parts.isNotEmpty ? parts[0] : 'Unknown';
-    final workerType = parts.length > 1 ? parts[1] : 'Unknown';
+    final workerType = _normalizeWorkerType(widget.category);
 
     // Insert worker fund with transaction log
     await DatabaseService.insertWorkerFundManual(
       idolType: idolType,
       workerType: workerType,
       amountPaid: amountPaid,
-      amountTotal: double.tryParse(widget.budget.replaceAll(",", "")) ?? 0.0,
+      amountTotal: _parseCurrency(widget.budget),
+    );
+
+    // Also log against worker_payments so totals on the Worker Funds
+    // screen (which reads from worker_payments) reflect this payment.
+    await DatabaseService.insertWorkerPayment(
+      workerName: widget.workerName,
+      workerType: workerType,
+      idolType: idolType,
+      amount: amountPaid,
     );
 
     if (mounted) {
@@ -69,9 +98,7 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double pending =
-        double.tryParse(widget.budget.replaceAll(",", ""))! -
-        double.tryParse(widget.paid.replaceAll(",", ""))!;
+    double pending = _parseCurrency(widget.budget) - _parseCurrency(widget.paid);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6D3),

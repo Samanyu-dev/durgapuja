@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import '../../models/generated_image.dart';
 import '../../services/tap_to_edit_service.dart';
+import '../../services/image_save_service.dart';
 import '../../models/editable_element.dart';
 
 class EnhancedImageEditorScreen extends StatefulWidget {
@@ -29,6 +29,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
   final TextEditingController _editPromptController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
   final TapToEditService _editService = TapToEditService();
+  final ImageSaveService _saveService = ImageSaveService();
 
   ui.Image? _image;
   List<Offset> _tracePoints = [];
@@ -51,16 +52,27 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
   }
 
   Future<void> _loadImage() async {
-    final response = await http.get(Uri.parse(widget.generatedImage.url));
-    final bytes = response.bodyBytes;
-    final codec = await ui.instantiateImageCodec(bytes);
-    final frame = await codec.getNextFrame();
-    
-    setState(() {
-      _image = frame.image;
-      _imageWidth = frame.image.width.toDouble();
-      _imageHeight = frame.image.height.toDouble();
-    });
+    try {
+      final response = await http.get(Uri.parse(widget.generatedImage.url));
+      if (response.statusCode != 200) {
+        throw Exception('Failed to download image: ${response.statusCode}');
+      }
+      final bytes = response.bodyBytes;
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+
+      if (!mounted) return;
+      setState(() {
+        _image = frame.image;
+        _imageWidth = frame.image.width.toDouble();
+        _imageHeight = frame.image.height.toDouble();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load image dimensions: $e')),
+      );
+    }
   }
 
   void _startTracing(Offset position) {
@@ -333,6 +345,13 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
       return;
     }
 
+    if (_imageWidth <= 0 || _imageHeight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image is still loading, please try again in a moment')),
+      );
+      return;
+    }
+
     setState(() => _isProcessing = true);
 
     try {
@@ -541,25 +560,14 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
   }
 
   Future<void> _downloadImage() async {
-    try {
-      final response = await http.get(Uri.parse(widget.generatedImage.url));
-      final bytes = response.bodyBytes;
-      
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/durga_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await file.writeAsBytes(bytes);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved to ${file.path}')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Download failed: $e')),
-        );
-      }
+    final success = await _saveService.saveToGallery(
+      widget.generatedImage.url,
+      'durga_${widget.generatedImage.id}',
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? 'Saved to gallery' : 'Download failed')),
+      );
     }
   }
 }

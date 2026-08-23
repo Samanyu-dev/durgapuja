@@ -17,11 +17,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
   double _totalIncome = 0.0;
   double _totalExpenses = 0.0;
   double get _totalProfit => _totalIncome - _totalExpenses;
+  List<Map<String, dynamic>> _transactions = [];
 
   @override
   void initState() {
     super.initState();
     _loadFinanceData();
+    _loadTransactions();
   }
 
   Future<void> _loadFinanceData() async {
@@ -30,6 +32,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
       _totalIncome = data['total_income'] ?? 0.0;
       _totalExpenses = data['total_expenses'] ?? 0.0;
     });
+  }
+
+  Future<void> _loadTransactions() async {
+    final transactions = await DatabaseService.getTransactions();
+    if (mounted) {
+      setState(() => _transactions = transactions);
+    }
+  }
+
+  Future<void> _undoTransaction(int id) async {
+    try {
+      await DatabaseService.deleteTransaction(id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction undone')),
+      );
+      await _loadFinanceData();
+      await _loadTransactions();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to undo transaction: $e')),
+      );
+    }
+  }
+
+  String _formatTransactionDate(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return '';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}';
   }
 
   String _formatCurrency(double amount) {
@@ -290,19 +324,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 15),
 
               // Transaction Items
-              _buildTransactionItem(
-                "Payment from Samiti 1",
-                "Oct 15",
-                "+ ₹16,000",
-                Colors.green,
-              ),
-              const SizedBox(height: 12),
-              _buildTransactionItem(
-                "Purchase of Clay",
-                "Oct 15",
-                "- ₹16,000",
-                Colors.red,
-              ),
+              if (_transactions.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'No transactions recorded yet.',
+                    style: TextStyle(color: AppColors.textLight),
+                  ),
+                )
+              else
+                for (final transaction in _transactions) ...[
+                  _buildTransactionItem(
+                    (transaction['source_text'] as String?)?.trim().isNotEmpty == true
+                        ? transaction['source_text'] as String
+                        : (transaction['category'] as String? ?? 'Transaction'),
+                    _formatTransactionDate(transaction['created_at']),
+                    transaction['type'] == 'income'
+                        ? '+ ₹${_formatCurrency((transaction['amount'] as num).toDouble())}'
+                        : '- ₹${_formatCurrency((transaction['amount'] as num).toDouble())}',
+                    transaction['type'] == 'income' ? Colors.green : Colors.red,
+                    transactionId: transaction['id'] as int,
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
               const SizedBox(height: 30),
 
@@ -479,8 +523,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     String title,
     String date,
     String amount,
-    Color amountColor,
-  ) {
+    Color amountColor, {
+    required int transactionId,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -529,12 +574,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: () {
-                  // Undo functionality coming in next release
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Transaction undone')),
-                  );
-                },
+                onPressed: () => _undoTransaction(transactionId),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
                   textStyle: const TextStyle(
@@ -543,44 +583,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
                 child: const Text('Undo'),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  // Parse the amount string to determine if income or expense
-                  final amountStr = amount.replaceAll('₹', '').replaceAll(',', '');
-                  final isIncome = amountColor == Colors.green;
-                  final transactionAmount = double.tryParse(amountStr.replaceAll('+ ', '').replaceAll('- ', '')) ?? 0.0;
-
-                  try {
-                    if (isIncome) {
-                      await DatabaseService.updateIncome(transactionAmount);
-                    } else {
-                      await DatabaseService.updateExpenses(transactionAmount);
-                    }
-
-                    // Refresh the finance data
-                    await _loadFinanceData();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Transaction confirmed successfully')),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error confirming transaction: $e')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBrown,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: const Text('Confirm'),
               ),
             ],
           ),

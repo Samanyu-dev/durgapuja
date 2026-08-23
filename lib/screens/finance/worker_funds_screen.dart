@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'samiti_funds_screen.dart';
 import 'worker_details_screen.dart';
 import 'material_screen.dart';
@@ -63,7 +64,7 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Navigate back to finance dashboard instead of popping
-            Navigator.pushReplacementNamed(context, '/finance/dashboard');
+            context.go('/finance/dashboard');
           },
         ),
       ),
@@ -106,6 +107,9 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
                     "₹ ${_formatCurrency(_clayPaid)}", // display same as paid summary
                 workerPending:
                     "₹ ${_formatCurrency(_clayTotalAssigned - _clayPaid)}",
+                progress: _clayTotalAssigned <= 0
+                    ? 0.0
+                    : (_clayPaid / _clayTotalAssigned).clamp(0.0, 1.0),
               ),
 
               const SizedBox(height: 20),
@@ -122,6 +126,9 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
                     "₹ ${_formatCurrency(_paintingPaid)}", // display same as paid summary
                 workerPending:
                     "₹ ${_formatCurrency(_paintingTotalAssigned - _paintingPaid)}",
+                progress: _paintingTotalAssigned <= 0
+                    ? 0.0
+                    : (_paintingPaid / _paintingTotalAssigned).clamp(0.0, 1.0),
               ),
 
               const SizedBox(height: 25),
@@ -176,6 +183,7 @@ Widget _categoryCard(
   required String workerName,
   required String workerPaid,
   required String workerPending,
+  required double progress,
 }) {
   return Container(
     padding: const EdgeInsets.all(18),
@@ -245,13 +253,29 @@ Widget _categoryCard(
         const SizedBox(height: 10),
 
         // Green progress bar
-        Container(
-          height: 6,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.green.shade300,
-            borderRadius: BorderRadius.circular(20),
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                Container(
+                  height: 6,
+                  width: constraints.maxWidth,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                Container(
+                  height: 6,
+                  width: constraints.maxWidth * progress,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade300,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
 
         const SizedBox(height: 15),
@@ -260,7 +284,11 @@ Widget _categoryCard(
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('$title marked as completed')),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE9D7C0),
               padding: const EdgeInsets.symmetric(vertical: 12),

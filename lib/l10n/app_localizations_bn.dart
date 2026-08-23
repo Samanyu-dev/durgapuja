@@ -85,6 +85,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get cancel => 'বাতিল';
 
   @override
+  String get signOut => 'সাইন আউট';
+
+  @override
+  String get signOutConfirmation =>
+      'আপনি কি নিশ্চিত যে আপনি সাইন আউট করতে চান?';
+
+  @override
   String get welcomeArtisan => 'স্বাগতম, কারিগর';
 
   @override

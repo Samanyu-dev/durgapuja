@@ -25,6 +25,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
   String _selectedCategory = MaterialCategory.CLAY;
   String _selectedUnit = MaterialUnit.KG;
   bool _isLoading = false;
+  int? _editingMaterialId;
 
   @override
   void initState() {
@@ -46,34 +47,76 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
       return;
     }
 
+    final rate = double.tryParse(_rateController.text);
+    if (rate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid rate')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
+    final editingId = _editingMaterialId;
+
     try {
-      await MaterialTrackerService.addMaterial(
-        name: _nameController.text,
-        category: _selectedCategory,
-        unit: _selectedUnit,
-        currentRate: double.parse(_rateController.text),
-        supplier: _supplierController.text,
-      );
+      if (editingId != null) {
+        await MaterialTrackerService.updateMaterial(
+          materialId: editingId,
+          name: _nameController.text,
+          category: _selectedCategory,
+          unit: _selectedUnit,
+          currentRate: rate,
+          supplier: _supplierController.text,
+        );
+      } else {
+        await MaterialTrackerService.addMaterial(
+          name: _nameController.text,
+          category: _selectedCategory,
+          unit: _selectedUnit,
+          currentRate: rate,
+          supplier: _supplierController.text,
+        );
+      }
 
       _nameController.clear();
       _rateController.clear();
       _supplierController.clear();
       _quantityController.clear();
 
-      setState(() => _isLoading = false);
-      _refreshData();
-      
+      await _refreshData();
+
+      setState(() {
+        _isLoading = false;
+        _editingMaterialId = null;
+      });
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Material added successfully!')),
+        SnackBar(
+          content: Text(editingId != null
+              ? 'Material updated successfully!'
+              : 'Material added successfully!'),
+        ),
       );
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding material: $e')),
+        SnackBar(content: Text('Error saving material: $e')),
       );
     }
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingMaterialId = null;
+      _nameController.clear();
+      _rateController.clear();
+      _supplierController.clear();
+      _selectedCategory = MaterialCategory.CLAY;
+      _selectedUnit = MaterialUnit.KG;
+    });
   }
 
   Future<void> _recordUsage(int materialId, String materialName) async {
@@ -345,13 +388,23 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Add New Material',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeMedium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _editingMaterialId != null ? 'Edit Material' : 'Add New Material',
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSizeMedium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                if (_editingMaterialId != null)
+                  TextButton(
+                    onPressed: _cancelEdit,
+                    child: const Text('Cancel'),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
             Row(
@@ -444,7 +497,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 Expanded(
                   child: CustomButton(
                     onPressed: _addMaterial,
-                    label: 'Add Material',
+                    label: _editingMaterialId != null ? 'Update Material' : 'Add Material',
                     backgroundColor: AppColors.primaryBrown,
                   ),
                 ),
@@ -772,10 +825,14 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 Expanded(
                   child: CustomButton(
                     onPressed: () {
-                      _nameController.text = name;
-                      _rateController.text = currentRate.toString();
-                      _supplierController.text = supplier ?? '';
-                      _selectedCategory = category;
+                      setState(() {
+                        _editingMaterialId = material['id'] as int;
+                        _nameController.text = name;
+                        _rateController.text = currentRate.toString();
+                        _supplierController.text = supplier ?? '';
+                        _selectedCategory = category;
+                        _selectedUnit = material['unit'] as String? ?? _selectedUnit;
+                      });
                     },
                     label: 'Edit',
                     backgroundColor: AppColors.primaryBrown,

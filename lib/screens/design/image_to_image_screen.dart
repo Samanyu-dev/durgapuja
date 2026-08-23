@@ -60,18 +60,37 @@ class _ImageToImageScreenState extends State<ImageToImageScreen> with SingleTick
   }
 
   Future<void> _startListening() async {
-    if (!_isListening) {
-      bool available = await _speechToText.initialize();
+    if (_isListening) return;
+    try {
+      final available = await _speechToText.initialize(
+        onStatus: (status) {
+          if ((status == 'done' || status == 'notListening') && mounted && _isListening) {
+            setState(() => _isListening = false);
+          }
+        },
+      );
       if (available) {
         setState(() => _isListening = true);
-        _speechToText.listen(
+        await _speechToText.listen(
+          localeId: 'bn-BD',
           onResult: (result) {
             setState(() {
               _promptController.text = result.recognizedWords;
             });
           },
         );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Speech recognition is not available on this device')),
+        );
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Voice input failed: $e')),
+        );
+      }
+      setState(() => _isListening = false);
     }
   }
 

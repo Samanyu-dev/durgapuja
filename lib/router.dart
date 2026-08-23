@@ -11,12 +11,15 @@ import 'screens/design/create_design_screen.dart';
 import 'screens/design/element_edit_screen.dart';
 import 'screens/design/tap_to_edit_screen.dart';
 import 'screens/design/image_to_image_screen.dart';
+import 'screens/design/my_concepts_screen.dart';
 import 'screens/finance/finance_home_screen.dart';
-import 'screens/finance/material_screen.dart';
+import 'screens/finance/enhanced_material_tracker_screen.dart';
 import 'screens/finance/samiti_funds_screen.dart';
 import 'screens/finance/worker_funds_screen.dart';
 import 'screens/orders/add_client_screen.dart';
 import 'screens/orders/client_details_screen.dart';
+import 'screens/orders/clients_screen.dart';
+import 'screens/orders/client_chat_screen.dart';
 import 'screens/orders/delivery_dates_screen.dart';
 import 'screens/orders/record_payment_screen.dart';
 import 'screens/orders/send_update_screen.dart';
@@ -25,6 +28,7 @@ import 'screens/inventory_screen.dart';
 import 'screens/analytics_dashboard_screen.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
 import 'providers/auth_provider.dart';
+import 'services/onboarding_service.dart';
 import 'models/generated_image.dart';
 import 'widgets/app_scaffold.dart';
 
@@ -59,9 +63,17 @@ final GoRouter router = GoRouter(
         currentPath.startsWith('/sign-in') ||
         currentPath.startsWith('/otp-verification');
 
-    // Redirect unauthenticated users to onboarding
+    // Onboarding only needs to be shown once — skip straight to sign-in after that
+    if (currentPath == '/onboarding' &&
+        OnboardingService.hasSeenOnboarding &&
+        !authProvider.isAuthenticated) {
+      return '/auth';
+    }
+
+    // Redirect unauthenticated users to onboarding (or straight to sign-in
+    // if they've already been through onboarding on a previous launch)
     if (!authProvider.isAuthenticated && !isPublicRoute) {
-      return '/onboarding';
+      return OnboardingService.hasSeenOnboarding ? '/auth' : '/onboarding';
     }
 
     // Redirect authenticated users away from auth screens
@@ -123,7 +135,7 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/finance/orders',
-          builder: (context, state) => const AddClientScreen(),
+          builder: (context, state) => const ClientsScreen(),
         ),
         GoRoute(
           path: '/finance/reports',
@@ -132,7 +144,11 @@ final GoRouter router = GoRouter(
         // Finance-specific routes
         GoRoute(
           path: '/finance/materials',
-          builder: (context, state) => const MaterialsScreen(),
+          builder: (context, state) => const EnhancedMaterialTrackerScreen(),
+        ),
+        GoRoute(
+          path: '/finance/materials/enhanced',
+          builder: (context, state) => const EnhancedMaterialTrackerScreen(),
         ),
         GoRoute(
           path: '/finance/samiti-funds',
@@ -168,6 +184,12 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: '/finance/orders/client/:id/record-payment',
           builder: (context, state) => RecordPaymentScreen(
+            clientId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/finance/orders/client/:id/chat',
+          builder: (context, state) => ClientChatScreen(
             clientId: state.pathParameters['id']!,
           ),
         ),
@@ -209,7 +231,7 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/design/edit',
-          builder: (context, state) => const Text('Edit Existing Designs'),
+          builder: (context, state) => const MyConceptsScreen(),
         ),
         GoRoute(
           path: '/design/edit/image/:id',

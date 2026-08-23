@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_bottom_nav.dart';
@@ -16,6 +17,13 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
   bool _isLoading = false;
 
   void _generatePrompts() {
+    if (_promptController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please describe what you are designing first')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -152,7 +160,11 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
           Row(
             children: [
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    _promptController.text = prompt['content']!;
+                  });
+                },
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text('Edit & Refine'),
                 style: TextButton.styleFrom(
@@ -161,7 +173,13 @@ class _CreatePromptScreenState extends State<CreatePromptScreen> {
               ),
               const SizedBox(width: 16),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: prompt['content']!));
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Prompt copied to clipboard')),
+                  );
+                },
                 icon: const Icon(Icons.copy, size: 16),
                 label: const Text('Copy'),
                 style: TextButton.styleFrom(

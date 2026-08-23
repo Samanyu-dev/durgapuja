@@ -6,9 +6,17 @@ import 'package:provider/provider.dart';
 import 'package:durgapuja/main.dart';
 import 'package:durgapuja/providers/locale_provider.dart';
 import 'package:durgapuja/providers/auth_provider.dart';
+import 'package:durgapuja/services/onboarding_service.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  // OnboardingService.hasSeenOnboarding is process-global state; reset it
+  // before each test so onboarding reliably shows fresh regardless of what
+  // an earlier test in this file did.
+  setUp(() {
+    OnboardingService.hasSeenOnboarding = false;
+  });
 
   group('End-to-End User Flows', () {
     testWidgets('Complete app launch and navigation flow', (tester) async {
@@ -17,7 +25,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -57,7 +65,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -92,7 +100,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -130,7 +138,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -160,7 +168,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -187,7 +195,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -213,7 +221,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -235,7 +243,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -267,7 +275,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),
@@ -285,7 +293,7 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => LocaleProvider()),
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ],
           child: const MyApp(),
         ),

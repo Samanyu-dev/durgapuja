@@ -261,7 +261,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     'User Management',
                     'View and manage all users',
                     Icons.manage_accounts,
-                    () => context.go('/admin/users'),
+                    () => _showComingSoon('User Management'),
                   ),
 
                   const SizedBox(height: AppConstants.mediumPadding),
@@ -270,7 +270,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     'Role Management',
                     'Assign and change user roles',
                     Icons.assignment_ind,
-                    () => context.go('/admin/roles'),
+                    () => _showComingSoon('Role Management'),
                   ),
 
                   const SizedBox(height: AppConstants.mediumPadding),
@@ -279,7 +279,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     'System Settings',
                     'Configure app settings',
                     Icons.settings,
-                    () => context.go('/admin/settings'),
+                    () => _showComingSoon('System Settings'),
                   ),
 
                   const SizedBox(height: AppConstants.mediumPadding),
@@ -293,6 +293,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  void _showComingSoon(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$feature is coming soon')),
     );
   }
 

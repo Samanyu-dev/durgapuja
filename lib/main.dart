@@ -12,13 +12,17 @@ import 'providers/auth_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'services/logging_service.dart';
 import 'services/language_service.dart';
+import 'services/onboarding_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize logging service
   LoggingService.initialize();
-  
+
+  // Load onboarding completion state before the router is first used
+  await OnboardingService.load();
+
   // Load environment variables
   try {
     await dotenv.load(fileName: ".env");

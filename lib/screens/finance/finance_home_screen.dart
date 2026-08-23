@@ -107,8 +107,12 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               const SizedBox(height: 25),
 
               // Quick Navigation Chips
-              if (!_showManagementView)
-                _buildQuickNavigationChips(),
+              _buildQuickNavigationChips(),
+
+              const SizedBox(height: 15),
+
+              // Compact summary shown only in "All Sections" view
+              if (_showManagementView) _buildCompactFinancialCards(),
 
               const SizedBox(height: 25),
 
@@ -117,6 +121,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 onTap: () async {
                   if (!_isListening) {
                     final started = await _speechService.startListening();
+                    if (!context.mounted) return;
                     if (!started) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -146,6 +151,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
 
                   // Second tap: stop listening and process
                   final banglaText = await _speechService.stopListening();
+                  if (!context.mounted) return;
                   setState(() {
                     _isListening = false;
                   });
@@ -172,33 +178,50 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                         "Recorded successfully",
                         style: TextStyle(color: Colors.white),
                       ),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.green,
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 2),
                     ),
                   );
 
-                  final englishText = await _translationService
-                      .translateToEnglish(banglaText);
-                  debugPrint("English Text: $englishText");
+                  try {
+                    final englishText = await _translationService
+                        .translateToEnglish(banglaText);
+                    debugPrint("English Text: $englishText");
 
-                  final gptJson = await GPTService.sendToGPT(englishText);
-                  debugPrint("GPT JSON:");
-                  debugPrint(gptJson.toString());
+                    final gptJson = await GPTService.sendToGPT(englishText);
+                    debugPrint("GPT JSON:");
+                    debugPrint(gptJson.toString());
 
-                  final confirmed = await _showGptConfirmationDialog(
-                    context,
-                    banglaText: banglaText,
-                    englishText: englishText,
-                    gptJson: gptJson,
-                  );
-
-                  if (confirmed) {
-                    await FinanceProcessor.processGptResult(
-                      gptJson: gptJson,
+                    if (!context.mounted) return;
+                    final confirmed = await _showGptConfirmationDialog(
+                      context,
+                      banglaText: banglaText,
                       englishText: englishText,
+                      gptJson: gptJson,
                     );
-                    await _loadFinanceData();
+
+                    if (confirmed) {
+                      await FinanceProcessor.processGptResult(
+                        gptJson: gptJson,
+                        englishText: englishText,
+                      );
+                      await _loadFinanceData();
+                    }
+                  } catch (e) {
+                    debugPrint("Error processing voice note: $e");
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Couldn't process that recording, please try again",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   }
                 },
 

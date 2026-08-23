@@ -1,12 +1,6 @@
 import 'dart:convert';
-import 'logging_service.dart';
-import 'dart:math' as math;
-import 'logging_service.dart';
 import 'package:http/http.dart' as http;
-import 'logging_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'logging_service.dart';
-import '../../models/generated_image.dart';
 import 'logging_service.dart';
 
 class KreaGenerativeFillService {
@@ -15,7 +9,7 @@ class KreaGenerativeFillService {
   final String _apiToken;
 
   KreaGenerativeFillService()
-      : _apiToken = dotenv.env['KREA_API_TOKEN'] ?? '';
+      : _apiToken = dotenv.env['KREA_API_KEY'] ?? '';
 
   /// Performs generative fill using Krea's inpainting capabilities
   /// This replaces Adobe Firefly for a more cost-effective solution

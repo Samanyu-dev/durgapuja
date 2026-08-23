@@ -6,7 +6,9 @@ import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/element_edit_service.dart';
 import '../../services/integrated_speech_service.dart';
+import '../../services/database_service.dart';
 import '../../widgets/voice_input_button.dart';
+import '../../widgets/smart_image.dart';
 
 class ElementEditScreen extends StatefulWidget {
   final GeneratedImage originalImage;
@@ -127,6 +129,29 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
     });
   }
 
+  Future<void> _saveEditedImage() async {
+    final image = _editedImage;
+    if (image == null) return;
+    try {
+      await DatabaseService.insertConcept(
+        id: image.id,
+        title: image.prompt.isNotEmpty ? image.prompt.split('\n').first : 'Edited design',
+        imageUrl: image.url,
+        theme: 'Traditional',
+        prompt: image.prompt,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Edited image saved to My Concepts')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save image: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final element = EditableElement.fromType(_selectedElement);
@@ -176,7 +201,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                child: Image.network(
+                child: SmartImage(
                   widget.originalImage.url,
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
@@ -484,7 +509,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                      child: Image.network(
+                      child: SmartImage(
                         _editedImage!.url,
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, loadingProgress) {
@@ -520,12 +545,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            // Save edited image
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Edited image saved')),
-                            );
-                          },
+                          onPressed: () => _saveEditedImage(),
                           icon: const Icon(Icons.save),
                           label: const Text('Save'),
                           style: OutlinedButton.styleFrom(

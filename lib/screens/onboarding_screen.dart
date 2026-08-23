@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// Temporarily removed shared_preferences due to platform issues
-// import 'package:shared_preferences/shared_preferences.dart';
+import '../services/onboarding_service.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 
@@ -69,11 +68,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _completeOnboarding() {
-    // Note: SharedPreferences is temporarily disabled.
-    // Onboarding will show on every fresh app launch.
+  void _completeOnboarding() async {
+    await OnboardingService.markSeen();
     if (mounted) {
-      context.go('/');
+      context.go('/auth');
     }
   }
 

@@ -32,6 +32,10 @@
 	<string>This app needs access to microphone for voice recording and speech recognition.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app needs access to speech recognition for voice commands.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs access to save your designs to Photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to pick reference images.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

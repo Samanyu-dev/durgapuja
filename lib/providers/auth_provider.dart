@@ -5,7 +5,7 @@ import '../services/logging_service.dart';
 import '../models/user.dart';
 
 class AuthProvider with ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final AuthService _authService;
 
   User? _firebaseUser;
   UserModel? _userModel;
@@ -21,7 +21,7 @@ class AuthProvider with ChangeNotifier {
   bool get isIdolMaker => _userModel?.role == UserRole.idolMaker;
   bool get isUser => _userModel?.role == UserRole.user;
 
-  AuthProvider() {
+  AuthProvider({bool testMode = false}) : _authService = AuthService(testMode: testMode) {
     _initializeAuth();
   }
 

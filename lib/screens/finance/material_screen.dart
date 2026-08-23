@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'samiti_funds_screen.dart';
 import 'add_new_rate_screen.dart';
 import 'worker_funds_screen.dart';
@@ -26,7 +27,7 @@ class MaterialsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Navigate back to finance dashboard instead of popping
-            Navigator.pushReplacementNamed(context, '/finance/dashboard');
+            context.go('/finance/dashboard');
           },
         ),
       ),
@@ -105,13 +106,18 @@ class MaterialsScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final saved = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const AddNewRateScreen(),
                       ),
                     );
+                    if (saved == true && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Rate saved successfully!')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF9A5222),

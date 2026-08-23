@@ -147,7 +147,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: _addAnotherIdol,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primaryBrown,
                         side: const BorderSide(color: AppColors.primaryBrown),
@@ -209,6 +209,46 @@ class _AddClientScreenState extends State<AddClientScreen> {
           SnackBar(content: Text('Error saving client: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _addAnotherIdol() async {
+    if (_clientNameController.text.isEmpty || _phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter client name and contact number first')),
+      );
+      return;
+    }
+    if (_idolNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an idol name')),
+      );
+      return;
+    }
+
+    try {
+      await DatabaseService.insertOrder(
+        customerName: _clientNameController.text,
+        phoneNumber: _phoneController.text,
+        idolName: _idolNameController.text,
+        amountReceived: 0.0,
+        deliveryDate: _selectedDate?.toIso8601String(),
+        specialRequirements: _requirementsController.text,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Idol added. Enter another idol or tap Save Client to finish.')),
+      );
+
+      setState(() {
+        _idolNameController.clear();
+        _requirementsController.clear();
+        _selectedDate = null;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding idol: $e')),
+      );
     }
   }
 

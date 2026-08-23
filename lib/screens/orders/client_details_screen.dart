@@ -3,6 +3,8 @@ import '../../utils/colors.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
 import '../../services/database_service.dart';
+import 'client_chat_screen.dart';
+import 'delivery_dates_screen.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   final String clientId;
@@ -17,18 +19,20 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   final SpeechService _speechService = SpeechService();
   final TranslationService _translationService = TranslationService();
 
-  final TextEditingController _clientNameController = TextEditingController(
-    text: "Rohan Sharma",
-  );
-  final TextEditingController _contactController = TextEditingController(
-    text: "9967352832",
-  );
-  final TextEditingController _idolNameController = TextEditingController(
-    text: "Ganesha Idol",
-  );
-  final TextEditingController _materialsController = TextEditingController(
-    text: "Make with clay and terracotta.",
-  );
+  final TextEditingController _clientNameController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _idolNameController = TextEditingController();
+  final TextEditingController _materialsController = TextEditingController();
+
+  bool _isLoading = true;
+  int? _primaryOrderId;
+  List<Map<String, dynamic>> _orders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClient();
+  }
 
   @override
   void dispose() {
@@ -39,6 +43,34 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     super.dispose();
   }
 
+  Future<void> _loadClient() async {
+    setState(() => _isLoading = true);
+    try {
+      final orders = await DatabaseService.getOrdersByCustomerName(widget.clientId);
+      _clientNameController.text = widget.clientId;
+      if (orders.isNotEmpty) {
+        final primary = orders.first;
+        _primaryOrderId = primary['id'] as int?;
+        _contactController.text = (primary['phone_number'] as String?) ?? '';
+        _idolNameController.text = (primary['idol_name'] as String?) ?? '';
+        _materialsController.text = (primary['special_requirements'] as String?) ?? '';
+      }
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load client: $e')),
+        );
+      }
+    }
+  }
+
   void _updateClientDetails(BuildContext context) async {
     try {
       await DatabaseService.updateClientDetails(
@@ -46,6 +78,13 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         newCustomerName: _clientNameController.text,
         phoneNumber: _contactController.text,
       );
+      if (_primaryOrderId != null) {
+        await DatabaseService.updateOrder(
+          id: _primaryOrderId!,
+          idolName: _idolNameController.text,
+          specialRequirements: _materialsController.text,
+        );
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Client details updated successfully')),
       );
@@ -106,7 +145,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         final TextEditingController requirementsController = TextEditingController();
         DateTime? selectedDate;
 
-        return AlertDialog(
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
           title: const Text('Add Another Idol'),
           content: SingleChildScrollView(
             child: Column(
@@ -138,7 +178,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (picked != null) {
-                      selectedDate = picked;
+                      setDialogState(() => selectedDate = picked);
                     }
                   },
                   child: Container(
@@ -183,7 +223,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                       const SnackBar(content: Text('Idol added successfully')),
                     );
                     // Refresh the screen or update UI
-                    setState(() {});
+                    _loadClient();
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error adding idol: $e')),
@@ -194,9 +234,40 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               child: const Text('Add Idol'),
             ),
           ],
+          ),
         );
       },
     );
+  }
+
+  Future<void> _openChat(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ClientChatScreen(clientId: widget.clientId),
+      ),
+    );
+  }
+
+  Future<void> _editDeliveryDate(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DeliveryDatesScreen(clientId: widget.clientId),
+      ),
+    );
+    _loadClient();
+  }
+
+  String _formatDate(dynamic value) {
+    if (value == null) return 'No date set';
+    final date = DateTime.tryParse(value.toString());
+    if (date == null) return 'No date set';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   @override
@@ -208,12 +279,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         onPressed: () async {
           try {
             String banglaText = await _speechService.listenBangla();
-            debugPrint("Bangla Text: $banglaText");
+            debugPrint('Bangla Text: $banglaText');
             if (banglaText.isNotEmpty) {
               String englishText = await _translationService.translateToEnglish(
                 banglaText,
               );
-              debugPrint("English Text: $englishText");
+              debugPrint('English Text: $englishText');
               // Show the recognized text to user
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Recognized: $englishText')),
@@ -224,7 +295,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               );
             }
           } catch (e) {
-            debugPrint("Speech recognition error: $e");
+            debugPrint('Speech recognition error: $e');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Speech recognition failed: $e')),
             );
@@ -234,7 +305,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         child: const Icon(Icons.mic, color: Colors.white),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +331,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.chat, color: Colors.green, size: 28),
-                    onPressed: () {},
+                    onPressed: () => _openChat(context),
                   ),
                 ],
               ),
@@ -267,7 +340,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
               // Details Section
               const Text(
-                "Details",
+                'Details',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -278,28 +351,28 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               const SizedBox(height: 20),
 
               // Client name
-              _buildLabel("Client name"),
+              _buildLabel('Client name'),
               const SizedBox(height: 8),
-              _buildTextField(_clientNameController, "Rohan Sharma"),
+              _buildTextField(_clientNameController, 'Client name'),
 
               const SizedBox(height: 20),
 
               // Contact number
-              _buildLabel("Contact number"),
+              _buildLabel('Contact number'),
               const SizedBox(height: 8),
-              _buildTextField(_contactController, "9967352832"),
+              _buildTextField(_contactController, 'Contact number'),
 
               const SizedBox(height: 20),
 
               // Idol Name
-              _buildLabel("Idol Name"),
+              _buildLabel('Idol Name'),
               const SizedBox(height: 8),
-              _buildTextField(_idolNameController, "Ganesha Idol"),
+              _buildTextField(_idolNameController, 'Idol name'),
 
               const SizedBox(height: 20),
 
               // Materials and Special Requirements
-              _buildLabel("Materials and Special Requirements"),
+              _buildLabel('Materials and Special Requirements'),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -312,7 +385,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   maxLines: 4,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "Make with clay and terracotta.",
+                    hintText: 'Materials and special requirements',
                   ),
                 ),
               ),
@@ -320,18 +393,28 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               const SizedBox(height: 20),
 
               // Delivery Date
-              _buildLabel("Delivery Date"),
+              _buildLabel('Delivery Date'),
               const SizedBox(height: 12),
 
-              // Ganesh Idol
-              _buildDeliveryDateCard("Ganesh Idol", "Oct 26, 2024"),
+              if (_orders.isEmpty)
+                const Text(
+                  'No idol orders yet. Add one below.',
+                  style: TextStyle(color: AppColors.textLight),
+                )
+              else
+                for (final order in _orders) ...[
+                  _buildDeliveryDateCard(
+                    (order['idol_name'] as String?)?.trim().isNotEmpty == true
+                        ? order['idol_name'] as String
+                        : 'Idol order',
+                    (order['delivered'] as int? ?? 0) == 1
+                        ? 'Delivered'
+                        : _formatDate(order['delivery_date']),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
-              const SizedBox(height: 12),
-
-              // Durga Idol
-              _buildDeliveryDateCard("Durga Idol", "Oct 26, 2024"),
-
-              const SizedBox(height: 30),
+              const SizedBox(height: 18),
 
               // Action Buttons
               // Add another idol
@@ -347,7 +430,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Add another idol",
+                    'Add another idol',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white,
@@ -373,7 +456,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Delete Client",
+                    'Delete Client',
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.primaryBrown,
@@ -402,7 +485,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     ),
                   ),
                   child: Text(
-                    "Update details",
+                    'Update details',
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textLight,
@@ -492,7 +575,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
-            onPressed: () {},
+            onPressed: () => _editDeliveryDate(context),
             color: AppColors.textLight,
           ),
         ],

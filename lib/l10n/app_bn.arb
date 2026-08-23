@@ -25,6 +25,8 @@
   "voiceRecordingDescription": "আপনার ভয়েস নোট রেকর্ড করা শুরু করতে ট্যাপ করুন",
   "startRecording": "রেকর্ডিং শুরু করুন",
   "cancel": "বাতিল",
+  "signOut": "সাইন আউট",
+  "signOutConfirmation": "আপনি কি নিশ্চিত যে আপনি সাইন আউট করতে চান?",
   "welcomeArtisan": "স্বাগতম, কারিগর",
   "ideaGeneration": "ধারণা তৈরি",
   "ideaGenerationDesc": "AI দিয়ে অনন্য মূর্তি ডিজাইন তৈরি করুন",

@@ -13,7 +13,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => LocaleProvider()),
-          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ChangeNotifierProvider(create: (_) => LanguageService()),
         ],
         child: const MyApp(),
@@ -32,7 +32,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => LocaleProvider()),
-          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => AuthProvider(testMode: true)),
           ChangeNotifierProvider(create: (_) => LanguageService()),
         ],
         child: const MyApp(),

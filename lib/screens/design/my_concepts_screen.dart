@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
+import '../../models/concept.dart';
+import '../../models/generated_image.dart';
+import '../../services/database_service.dart';
 
 class MyConceptsScreen extends StatefulWidget {
   const MyConceptsScreen({Key? key}) : super(key: key);
@@ -13,6 +18,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
   String _selectedTheme = 'All';
   String _selectedDate = 'All';
   final TextEditingController _searchController = TextEditingController();
+
+  bool _isLoading = true;
+  List<Concept> _concepts = [];
 
   final List<String> _themes = [
     'All',
@@ -28,38 +36,94 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
     'Last 3 Months'
   ];
 
-  final List<Map<String, String>> _concepts = [
-    {
-      'title': 'Divine Durga',
-      'date': 'Created on 2024-07-20',
-      'image': 'assets/images/durga_1.jpg',
-    },
-    {
-      'title': 'Traditional Durga',
-      'date': 'Created on 2024-07-15',
-      'image': 'assets/images/durga_2.jpg',
-    },
-    {
-      'title': 'Modern Durga',
-      'date': 'Created on 2024-07-10',
-      'image': 'assets/images/durga_3.jpg',
-    },
-    {
-      'title': 'Eco-Friendly Durga',
-      'date': 'Created on 2024-07-05',
-      'image': 'assets/images/durga_4.jpg',
-    },
-    {
-      'title': 'Minimalist Durga',
-      'date': 'Created on 2024-06-30',
-      'image': 'assets/images/durga_5.jpg',
-    },
-    {
-      'title': 'Gold Durga',
-      'date': 'Created on 2024-06-25',
-      'image': 'assets/images/durga_6.jpg',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() => setState(() {}));
+    _loadConcepts();
+  }
+
+  Future<void> _loadConcepts() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final rows = await DatabaseService.getConcepts();
+      setState(() {
+        _concepts = rows.map((row) => Concept.fromMap(row)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load concepts: $e')),
+        );
+      }
+    }
+  }
+
+  List<Concept> get _filteredConcepts {
+    final query = _searchController.text.trim().toLowerCase();
+    final now = DateTime.now();
+    return _concepts.where((concept) {
+      if (_selectedTheme != 'All' && concept.theme != _selectedTheme) {
+        return false;
+      }
+      if (query.isNotEmpty && !concept.title.toLowerCase().contains(query)) {
+        return false;
+      }
+      if (_selectedDate != 'All') {
+        final created = DateTime.tryParse(concept.dateCreated);
+        if (created == null) return false;
+        final diff = now.difference(created).inDays;
+        switch (_selectedDate) {
+          case 'This Month':
+            if (diff > 30) return false;
+            break;
+          case 'Last Month':
+            if (diff <= 30 || diff > 60) return false;
+            break;
+          case 'Last 3 Months':
+            if (diff > 90) return false;
+            break;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  Future<void> _deleteConcept(Concept concept) async {
+    try {
+      await DatabaseService.deleteConcept(concept.id);
+      setState(() {
+        _concepts.removeWhere((c) => c.id == concept.id);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Removed ${concept.title}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to remove concept: $e')),
+        );
+      }
+    }
+  }
+
+  void _editConcept(Concept concept) {
+    final image = GeneratedImage(
+      id: concept.id,
+      url: concept.imageUrl,
+      prompt: concept.prompt?.isNotEmpty == true ? concept.prompt! : concept.title,
+      createdAt: DateTime.tryParse(concept.dateCreated) ?? DateTime.now(),
+    );
+    context.push('/design/edit/image/${concept.id}', extra: image);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,108 +135,162 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('+ Create new concept')),
-              );
-            },
+            onPressed: () => context.go('/design/create'),
+            tooltip: 'Create new concept',
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.mediumPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search concepts',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.mic_outlined),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('🎙️ Voice search'),
-                          ),
-                        );
-                      },
-                    ),
-                    filled: true,
-                    fillColor: AppColors.cardCream,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppConstants.borderRadius,
+      body: RefreshIndicator(
+        onRefresh: _loadConcepts,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.mediumPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search concepts',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => _searchController.clear(),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppColors.cardCream,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.borderRadius,
+                        ),
+                        borderSide: BorderSide.none,
                       ),
-                      borderSide: BorderSide.none,
                     ),
                   ),
-                ),
-                const SizedBox(height: AppConstants.largePadding),
+                  const SizedBox(height: AppConstants.largePadding),
 
-                const Text(
-                  'Filters',
-                  style: TextStyle(
-                    fontSize: AppConstants.fontSizeBody,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                  const Text(
+                    'Filters',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeBody,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppConstants.mediumPadding),
-                Row(
+                  const SizedBox(height: AppConstants.mediumPadding),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDropdownFilter(
+                          'Theme',
+                          _selectedTheme,
+                          _themes,
+                          (value) {
+                            setState(() {
+                              _selectedTheme = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: AppConstants.mediumPadding),
+                      Expanded(
+                        child: _buildDropdownFilter(
+                          'Date',
+                          _selectedDate,
+                          _dates,
+                          (value) {
+                            setState(() {
+                              _selectedDate = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primaryBrown),
+                    )
+                  : _concepts.isEmpty
+                      ? _buildEmptyState()
+                      : _buildConceptsGrid(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppConstants.largePadding),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: _buildDropdownFilter(
-                        'Theme',
-                        _selectedTheme,
-                        _themes,
-                        (value) {
-                          setState(() {
-                            _selectedTheme = value!;
-                          });
-                        },
+                    Icon(Icons.auto_awesome, size: 64, color: AppColors.textLight),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No concepts saved yet',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeMedium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
                       ),
                     ),
-                    const SizedBox(width: AppConstants.mediumPadding),
-                    Expanded(
-                      child: _buildDropdownFilter(
-                        'Date',
-                        _selectedDate,
-                        _dates,
-                        (value) {
-                          setState(() {
-                            _selectedDate = value!;
-                          });
-                        },
-                      ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Generate a design and save it to see it here.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textLight),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => context.go('/design/create'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create New Design'),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: AppConstants.mediumPadding,
-                mainAxisSpacing: AppConstants.mediumPadding,
-                childAspectRatio: 0.75,
               ),
-              itemCount: _concepts.length,
-              itemBuilder: (context, index) {
-                final concept = _concepts[index];
-                return _buildConceptCard(concept);
-              },
             ),
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildConceptsGrid() {
+    final filtered = _filteredConcepts;
+    if (filtered.isEmpty) {
+      return const Center(child: Text('No concepts match your filters'));
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppConstants.mediumPadding),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: AppConstants.mediumPadding,
+        mainAxisSpacing: AppConstants.mediumPadding,
+        childAspectRatio: 0.75,
       ),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        return _buildConceptCard(filtered[index]);
+      },
     );
   }
 
@@ -205,48 +323,65 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
     );
   }
 
-  Widget _buildConceptCard(Map<String, String> concept) {
+  Widget _buildConceptImage(Concept concept) {
+    final isNetwork = concept.imageUrl.startsWith('http://') || concept.imageUrl.startsWith('https://');
+    if (isNetwork) {
+      return Image.network(
+        concept.imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.darkBrown,
+          child: const Icon(Icons.broken_image, color: Colors.white30, size: 48),
+        ),
+      );
+    }
+    final file = File(concept.imageUrl);
+    return Image.file(
+      file,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (context, error, stackTrace) => Container(
+        color: AppColors.darkBrown,
+        child: const Icon(Icons.broken_image, color: Colors.white30, size: 48),
+      ),
+    );
+  }
+
+  Widget _buildConceptCard(Concept concept) {
     return GestureDetector(
       onTap: () {
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(concept['title']!),
+          builder: (dialogContext) => AlertDialog(
+            title: Text(concept.title),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(concept['date']!),
+                Text('Created on ${concept.dateCreated.split('T').first}'),
                 const SizedBox(height: AppConstants.largePadding),
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: AppColors.darkBrown,
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.borderRadius,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.image_outlined,
-                    size: 80,
-                    color: Colors.white30,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: _buildConceptImage(concept),
                   ),
                 ),
               ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Close'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('✓ ${concept['title']} edited'),
-                    ),
-                  );
+                  Navigator.pop(dialogContext);
+                  _editConcept(concept);
                 },
                 child: const Text('Edit'),
               ),
@@ -266,86 +401,77 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
             ),
           ],
         ),
-        child: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
-                color: AppColors.darkBrown,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          child: Stack(
+            children: [
+              Positioned.fill(child: _buildConceptImage(concept)),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppConstants.mediumPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        concept.title,
+                        style: const TextStyle(
+                          fontSize: AppConstants.fontSizeBody,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        concept.dateCreated.split('T').first,
+                        style: const TextStyle(
+                          fontSize: AppConstants.fontSizeSmall,
+                          color: Colors.white70,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      concept['title']!,
-                      style: const TextStyle(
-                        fontSize: AppConstants.fontSizeBody,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () => _deleteConcept(concept),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      concept['date']!.replaceAll('Created on ', ''),
-                      style: const TextStyle(
-                        fontSize: AppConstants.fontSizeSmall,
-                        color: Colors.white70,
-                      ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 16,
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Removed ${concept['title']!}'),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 16,
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

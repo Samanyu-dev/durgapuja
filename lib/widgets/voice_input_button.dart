@@ -27,7 +27,10 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
-    )..repeat(reverse: true);
+    );
+    if (widget.isListening) {
+      _animationController.repeat(reverse: true);
+    }
 
     _scaleAnimation = Tween<double>(
       begin: 1.0,

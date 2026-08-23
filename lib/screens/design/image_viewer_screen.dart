@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/generated_image.dart';
 import '../../utils/colors.dart';
+import '../../services/image_save_service.dart';
 
 class ImageViewerScreen extends StatefulWidget {
   final List<GeneratedImage> images;
@@ -19,8 +20,9 @@ class ImageViewerScreen extends StatefulWidget {
 class _ImageViewerScreenState extends State<ImageViewerScreen> {
   late PageController _pageController;
   late int _currentIndex;
-  double _scale = 1.0;
-  double _previousScale = 1.0;
+  final TransformationController _transformController = TransformationController();
+  final ImageSaveService _saveService = ImageSaveService();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _transformController.dispose();
     super.dispose();
   }
 
@@ -61,8 +64,14 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
             onPressed: _shareImage,
           ),
           IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
-            onPressed: _downloadImage,
+            icon: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.download, color: Colors.white),
+            onPressed: _isSaving ? null : _downloadImage,
           ),
         ],
       ),
@@ -71,8 +80,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
-            _scale = 1.0; // Reset scale when changing pages
-            _previousScale = 1.0;
+            _transformController.value = Matrix4.identity(); // Reset zoom when changing pages
           });
         },
         itemCount: widget.images.length,
@@ -86,69 +94,54 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
 
   Widget _buildImageViewer(GeneratedImage image) {
     return GestureDetector(
-      onScaleStart: (details) {
-        _previousScale = _scale;
-      },
-      onScaleUpdate: (details) {
-        setState(() {
-          _scale = _previousScale * details.scale;
-          // Limit zoom to reasonable bounds
-          _scale = _scale.clamp(0.5, 4.0);
-        });
-      },
-      onScaleEnd: (details) {
-        // Optional: Add momentum or snap back to bounds
-      },
       onDoubleTap: _handleDoubleTap,
       child: Container(
         color: Colors.black,
-        child: Center(
-          child: Transform.scale(
-            scale: _scale,
-            child: InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Image.network(
-                image.url,
-                fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                      color: AppColors.primaryBrown,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: AppColors.cardCream,
-                    child: const Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.broken_image,
-                            size: 64,
+        child: InteractiveViewer(
+          transformationController: _transformController,
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Center(
+            child: Image.network(
+              image.url,
+              fit: BoxFit.contain,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: AppColors.primaryBrown,
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.cardCream,
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          size: 64,
+                          color: AppColors.textLight,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Failed to load image',
+                          style: TextStyle(
                             color: AppColors.textLight,
+                            fontSize: 16,
                           ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Failed to load image',
-                            style: TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -157,31 +150,40 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
   }
 
   void _handleDoubleTap() {
-    setState(() {
-      if (_scale > 1.0) {
-        // Zoom out to fit
-        _scale = 1.0;
-      } else {
-        // Zoom in
-        _scale = 2.0;
-      }
-      _previousScale = _scale;
-    });
+    final current = _transformController.value;
+    if (current.getMaxScaleOnAxis() > 1.01) {
+      _transformController.value = Matrix4.identity();
+    } else {
+      _transformController.value = Matrix4.identity()..scale(2.5);
+    }
   }
 
-  void _shareImage() {
+  Future<void> _shareImage() async {
     final image = widget.images[_currentIndex];
-    // Share feature coming in next update
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sharing image: ${image.prompt}')),
+    try {
+      await _saveService.shareImage(image.url, image.prompt);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share image: $e')),
+      );
+    }
+  }
+
+  Future<void> _downloadImage() async {
+    if (_isSaving) return;
+    final image = widget.images[_currentIndex];
+    setState(() => _isSaving = true);
+    final success = await _saveService.saveToGallery(
+      image.url,
+      'durga_${image.id}',
     );
-  }
-
-  void _downloadImage() {
-    final image = widget.images[_currentIndex];
-    // Download feature coming in next update
+    if (!mounted) return;
+    setState(() => _isSaving = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Downloading image: ${image.prompt}')),
+      SnackBar(
+        content: Text(success ? 'Saved to gallery' : 'Failed to save image'),
+      ),
     );
   }
 }

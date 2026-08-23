@@ -6,10 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Import our app components
-import 'lib/services/auth_service.dart';
-import 'lib/providers/auth_provider.dart';
-import 'lib/screens/auth/phone_auth_screen.dart';
-import 'lib/screens/auth/otp_verification_screen.dart';
+import '../lib/services/auth_service.dart';
+import '../lib/providers/auth_provider.dart';
+import '../lib/screens/auth/phone_auth_screen.dart';
+import '../lib/screens/auth/otp_verification_screen.dart';
 
 void main() {
   // Test the authentication flow

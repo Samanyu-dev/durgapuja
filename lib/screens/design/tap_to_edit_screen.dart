@@ -7,11 +7,12 @@ import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
 import '../../services/tap_to_edit_service.dart';
 import '../../services/speech_service.dart';
-import '../../services/design_validation_service.dart';
+import '../../services/database_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/voice_input_button.dart';
+import '../../widgets/smart_image.dart';
 
 class TapToEditScreen extends StatefulWidget {
   final GeneratedImage? image;
@@ -123,6 +124,11 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           // Reset selection
           _resetSelection();
         });
+        // Image.file has no loadingBuilder callback, so schedule the
+        // dimension read explicitly once the new image has laid out.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _getImageDimensions();
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,17 +147,31 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     _promptController.clear();
   }
 
+  /// Converts a global pointer position into a coordinate local to the
+  /// displayed image itself (not the full-screen GestureDetector), and
+  /// clamps it inside the image bounds. This is what makes the traced
+  /// selection line up with the actual image pixels sent to the
+  /// segmentation API.
+  Offset? _imageLocalOffset(Offset globalPosition) {
+    final RenderBox? imageBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (imageBox == null || !imageBox.hasSize) return null;
+
+    final Offset local = imageBox.globalToLocal(globalPosition);
+    return Offset(
+      local.dx.clamp(0.0, imageBox.size.width),
+      local.dy.clamp(0.0, imageBox.size.height),
+    );
+  }
+
   void _handlePanStart(DragStartDetails details) {
     if (_currentImage == null) return;
 
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    
-    final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
-    
+    final Offset? localOffset = _imageLocalOffset(details.globalPosition);
+    if (localOffset == null) return;
+
     // Haptic feedback for tracing start
     HapticFeedback.selectionClick();
-    
+
     setState(() {
       _tracePoints = [localOffset];
       _isTracing = true;
@@ -163,11 +183,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   void _handlePanUpdate(DragUpdateDetails details) {
     if (!_isTracing) return;
 
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    
-    final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
-    
+    final Offset? localOffset = _imageLocalOffset(details.globalPosition);
+    if (localOffset == null) return;
+
     setState(() {
       _tracePoints.add(localOffset);
       _currentTracePath?.lineTo(localOffset.dx, localOffset.dy);
@@ -192,11 +210,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   void _handleTap(TapDownDetails details) {
     if (_currentImage == null) return;
 
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    
-    final Offset localOffset = renderBox.globalToLocal(details.globalPosition);
-    
+    final Offset? localOffset = _imageLocalOffset(details.globalPosition);
+    if (localOffset == null) return;
+
     // For single tap, create a small circle trace
     setState(() {
       _tracePoints = [
@@ -241,6 +257,24 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       return;
     }
 
+    if (!SmartImage.isNetworkUrl(_currentImage!.url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'AI editing needs a generated design. Please generate or select a saved concept before using Tap-to-Edit on it.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (_imageWidth <= 0 || _imageHeight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image is still loading, please try again in a moment')),
+      );
+      return;
+    }
+
     setState(() {
       _isEditing = true;
     });
@@ -252,9 +286,25 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       final maxX = allPoints.map((p) => p.dx).reduce(math.max);
       final minY = allPoints.map((p) => p.dy).reduce(math.min);
       final maxY = allPoints.map((p) => p.dy).reduce(math.max);
-      
+
       final centerX = (minX + maxX) / 2;
       final centerY = (minY + maxY) / 2;
+
+      if (!_tapToEditService.validateEditParameters(
+        editDescription: editDescription,
+        tapX: centerX,
+        tapY: centerY,
+        imageWidth: _imageWidth,
+        imageHeight: _imageHeight,
+      )) {
+        setState(() {
+          _isEditing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please trace a valid area inside the image and describe the change')),
+        );
+        return;
+      }
 
       final editPrompt = _tapToEditService.generateElementEditPrompt(
         _selectedElementType!,
@@ -290,6 +340,30 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     }
   }
 
+  Future<void> _saveCurrentImage() async {
+    if (_currentImage == null) return;
+    try {
+      await DatabaseService.insertConcept(
+        id: _currentImage!.id,
+        title: _currentImage!.prompt.isNotEmpty
+            ? _currentImage!.prompt.split('\n').first
+            : 'Tap-to-Edit design',
+        imageUrl: _currentImage!.url,
+        theme: 'Traditional',
+        prompt: _currentImage!.prompt,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image saved to My Concepts!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save image: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -298,12 +372,10 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Check if we came from element edit screen or design module
-            if (ModalRoute.of(context)?.settings.name == '/design/tap-to-edit/image/${widget.image?.id}') {
-              // Navigate back to element edit screen
+            if (context.canPop()) {
               context.pop();
             } else {
-              // Navigate back to design module dashboard
+              // No screen to return to (e.g. deep-linked here directly)
               context.go('/design/dashboard');
             }
           },
@@ -324,11 +396,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Image saved successfully!')),
-              );
-            },
+            onPressed: _currentImage == null ? null : _saveCurrentImage,
             tooltip: 'Save',
           ),
         ],
@@ -365,72 +433,81 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   Widget _buildImageViewer() {
-    return GestureDetector(
-      onPanStart: _handlePanStart,
-      onPanUpdate: _handlePanUpdate,
-      onPanEnd: _handlePanEnd,
-      onTapDown: _handleTap,
-      child: Container(
+    if (_currentImage == null) {
+      return Container(
         color: Colors.black,
+        child: const Center(
+          child: Text(
+            'No image selected\nTap the image icon to select one',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      color: Colors.black,
+      child: Center(
+        // The Stack below sizes itself to its largest non-positioned
+        // child (the image). Keeping the GestureDetector and the trace
+        // CustomPaint as Positioned.fill children of this *same* Stack
+        // guarantees they share the image's exact coordinate space, so
+        // traced points always line up with the pixels under the finger
+        // and with what gets sent to the segmentation API.
         child: Stack(
+          fit: StackFit.loose,
           children: [
-            // Image
-            if (_currentImage != null)
-              Center(
-                child: Image.network(
-                  key: _imageKey,
-                  _currentImage!.url,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      // Update dimensions when image loads
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _getImageDimensions();
-                      });
-                      return child;
-                    }
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primaryBrown),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.black,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 48,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              )
-            else
-              Container(
-                color: Colors.black,
-                child: const Center(
-                  child: Text(
-                    'No image selected\nTap the image icon to select one',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
+            SmartImage(
+              _currentImage!.url,
+              imageKey: _imageKey,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _getImageDimensions();
+                  });
+                  return child;
+                }
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primaryBrown),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.black,
+                  width: 200,
+                  height: 200,
+                  child: const Center(
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 48,
                       color: Colors.white,
-                      fontSize: 18,
                     ),
                   ),
-                ),
+                );
+              },
+            ),
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onPanStart: _handlePanStart,
+                onPanUpdate: _handlePanUpdate,
+                onPanEnd: _handlePanEnd,
+                onTapDown: _handleTap,
+                child: (_completedTraces.isNotEmpty || _currentTracePath != null)
+                    ? CustomPaint(
+                        painter: TracingPainter(
+                          completedTraces: _completedTraces,
+                          currentTrace: _currentTracePath,
+                          isTracing: _isTracing,
+                        ),
+                      )
+                    : null,
               ),
-
-            // Freehand Tracing Overlay
-            if (_completedTraces.isNotEmpty || _currentTracePath != null)
-              CustomPaint(
-                painter: TracingPainter(
-                  completedTraces: _completedTraces,
-                  currentTrace: _currentTracePath,
-                  isTracing: _isTracing,
-                ),
-                child: Container(),
-              ),
+            ),
           ],
         ),
       ),
@@ -600,8 +677,6 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   Widget _buildEditPanel() {
-    EditableElement.fromType(_selectedElementType ?? ElementType.face);
-    
     return Positioned(
       bottom: 0,
       left: 0,

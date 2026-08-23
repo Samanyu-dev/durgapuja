@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/material_tracker_service.dart';
 
 class AddNewRateScreen extends StatefulWidget {
   const AddNewRateScreen({super.key});
@@ -12,6 +13,49 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController rateController = TextEditingController();
   final TextEditingController unitController = TextEditingController();
+  bool _isSaving = false;
+
+  Future<void> _saveRate() async {
+    if (materialController.text.trim().isEmpty ||
+        rateController.text.trim().isEmpty ||
+        unitController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in material, rate and unit')),
+      );
+      return;
+    }
+
+    final rate = double.tryParse(rateController.text.trim());
+    if (rate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid rate')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      await MaterialTrackerService.addMaterial(
+        name: materialController.text.trim(),
+        category: MaterialCategory.OTHERS,
+        unit: unitController.text.trim(),
+        currentRate: rate,
+        supplier: locationController.text.trim().isEmpty
+            ? null
+            : locationController.text.trim(),
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      setState(() => _isSaving = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving rate: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +157,7 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isSaving ? null : _saveRate,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF9A5222),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -121,10 +165,19 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text(
-                    "Save Rate",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "Save Rate",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
                 ),
               ),
 

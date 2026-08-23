@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/services/krea_ai_service.dart';
 
 /// Test helper function to enhance Durga idol prompts
 String enhanceDurgaIdolPrompt(String prompt) {

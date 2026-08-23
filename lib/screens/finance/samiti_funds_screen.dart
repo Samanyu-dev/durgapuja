@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'worker_funds_screen.dart';
 import 'material_screen.dart';
 import '../../services/database_service.dart';
@@ -97,7 +98,7 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Navigate back to finance dashboard instead of popping
-            Navigator.pushReplacementNamed(context, '/finance/dashboard');
+            context.go('/finance/dashboard');
           },
         ),
       ),
@@ -237,7 +238,11 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$name marked as completed')),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE9D7C0),
                   elevation: 0,

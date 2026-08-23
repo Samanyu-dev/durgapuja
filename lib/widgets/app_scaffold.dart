@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../services/logging_service.dart';
+import '../services/speech_service.dart';
+import '../services/translation_service.dart';
 import 'dynamic_island_nav.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -110,7 +112,7 @@ class AppScaffold extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _startVoiceRecording(context),
                   icon: const Icon(Icons.mic),
                   label: const Text('Start Recording'),
                   style: ElevatedButton.styleFrom(
@@ -128,5 +130,22 @@ class AppScaffold extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _startVoiceRecording(BuildContext context) async {
+    Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final banglaText = await SpeechService().listenBangla();
+      if (banglaText.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('No speech detected')));
+        return;
+      }
+      final englishText = await TranslationService().translateToEnglish(banglaText);
+      messenger.showSnackBar(SnackBar(content: Text('Voice Note: $englishText')));
+    } catch (e) {
+      LoggingService.logError('Voice recording failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text('Speech recognition failed: $e')));
+    }
   }
 }
