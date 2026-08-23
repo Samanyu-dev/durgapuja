@@ -6,7 +6,7 @@ import '../../services/translation_service.dart';
 import '../../services/gpt_service.dart';
 import '../../services/database_service.dart';
 import '../../services/finance_processor.dart';
-import '../../utils/dummy_data.dart';
+import '../orders/record_payment_screen.dart';
 
 class FinanceHomeScreen extends StatefulWidget {
   const FinanceHomeScreen({super.key});
@@ -24,6 +24,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   double get _currentBalance => _totalIncome - _totalExpenses;
   bool _isListening = false;
   bool _showManagementView = false; // Toggle between Dashboard and All Sections
+  List<Map<String, dynamic>> _orders = [];
 
   @override
   void initState() {
@@ -39,10 +40,18 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
 
   Future<void> _loadFinanceData() async {
     final data = await DatabaseService.getFinanceData();
+    final orders = await DatabaseService.getOrders();
+    if (!mounted) return;
     setState(() {
       _totalIncome = data['total_income'] ?? 0.0;
       _totalExpenses = data['total_expenses'] ?? 0.0;
+      _orders = orders;
     });
+  }
+
+  DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
   }
 
   String _formatCurrency(double amount) {
@@ -290,7 +299,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 icon: Icons.account_balance_wallet,
                 title: "Total Income",
                 amount: "₹ ${_formatCurrency(_totalIncome)}",
-                changePercent: "3%",
+                changePercent: null,
                 isPositive: true,
                 iconBackground: AppColors.cardCream,
               ),
@@ -302,7 +311,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 icon: Icons.shopping_basket,
                 title: "Total Expenses",
                 amount: "₹ ${_formatCurrency(_totalExpenses)}",
-                changePercent: "3%",
+                changePercent: null,
                 isPositive: false,
                 iconBackground: AppColors.cardCream,
               ),
@@ -334,6 +343,7 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
+                childAspectRatio: 0.85,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   // Enhanced Material Tracker
@@ -729,10 +739,14 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   }
 
   Widget _buildPendingPaymentList() {
-    // Get clients with pending amounts
-    final pendingClients = DummyData.clients.where((client) => client.pendingAmount > 0).toList();
+    // Orders with nothing recorded against them yet — same definition the
+    // Orders screen uses (amount_received <= 0), so the two stay consistent.
+    final pending = _orders.where((o) {
+      final amount = (o['amount_received'] as num?) ?? 0;
+      return amount <= 0;
+    }).toList();
 
-    if (pendingClients.isEmpty) {
+    if (pending.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(40.0),
@@ -745,13 +759,17 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
     }
 
     return Column(
-      children: pendingClients.map((client) {
+      children: pending.map((order) {
+        final name = order['customer_name'] as String? ?? 'Unknown';
+        final idolName = order['idol_name'] as String?;
         return Column(
           children: [
             _buildPendingPaymentItem(
-              name: client.name,
-              amount: client.pendingAmount,
-              delay: "Pending payment"
+              clientName: name,
+              name: name,
+              subtitle: idolName != null && idolName.isNotEmpty
+                  ? idolName
+                  : 'No payment recorded',
             ),
             const SizedBox(height: 12),
           ],
@@ -761,9 +779,9 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   }
 
   Widget _buildPendingPaymentItem({
+    required String clientName,
     required String name,
-    required double amount,
-    required String delay,
+    required String subtitle,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -791,31 +809,43 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                   ),
                 ),
                 Text(
-                  "₹${amount.toStringAsFixed(0)} - $delay",
+                  subtitle,
                   style: const TextStyle(fontSize: 14, color: Colors.red),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.cardCream,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: const [
-                Icon(Icons.check, color: Colors.green, size: 18),
-                SizedBox(width: 6),
-                Text(
-                  "Mark as completed",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primaryBrown,
-                    fontWeight: FontWeight.w600,
-                  ),
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RecordPaymentScreen(clientId: clientName),
                 ),
-              ],
+              );
+              if (mounted) _loadFinanceData();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.cardCream,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.check, color: Colors.green, size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    "Record payment",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primaryBrown,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -824,25 +854,13 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
   }
 
   Widget _buildUpcomingDeliveriesList() {
-    // Get all upcoming deliveries from clients
-    final now = DateTime.now();
-    final upcomingDeliveries = <Map<String, dynamic>>[];
-
-    for (final client in DummyData.clients) {
-      for (final idol in client.idols) {
-        if (idol.deliveryDate.isAfter(now)) {
-          upcomingDeliveries.add({
-            'clientName': client.name,
-            'idolName': idol.name,
-            'deliveryDate': idol.deliveryDate,
-            'status': idol.status,
-          });
-        }
-      }
-    }
-
-    // Sort by delivery date
-    upcomingDeliveries.sort((a, b) => a['deliveryDate'].compareTo(b['deliveryDate']));
+    final upcomingDeliveries = _orders.where((o) {
+      final delivered = (o['delivered'] as int? ?? 0) == 1;
+      final date = _parseDate(o['delivery_date']);
+      return !delivered && date != null;
+    }).toList()
+      ..sort((a, b) =>
+          _parseDate(a['delivery_date'])!.compareTo(_parseDate(b['delivery_date'])!));
 
     if (upcomingDeliveries.isEmpty) {
       return const Center(
@@ -857,14 +875,14 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
     }
 
     return Column(
-      children: upcomingDeliveries.map((delivery) {
+      children: upcomingDeliveries.map((order) {
+        final idolName = order['idol_name'] as String?;
         return Column(
           children: [
             _buildUpcomingDeliveryItem(
-              clientName: delivery['clientName'],
-              idolName: delivery['idolName'],
-              deliveryDate: delivery['deliveryDate'],
-              status: delivery['status'],
+              clientName: order['customer_name'] as String? ?? 'Unknown',
+              idolName: idolName != null && idolName.isNotEmpty ? idolName : 'Idol',
+              deliveryDate: _parseDate(order['delivery_date'])!,
             ),
             const SizedBox(height: 12),
           ],
@@ -877,7 +895,6 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
     required String clientName,
     required String idolName,
     required DateTime deliveryDate,
-    required String status,
   }) {
     final now = DateTime.now();
     final daysLeft = deliveryDate.difference(now).inDays;
@@ -918,39 +935,9 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _getStatusColor(status),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              status,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'in progress':
-        return AppColors.primaryBrown;
-      case 'pending':
-        return AppColors.accentOrange;
-      case '2 day delay':
-        return Colors.red;
-      default:
-        return AppColors.textLight;
-    }
   }
 
   // Quick Navigation Chips

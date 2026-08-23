@@ -109,13 +109,14 @@ final GoRouter router = GoRouter(
           body: child,
           currentIndex: _getFinanceIndex(state.uri.toString()),
           onNavTap: (index) {
+            // Must match the 3-item nav AppScaffold actually renders for the
+            // finance module (showHomeIcon + !isDesignModule): Dashboard,
+            // Orders, Reports. Materials/Samiti/Worker are reached from the
+            // dashboard's grid, not this bottom nav.
             final routes = [
-              '/finance/dashboard', 
-              '/finance/materials', 
-              '/finance/samiti-funds', 
-              '/finance/worker-funds',
-              '/finance/orders', 
-              '/finance/reports'
+              '/finance/dashboard',
+              '/finance/orders',
+              '/finance/reports',
             ];
             if (index >= 0 && index < routes.length) {
               context.go(routes[index]);
@@ -294,13 +295,16 @@ final GoRouter router = GoRouter(
 );
 
 int _getFinanceIndex(String path) {
+  // Must match the 3-item nav AppScaffold renders for the finance module:
+  // Dashboard, Orders, Reports.
   if (path == '/finance/dashboard') return 0;
-  if (path.startsWith('/finance/materials')) return 1;
-  if (path.startsWith('/finance/samiti-funds')) return 2;
-  if (path.startsWith('/finance/worker-funds')) return 3;
-  if (path.startsWith('/finance/orders')) return 4;
-  if (path.startsWith('/finance/reports')) return 5;
-  return 0; // default to dashboard
+  if (path.startsWith('/finance/orders')) return 1;
+  if (path.startsWith('/finance/reports')) return 2;
+  // Sub-pages reached from the dashboard's grid (materials, samiti-funds,
+  // worker-funds, worker-details, ...) don't correspond to any of the 3
+  // tabs, so leave none of them highlighted rather than falsely showing
+  // "Dashboard" as active.
+  return -1;
 }
 
 int _getDesignIndex(String path) {

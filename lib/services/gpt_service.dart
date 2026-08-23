@@ -7,6 +7,43 @@ class GPTService {
     return await analyzeTransaction(englishText);
   }
 
+  /// Translates Bengali text to English using GPT-4o-mini.
+  static Future<String> translateToEnglish(String banglaText) async {
+    if (banglaText.trim().isEmpty) return "";
+
+    final url = Uri.parse("https://api.openai.com/v1/chat/completions");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${ApiKeys.openAI}",
+      },
+      body: jsonEncode({
+        "model": "gpt-4o-mini",
+        "messages": [
+          {
+            "role": "system",
+            "content":
+                "You translate Bengali text to English. Reply with only the "
+                "translated English text, no quotes, no commentary. If the "
+                "input is already in English, return it unchanged.",
+          },
+          {"role": "user", "content": banglaText},
+        ],
+        "temperature": 0,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("GPT translation error: ${response.body}");
+    }
+
+    final data = jsonDecode(response.body);
+    final content = data["choices"][0]["message"]["content"] as String;
+    return content.trim();
+  }
+
   static Future<Map<String, dynamic>> analyzeTransaction(String text) async {
     final url = Uri.parse("https://api.openai.com/v1/chat/completions");
 

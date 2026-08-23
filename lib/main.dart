@@ -16,7 +16,7 @@ import 'services/onboarding_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize logging service
   LoggingService.initialize();
 

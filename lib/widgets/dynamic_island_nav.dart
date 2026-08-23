@@ -94,6 +94,7 @@ class DynamicIslandNav extends StatelessWidget {
     final isActive = currentIndex == index;
 
     return GestureDetector(
+      key: ValueKey('nav_$label'),
       onTap: () => onTap(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

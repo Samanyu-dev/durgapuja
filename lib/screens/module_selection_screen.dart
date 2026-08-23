@@ -17,7 +17,7 @@ class ModuleSelectionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.defaultPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -67,49 +67,47 @@ class ModuleSelectionScreen extends StatelessWidget {
               const SizedBox(height: AppConstants.largePadding * 3),
 
               // Module Cards
-              Flexible(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Design Module Card
-                      _buildModuleCard(
-                        context: context,
-                        title: l10n.designModule,
-                        description: l10n.designModuleDescription,
-                        icon: Icons.palette_outlined,
-                        color: AppColors.primaryBrown,
-                        onTap: () => context.go('/design'),
-                      ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Design Module Card
+                    _buildModuleCard(
+                      context: context,
+                      title: l10n.designModule,
+                      description: l10n.designModuleDescription,
+                      icon: Icons.palette_outlined,
+                      color: AppColors.primaryBrown,
+                      onTap: () => context.go('/design'),
+                    ),
 
+                    const SizedBox(height: AppConstants.largePadding),
+
+                    // Finance Module Card
+                    _buildModuleCard(
+                      context: context,
+                      title: l10n.financeModule,
+                      description: l10n.financeModuleDescription,
+                      icon: Icons.wallet_outlined,
+                      color: AppColors.successGreen,
+                      onTap: () => context.go('/finance'),
+                    ),
+
+                    if (isAdmin) ...[
                       const SizedBox(height: AppConstants.largePadding),
 
-                      // Finance Module Card
+                      // Admin Panel Card (admins only)
                       _buildModuleCard(
                         context: context,
-                        title: l10n.financeModule,
-                        description: l10n.financeModuleDescription,
-                        icon: Icons.wallet_outlined,
-                        color: AppColors.successGreen,
-                        onTap: () => context.go('/finance'),
+                        title: 'Admin Panel',
+                        description: 'Manage users, roles, and system settings',
+                        icon: Icons.admin_panel_settings,
+                        color: AppColors.errorRed,
+                        onTap: () => context.go('/admin'),
                       ),
-
-                      if (isAdmin) ...[
-                        const SizedBox(height: AppConstants.largePadding),
-
-                        // Admin Panel Card (admins only)
-                        _buildModuleCard(
-                          context: context,
-                          title: 'Admin Panel',
-                          description: 'Manage users, roles, and system settings',
-                          icon: Icons.admin_panel_settings,
-                          color: AppColors.errorRed,
-                          onTap: () => context.go('/admin'),
-                        ),
-                      ],
                     ],
-                  ),
+                  ],
                 ),
               ),
 

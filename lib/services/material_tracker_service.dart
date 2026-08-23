@@ -50,6 +50,17 @@ class MaterialTrackerService {
     ''');
   }
 
+  /// Returns the database with the materials/price_history/material_usage
+  /// tables guaranteed to exist. Every method below must go through this
+  /// instead of DatabaseService.getDatabase() directly — these tables live
+  /// outside the app's central schema migrations, so nothing else creates
+  /// them, and CREATE TABLE IF NOT EXISTS makes this cheap to call every time.
+  static Future<Database> _db() async {
+    final db = await DatabaseService.getDatabase();
+    await _initMaterialTables(db);
+    return db;
+  }
+
   static Future<void> addMaterial({
     required String name,
     required String category,
@@ -59,8 +70,7 @@ class MaterialTrackerService {
     double? minRate,
     double? maxRate,
   }) async {
-    final db = await DatabaseService.getDatabase();
-    await _initMaterialTables(db);
+    final db = await _db();
 
     final result = await db.insert(
       _materialsTableName,
@@ -96,7 +106,7 @@ class MaterialTrackerService {
     required double currentRate,
     String? supplier,
   }) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
 
     await db.update(
       _materialsTableName,
@@ -125,7 +135,7 @@ class MaterialTrackerService {
   }
 
   static Future<void> updateMaterialRate(int materialId, double newRate) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     
     await db.update(
       _materialsTableName,
@@ -156,7 +166,7 @@ class MaterialTrackerService {
     String? projectId,
     String? description,
   }) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     
     // Get current rate
     final materialResult = await db.query(
@@ -185,13 +195,13 @@ class MaterialTrackerService {
   }
 
   static Future<List<Map<String, dynamic>>> getMaterials() async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     final result = await db.query(_materialsTableName);
     return result;
   }
 
   static Future<List<Map<String, dynamic>>> getPriceHistory(int materialId) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     final result = await db.query(
       _priceHistoryTableName,
       where: 'material_id = ?',
@@ -202,7 +212,7 @@ class MaterialTrackerService {
   }
 
   static Future<List<Map<String, dynamic>>> getMaterialUsage(int materialId) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     final result = await db.query(
       _materialUsageTableName,
       where: 'material_id = ?',
@@ -213,7 +223,7 @@ class MaterialTrackerService {
   }
 
   static Future<Map<String, dynamic>> getMaterialAnalytics() async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     
     // Get total materials
     final totalMaterialsResult = await db.rawQuery(
@@ -256,7 +266,7 @@ class MaterialTrackerService {
   }
 
   static Future<List<Map<String, dynamic>>> getTrendingMaterials() async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     
     // Get materials with price changes in last 30 days
     final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30)).toIso8601String();
@@ -282,7 +292,7 @@ class MaterialTrackerService {
   }
 
   static Future<void> deleteMaterial(int materialId) async {
-    final db = await DatabaseService.getDatabase();
+    final db = await _db();
     
     await db.delete(
       _materialsTableName,
