@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:http/http.dart' as http;
 import '../../models/editable_element.dart';
 import '../../utils/colors.dart';
@@ -43,7 +41,8 @@ class DesignValidationService {
       return PromptValidationResult(
         isValid: true,
         score: score,
-        feedback: 'Good prompt! Consider adding more details for better results',
+        feedback:
+            'Good prompt! Consider adding more details for better results',
         suggestions: [
           'Add specific details about jewelry or accessories',
           'Mention color preferences',
@@ -68,7 +67,10 @@ class DesignValidationService {
 
     for (int i = 0; i < images.length; i++) {
       final File image = images[i];
-      final ReferenceImageValidationResult result = await _validateSingleImage(image, i);
+      final ReferenceImageValidationResult result = await _validateSingleImage(
+        image,
+        i,
+      );
       results.add(result);
     }
 
@@ -124,7 +126,9 @@ class DesignValidationService {
     // Validate completed traces
     if (completedTraces.isNotEmpty) {
       final double totalArea = _calculateTotalTraceArea(completedTraces);
-      final double avgTraceLength = _calculateAverageTraceLength(completedTraces);
+      final double avgTraceLength = _calculateAverageTraceLength(
+        completedTraces,
+      );
 
       if (totalArea < 1000) {
         return TracingValidationResult(
@@ -225,7 +229,9 @@ class DesignValidationService {
   }
 
   /// Validates generated image quality
-  Future<ImageQualityValidationResult> validateGeneratedImage(String imageUrl) async {
+  Future<ImageQualityValidationResult> validateGeneratedImage(
+    String imageUrl,
+  ) async {
     try {
       final http.Response response = await http.get(Uri.parse(imageUrl));
       if (response.statusCode != 200) {
@@ -243,7 +249,7 @@ class DesignValidationService {
 
       // Basic image format validation - simplified without external image library
       final List<int> bytes = response.bodyBytes;
-      
+
       // Basic validation - check if bytes exist and are reasonable size
       if (bytes.length < 100) {
         return ImageQualityValidationResult(
@@ -283,9 +289,28 @@ class DesignValidationService {
   List<String> _extractKeywords(String prompt) {
     final List<String> keywords = [];
     final List<String> durgaKeywords = [
-      'durga', 'idol', 'puja', 'traditional', 'bengali', 'face', 'jewelry',
-      'saree', 'crown', 'lion', 'weapon', 'pose', 'expression', 'gold', 'red',
-      'blue', 'green', 'white', 'modern', 'fusion', 'artistic', 'divine'
+      'durga',
+      'idol',
+      'puja',
+      'traditional',
+      'bengali',
+      'face',
+      'jewelry',
+      'saree',
+      'crown',
+      'lion',
+      'weapon',
+      'pose',
+      'expression',
+      'gold',
+      'red',
+      'blue',
+      'green',
+      'white',
+      'modern',
+      'fusion',
+      'artistic',
+      'divine',
     ];
 
     for (final keyword in durgaKeywords) {
@@ -309,8 +334,19 @@ class DesignValidationService {
 
     // Specificity score
     final List<String> specificWords = [
-      'detailed', 'intricate', 'ornate', 'traditional', 'modern', 'fusion',
-      'gold', 'silver', 'red', 'blue', 'green', 'white', 'black'
+      'detailed',
+      'intricate',
+      'ornate',
+      'traditional',
+      'modern',
+      'fusion',
+      'gold',
+      'silver',
+      'red',
+      'blue',
+      'green',
+      'white',
+      'black',
     ];
 
     for (final word in specificWords) {
@@ -327,11 +363,15 @@ class DesignValidationService {
     return score.clamp(0.0, 1.0);
   }
 
-  Future<ReferenceImageValidationResult> _validateSingleImage(File image, int index) async {
+  Future<ReferenceImageValidationResult> _validateSingleImage(
+    File image,
+    int index,
+  ) async {
     try {
       // Check file size
       final int fileSize = await image.length();
-      if (fileSize > 10 * 1024 * 1024) { // 10MB
+      if (fileSize > 10 * 1024 * 1024) {
+        // 10MB
         return ReferenceImageValidationResult(
           index: index,
           isValid: false,
@@ -341,7 +381,8 @@ class DesignValidationService {
         );
       }
 
-      if (fileSize < 1024) { // 1KB minimum
+      if (fileSize < 1024) {
+        // 1KB minimum
         return ReferenceImageValidationResult(
           index: index,
           isValid: false,
@@ -377,41 +418,41 @@ class DesignValidationService {
 
   double _calculateTotalTraceArea(List<List<Offset>> traces) {
     double totalArea = 0.0;
-    
+
     for (final trace in traces) {
       if (trace.length >= 3) {
         totalArea += _calculatePolygonArea(trace);
       }
     }
-    
+
     return totalArea;
   }
 
   double _calculatePolygonArea(List<Offset> points) {
     if (points.length < 3) return 0.0;
-    
+
     double area = 0.0;
     final int n = points.length;
-    
+
     for (int i = 0; i < n; i++) {
       final int j = (i + 1) % n;
       area += points[i].dx * points[j].dy;
       area -= points[j].dx * points[i].dy;
     }
-    
+
     return area.abs() / 2.0;
   }
 
   double _calculateAverageTraceLength(List<List<Offset>> traces) {
     if (traces.isEmpty) return 0.0;
-    
+
     double totalLength = 0.0;
     for (final trace in traces) {
       for (int i = 1; i < trace.length; i++) {
         totalLength += (trace[i] - trace[i - 1]).distance;
       }
     }
-    
+
     return totalLength / traces.length;
   }
 
@@ -424,15 +465,25 @@ class DesignValidationService {
 
     // Element-specific keywords
     final String elementName = elementType.name.toLowerCase();
-    if (description.contains(elementName) || 
+    if (description.contains(elementName) ||
         description.contains(elementType.displayName.toLowerCase())) {
       score += 0.3;
     }
 
     // Change-related words
     final List<String> changeWords = [
-      'change', 'modify', 'add', 'remove', 'enhance', 'improve', 'alter',
-      'different', 'new', 'update', 'replace', 'transform'
+      'change',
+      'modify',
+      'add',
+      'remove',
+      'enhance',
+      'improve',
+      'alter',
+      'different',
+      'new',
+      'update',
+      'replace',
+      'transform',
     ];
 
     for (final word in changeWords) {
@@ -443,8 +494,17 @@ class DesignValidationService {
 
     // Specificity words
     final List<String> specificityWords = [
-      'color', 'style', 'design', 'pattern', 'texture', 'detail', 'shape',
-      'size', 'position', 'arrangement', 'composition'
+      'color',
+      'style',
+      'design',
+      'pattern',
+      'texture',
+      'detail',
+      'shape',
+      'size',
+      'position',
+      'arrangement',
+      'composition',
     ];
 
     for (final word in specificityWords) {
@@ -539,29 +599,27 @@ class ValidationFeedbackWidget extends StatelessWidget {
   final bool showSuggestions;
 
   const ValidationFeedbackWidget({
-    Key? key,
+    super.key,
     required this.score,
     required this.feedback,
     this.suggestions = const [],
     this.showSuggestions = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final Color feedbackColor = score >= 0.7 
-        ? AppColors.accentOrange 
-        : score >= 0.4 
-            ? AppColors.primaryBrown 
-            : Colors.red;
+    final Color feedbackColor = score >= 0.7
+        ? AppColors.accentOrange
+        : score >= 0.4
+        ? AppColors.primaryBrown
+        : Colors.red;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: feedbackColor.withOpacity(0.3),
-        ),
+        border: Border.all(color: feedbackColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,8 +627,11 @@ class ValidationFeedbackWidget extends StatelessWidget {
           Row(
             children: [
               Icon(
-                score >= 0.7 ? Icons.check_circle : 
-                score >= 0.4 ? Icons.info : Icons.warning,
+                score >= 0.7
+                    ? Icons.check_circle
+                    : score >= 0.4
+                    ? Icons.info
+                    : Icons.warning,
                 color: feedbackColor,
                 size: 20,
               ),
@@ -589,7 +650,7 @@ class ValidationFeedbackWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: feedbackColor.withOpacity(0.1),
+                  color: feedbackColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -603,7 +664,7 @@ class ValidationFeedbackWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           if (showSuggestions && suggestions.isNotEmpty) ...[
             const SizedBox(height: 8),
             const Text(
@@ -617,31 +678,35 @@ class ValidationFeedbackWidget extends StatelessWidget {
             const SizedBox(height: 4),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: suggestions.map((suggestion) => Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: feedbackColor,
-                        shape: BoxShape.circle,
+              children: suggestions
+                  .map(
+                    (suggestion) => Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: feedbackColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              suggestion,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        suggestion,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
           ],
         ],

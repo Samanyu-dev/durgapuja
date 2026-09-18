@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -5,10 +7,13 @@ import 'package:http/http.dart' as http;
 /// Run this with: dart test_krea_api.dart
 void main() async {
   // Use the API token from the config
-  const String apiToken = '98a5ee01-a1e6-4144-a83d-79855a93ab1f:7uxYb9TaYmWIjlB-a9S_fIEtGynunykZ';
-  
+  const String apiToken =
+      '98a5ee01-a1e6-4144-a83d-79855a93ab1f:7uxYb9TaYmWIjlB-a9S_fIEtGynunykZ';
+
   if (apiToken == 'YOUR_KREA_API_TOKEN_HERE') {
-    print('❌ Please replace YOUR_KREA_API_TOKEN_HERE with your actual Krea API token');
+    print(
+      '❌ Please replace YOUR_KREA_API_TOKEN_HERE with your actual Krea API token',
+    );
     return;
   }
 
@@ -27,7 +32,7 @@ void main() async {
     for (final urlString in possibleUrls) {
       final url = Uri.parse(urlString);
       print('Testing request to: $urlString');
-      
+
       try {
         final response = await http.post(
           url,
@@ -36,16 +41,16 @@ void main() async {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: jsonEncode({
-            'prompt': 'test image',
-          }),
+          body: jsonEncode({'prompt': 'test image'}),
         );
 
         print('Status Code: ${response.statusCode}');
-        
+
         if (response.statusCode == 200) {
           print('✅ SUCCESS! Found working endpoint: $urlString');
-          print('Response: ${response.body.substring(0, 200)}${response.body.length > 200 ? '...' : ''}');
+          print(
+            'Response: ${response.body.substring(0, 200)}${response.body.length > 200 ? '...' : ''}',
+          );
           return;
         } else if (response.statusCode == 401) {
           print('❌ Invalid API key');
@@ -59,13 +64,14 @@ void main() async {
       } catch (e) {
         print('❌ Error: $e');
       }
-      
+
       print('---');
     }
 
     print('❌ None of the tested endpoints worked');
-    print('Please check the Krea API documentation for the correct endpoint URL');
-
+    print(
+      'Please check the Krea API documentation for the correct endpoint URL',
+    );
   } catch (e) {
     print('❌ FAILED: Exception occurred');
     print('Error: $e');

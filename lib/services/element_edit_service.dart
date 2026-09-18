@@ -12,9 +12,13 @@ class ElementEditService {
   final KreaAIService _kreaService = KreaAIService();
 
   /// Creates an element-specific edit prompt
-  String createElementEditPrompt(ElementType elementType, String editDescription, String originalPrompt) {
+  String createElementEditPrompt(
+    ElementType elementType,
+    String editDescription,
+    String originalPrompt,
+  ) {
     final elementDetails = EditableElement.fromType(elementType);
-    
+
     return '''
 Edit the ${elementDetails?.type.displayName.toLowerCase() ?? 'selected element'} of this Durga idol design:
 Original design: $originalPrompt
@@ -40,14 +44,20 @@ Requirements:
   ) async {
     try {
       // Create element-specific prompt
-      final editPrompt = createElementEditPrompt(elementType, editDescription, originalPrompt);
+      final editPrompt = createElementEditPrompt(
+        elementType,
+        editDescription,
+        originalPrompt,
+      );
 
       // Feed the original image in as a reference so the model has
       // something to preserve — without it, "editing an element" would
       // just be generating an unrelated new image from text alone.
       final referenceFile = await _resolveAsFile(originalImageUrl);
       final images = referenceFile != null
-          ? await _kreaService.generateImagesWithReferences(editPrompt, [referenceFile], count: 1)
+          ? await _kreaService.generateImagesWithReferences(editPrompt, [
+              referenceFile,
+            ], count: 1)
           : await _kreaService.generateImages(editPrompt, count: 1);
 
       if (images.isNotEmpty) {
@@ -69,7 +79,9 @@ Requirements:
         final response = await http.get(Uri.parse(imageUrl));
         if (response.statusCode != 200) return null;
         final directory = await getTemporaryDirectory();
-        final file = File('${directory.path}/edit_ref_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final file = File(
+          '${directory.path}/edit_ref_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
         await file.writeAsBytes(response.bodyBytes);
         return file;
       }
@@ -82,7 +94,12 @@ Requirements:
   }
 
   /// Uploads edited image to cloud storage
-  Future<String> uploadEditedImage(String imageUrl, String userId, String originalImageId, ElementType elementType) async {
+  Future<String> uploadEditedImage(
+    String imageUrl,
+    String userId,
+    String originalImageId,
+    ElementType elementType,
+  ) async {
     try {
       // Download edited image
       final http.Response response = await http.get(Uri.parse(imageUrl));
@@ -91,7 +108,8 @@ Requirements:
       }
 
       // Create storage reference with element type
-      final fileName = '${userId}/edited_${elementType.name}_${originalImageId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          '$userId/edited_${elementType.name}_${originalImageId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = _storage.ref().child('edited_designs/$fileName');
 
       // Upload file
@@ -118,12 +136,12 @@ Requirements:
     if (description.trim().isEmpty) {
       return false;
     }
-    
+
     // Check for minimum length
     if (description.trim().length < 5) {
       return false;
     }
-    
+
     return true;
   }
 

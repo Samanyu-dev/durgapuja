@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../services/logging_service.dart';
 
 class NavItem {
   final IconData icon;
   final String label;
 
-  const NavItem({
-    required this.icon,
-    required this.label,
-  });
+  const NavItem({required this.icon, required this.label});
 }
 
 class DynamicIslandNav extends StatelessWidget {
@@ -29,13 +25,15 @@ class DynamicIslandNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = navItems ?? [
-      const NavItem(icon: Icons.home_outlined, label: 'Home'),
-      const NavItem(icon: Icons.palette_outlined, label: 'Design'),
-      const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
-      const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
-      const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
-    ];
+    final items =
+        navItems ??
+        [
+          const NavItem(icon: Icons.home_outlined, label: 'Home'),
+          const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+          const NavItem(icon: Icons.shopping_bag_outlined, label: 'Orders'),
+          const NavItem(icon: Icons.wallet_outlined, label: 'Finance'),
+          const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
+        ];
 
     return Positioned(
       bottom: 0,
@@ -48,7 +46,7 @@ class DynamicIslandNav extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              AppColors.backgroundCream.withOpacity(0.3),
+              AppColors.backgroundCream.withValues(alpha: 0.3),
               AppColors.backgroundCream,
             ],
           ),
@@ -61,7 +59,7 @@ class DynamicIslandNav extends StatelessWidget {
               borderRadius: BorderRadius.circular(50),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
                   spreadRadius: 5,
                   offset: const Offset(0, -5),

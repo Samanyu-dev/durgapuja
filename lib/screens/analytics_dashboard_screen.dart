@@ -5,10 +5,11 @@ import '../utils/constants.dart';
 import '../widgets/loading_skeleton.dart';
 
 class AnalyticsDashboardScreen extends StatefulWidget {
-  const AnalyticsDashboardScreen({Key? key}) : super(key: key);
+  const AnalyticsDashboardScreen({super.key});
 
   @override
-  State<AnalyticsDashboardScreen> createState() => _AnalyticsDashboardScreenState();
+  State<AnalyticsDashboardScreen> createState() =>
+      _AnalyticsDashboardScreenState();
 }
 
 class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
@@ -59,7 +60,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: Text('Analytics Dashboard'),
+        title: const Text('Analytics Dashboard'),
         backgroundColor: AppColors.backgroundCream,
         elevation: 0,
       ),
@@ -68,8 +69,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildLoadingView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(AppConstants.defaultPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -77,19 +78,19 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           Row(
             children: [
               Expanded(child: LoadingCard()),
-              const SizedBox(width: AppConstants.mediumPadding),
+              SizedBox(width: AppConstants.mediumPadding),
               Expanded(child: LoadingCard()),
             ],
           ),
-          const SizedBox(height: AppConstants.largePadding),
+          SizedBox(height: AppConstants.largePadding),
 
           // Charts Loading
           LoadingSkeleton(width: double.infinity, height: 200),
-          const SizedBox(height: AppConstants.largePadding),
+          SizedBox(height: AppConstants.largePadding),
 
           // Popular Designs Loading
           LoadingSkeleton(width: double.infinity, height: 150),
-          const SizedBox(height: AppConstants.largePadding),
+          SizedBox(height: AppConstants.largePadding),
 
           // Material Usage Loading
           LoadingSkeleton(width: double.infinity, height: 150),
@@ -110,7 +111,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               Expanded(
                 child: _buildKPICard(
                   'Total Revenue',
-                      '₹${_analyticsData['totalRevenue'].toStringAsFixed(0)}',
+                  '₹${_analyticsData['totalRevenue'].toStringAsFixed(0)}',
                   Icons.account_balance_wallet,
                   AppColors.successGreen,
                 ),
@@ -181,7 +182,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -194,7 +195,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           const SizedBox(height: AppConstants.smallPadding),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeSmall,
               color: AppColors.textLight,
             ),
@@ -202,7 +203,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeLarge,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -221,7 +222,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -230,7 +231,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Monthly Revenue',
             style: TextStyle(
               fontSize: AppConstants.fontSizeLarge,
@@ -246,7 +247,10 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(6, (index) {
                 final revenue = _analyticsData['revenueByMonth'][index] as int;
-                final maxRevenue = (_analyticsData['revenueByMonth'] as List<int>).reduce((a, b) => a > b ? a : b);
+                final maxRevenue =
+                    (_analyticsData['revenueByMonth'] as List<int>).reduce(
+                      (a, b) => a > b ? a : b,
+                    );
                 final height = (revenue / maxRevenue) * 120;
 
                 return Column(
@@ -254,7 +258,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                   children: [
                     Text(
                       '₹${(revenue / 1000).toStringAsFixed(0)}k',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
                         color: AppColors.textLight,
                       ),
@@ -271,7 +275,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'M${index + 1}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
                         color: AppColors.textLight,
                       ),
@@ -287,7 +291,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildPopularDesigns() {
-    final popularDesigns = _analyticsData['popularDesigns'] as List<Map<String, dynamic>>;
+    final popularDesigns =
+        _analyticsData['popularDesigns'] as List<Map<String, dynamic>>;
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -296,7 +301,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -305,7 +310,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Popular Designs',
             style: TextStyle(
               fontSize: AppConstants.fontSizeLarge,
@@ -317,18 +322,22 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           Column(
             children: popularDesigns.map((design) {
               return Container(
-                margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                margin: const EdgeInsets.only(
+                  bottom: AppConstants.smallPadding,
+                ),
                 padding: const EdgeInsets.all(AppConstants.smallPadding),
                 decoration: BoxDecoration(
                   color: AppColors.cardCream,
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         design['name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           color: AppColors.textDark,
                         ),
@@ -336,7 +345,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                     ),
                     Text(
                       '${design['orders']} orders',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
                         color: AppColors.textLight,
                       ),
@@ -352,7 +361,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildMaterialUsage() {
-    final materials = _analyticsData['materialUsage'] as List<Map<String, dynamic>>;
+    final materials =
+        _analyticsData['materialUsage'] as List<Map<String, dynamic>>;
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -361,7 +371,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -370,7 +380,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Material Usage',
             style: TextStyle(
               fontSize: AppConstants.fontSizeLarge,
@@ -382,18 +392,22 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           Column(
             children: materials.map((material) {
               final usage = material['usage'] as int;
-              final maxUsage = materials.map((m) => m['usage'] as int).reduce((a, b) => a > b ? a : b);
+              final maxUsage = materials
+                  .map((m) => m['usage'] as int)
+                  .reduce((a, b) => a > b ? a : b);
               final percentage = usage / maxUsage;
 
               return Container(
-                margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                margin: const EdgeInsets.only(
+                  bottom: AppConstants.smallPadding,
+                ),
                 child: Row(
                   children: [
                     SizedBox(
                       width: 80,
                       child: Text(
                         material['name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeSmall,
                           color: AppColors.textDark,
                         ),
@@ -404,13 +418,15 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                       child: LinearProgressIndicator(
                         value: percentage,
                         backgroundColor: AppColors.cardCream,
-                        valueColor: AlwaysStoppedAnimation<Color>(material['color']),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          material['color'],
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppConstants.smallPadding),
                     Text(
-                      '${usage}%',
-                      style: TextStyle(
+                      '$usage%',
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
                         color: AppColors.textLight,
                       ),
@@ -435,7 +451,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -443,13 +459,13 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.star, color: AppColors.accentOrange, size: 32),
+          const Icon(Icons.star, color: AppColors.accentOrange, size: 32),
           const SizedBox(width: AppConstants.mediumPadding),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Client Satisfaction',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeLarge,
@@ -459,8 +475,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${rating}/5.0 average rating',
-                  style: TextStyle(
+                  '$rating/5.0 average rating',
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSizeBody,
                     color: AppColors.textLight,
                   ),
@@ -470,7 +486,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
           ),
           Text(
             rating.toString(),
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
               color: AppColors.accentOrange,

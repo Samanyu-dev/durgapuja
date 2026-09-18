@@ -5,16 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/user.dart';
 import '../services/logging_service.dart';
-import '../utils/colors.dart';
-import '../utils/constants.dart';
 
 class MockUser implements User {
   final String _uid;
   final String _phoneNumber;
 
   MockUser({required String uid, required String phoneNumber})
-      : _uid = uid,
-        _phoneNumber = phoneNumber;
+    : _uid = uid,
+      _phoneNumber = phoneNumber;
 
   @override
   String get uid => _uid;
@@ -82,6 +80,7 @@ class _MockUserDatabase {
     // Use AuthService.setTestMode(true) to enable mock authentication during development.
   }
 
+  // ignore: unused_element
   void _addTestUser(String phone, UserRole role, String name) {
     final uid = 'mock_${phone.replaceAll('+91', '')}';
     final user = UserModel(
@@ -123,7 +122,8 @@ class AuthService {
   FirebaseAuth get _auth => __auth ??= FirebaseAuth.instance;
 
   FirebaseFirestore? __firestore;
-  FirebaseFirestore get _firestore => __firestore ??= FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore =>
+      __firestore ??= FirebaseFirestore.instance;
 
   final _MockUserDatabase _mockDb = _MockUserDatabase();
 
@@ -149,15 +149,15 @@ class AuthService {
   }
 
   // Public access to mock user for testing
+  // ignore: unnecessary_getters_setters
   User? get mockUser => _mockUser;
   set mockUser(User? user) => _mockUser = user;
 
   // Public access to test controller for testing
   StreamController<User?> get testAuthController => _testAuthController;
 
-  Stream<User?> get authStateChanges => _isTestMode
-      ? _testAuthController.stream
-      : _auth.authStateChanges();
+  Stream<User?> get authStateChanges =>
+      _isTestMode ? _testAuthController.stream : _auth.authStateChanges();
 
   AuthService({bool testMode = false}) {
     _isTestMode = testMode;
@@ -204,7 +204,8 @@ class AuthService {
 
     if (_isTestMode) {
       await Future.delayed(const Duration(seconds: 1));
-      _verificationId = 'test_verification_${DateTime.now().millisecondsSinceEpoch}';
+      _verificationId =
+          'test_verification_${DateTime.now().millisecondsSinceEpoch}';
       LoggingService.logInfo('Mock OTP sent to $phoneNumber. Use code: 123456');
       return;
     }
@@ -217,7 +218,8 @@ class AuthService {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto-verification (Android only)
           try {
-            final UserCredential userCredential = await _auth.signInWithCredential(credential);
+            final UserCredential userCredential = await _auth
+                .signInWithCredential(credential);
 
             // Check if user profile exists, if not create it
             final userExists = await this.userExists(userCredential.user!.uid);
@@ -230,7 +232,9 @@ class AuthService {
               await updateLastLogin(userCredential.user!.uid);
             }
 
-            LoggingService.logInfo('Auto-verification completed successfully for ${userCredential.user!.uid}');
+            LoggingService.logInfo(
+              'Auto-verification completed successfully for ${userCredential.user!.uid}',
+            );
           } catch (e) {
             LoggingService.logError('Auto-verification failed: $e');
             // Don't throw here, let user manually enter OTP
@@ -238,12 +242,16 @@ class AuthService {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
-          LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
+          LoggingService.logError(
+            'Verification failed: ${e.code} - ${e.message}',
+          );
           if (!completer.isCompleted) {
-            completer.completeError(FirebaseAuthException(
-              code: e.code,
-              message: _getErrorMessage(e.code),
-            ));
+            completer.completeError(
+              FirebaseAuthException(
+                code: e.code,
+                message: _getErrorMessage(e.code),
+              ),
+            );
           }
         },
         codeSent: (String verificationId, int? resendToken) {
@@ -254,17 +262,23 @@ class AuthService {
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
-          LoggingService.logWarning('Auto-retrieval timeout, manual entry required');
+          LoggingService.logWarning(
+            'Auto-retrieval timeout, manual entry required',
+          );
         },
         timeout: const Duration(seconds: 60),
       );
     } on FirebaseAuthException catch (e) {
-      LoggingService.logError('Firebase Auth Exception in sendOTP: ${e.code} - ${e.message}');
+      LoggingService.logError(
+        'Firebase Auth Exception in sendOTP: ${e.code} - ${e.message}',
+      );
       if (!completer.isCompleted) {
-        completer.completeError(FirebaseAuthException(
-          code: e.code,
-          message: _getErrorMessage(e.code),
-        ));
+        completer.completeError(
+          FirebaseAuthException(
+            code: e.code,
+            message: _getErrorMessage(e.code),
+          ),
+        );
       }
     }
 
@@ -275,7 +289,7 @@ class AuthService {
     if (_isTestMode) {
       if (smsCode == '123456' && _pendingPhoneNumber != null) {
         var uid = _mockDb.getUidForPhone(_pendingPhoneNumber!);
-        
+
         // If user doesn't exist, create new user
         if (uid == null) {
           uid = 'mock_${_pendingPhoneNumber!.replaceAll('+91', '')}';
@@ -313,13 +327,15 @@ class AuthService {
     }
 
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      final PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: _verificationId!,
         smsCode: smsCode,
       );
 
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
-      
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
       // Check if user profile exists, if not create it
       final userExists = await this.userExists(userCredential.user!.uid);
       if (!userExists) {
@@ -330,7 +346,7 @@ class AuthService {
       } else {
         await updateLastLogin(userCredential.user!.uid);
       }
-      
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw FirebaseAuthException(
@@ -363,12 +379,16 @@ class AuthService {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
-          LoggingService.logError('Verification failed: ${e.code} - ${e.message}');
+          LoggingService.logError(
+            'Verification failed: ${e.code} - ${e.message}',
+          );
           if (!completer.isCompleted) {
-            completer.completeError(FirebaseAuthException(
-              code: e.code,
-              message: _getErrorMessage(e.code),
-            ));
+            completer.completeError(
+              FirebaseAuthException(
+                code: e.code,
+                message: _getErrorMessage(e.code),
+              ),
+            );
           }
         },
         codeSent: (String verificationId, int? resendToken) {
@@ -384,10 +404,12 @@ class AuthService {
       );
     } on FirebaseAuthException catch (e) {
       if (!completer.isCompleted) {
-        completer.completeError(FirebaseAuthException(
-          code: e.code,
-          message: _getErrorMessage(e.code),
-        ));
+        completer.completeError(
+          FirebaseAuthException(
+            code: e.code,
+            message: _getErrorMessage(e.code),
+          ),
+        );
       }
     }
 
@@ -434,7 +456,11 @@ class AuthService {
   }
 
   // Update user profile
-  Future<void> updateUserProfile(String uid, {String? name, String? email}) async {
+  Future<void> updateUserProfile(
+    String uid, {
+    String? name,
+    String? email,
+  }) async {
     if (_isTestMode) {
       final user = _mockDb.getUser(uid);
       if (user != null) {
@@ -505,5 +531,3 @@ class AuthService {
     _testAuthController.close();
   }
 }
-
-

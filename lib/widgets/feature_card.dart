@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-import '../services/logging_service.dart';
 
 class FeatureCard extends StatelessWidget {
   final String title;
@@ -57,7 +56,7 @@ class FeatureCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textLight,
                 ),

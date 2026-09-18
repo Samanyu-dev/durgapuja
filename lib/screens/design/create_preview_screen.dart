@@ -7,7 +7,7 @@ import '../../models/generated_image.dart';
 import 'image_viewer_screen.dart';
 
 class CreatePreviewScreen extends StatefulWidget {
-  const CreatePreviewScreen({Key? key}) : super(key: key);
+  const CreatePreviewScreen({super.key});
 
   @override
   State<CreatePreviewScreen> createState() => _CreatePreviewScreenState();
@@ -25,7 +25,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
     'Lighting Setup',
     'Crowd View',
     'Night Scene',
-    'Day Scene'
+    'Day Scene',
   ];
 
   String _selectedPreviewType = 'Full Idol View';
@@ -43,7 +43,8 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
     });
 
     try {
-      final prompt = 'Create ${_selectedPreviewType.toLowerCase()} preview of Durga Puja scene: ${_sceneController.text.trim()}. Realistic lighting, traditional Bengali setting, festive atmosphere.';
+      final prompt =
+          'Create ${_selectedPreviewType.toLowerCase()} preview of Durga Puja scene: ${_sceneController.text.trim()}. Realistic lighting, traditional Bengali setting, festive atmosphere.';
 
       final images = await _kreaService.generateImages(prompt, count: 2);
 
@@ -55,9 +56,9 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
       setState(() {
         _isGenerating = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to generate preview: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to generate preview: $e')));
     }
   }
 
@@ -69,7 +70,12 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
         children: [
           // Custom App Bar
           Container(
-            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            padding: const EdgeInsets.only(
+              top: 50,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             color: AppColors.backgroundCream,
             child: Row(
               children: [
@@ -118,10 +124,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                       isExpanded: true,
                       underline: const SizedBox(),
                       items: _previewTypes.map((type) {
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        );
+                        return DropdownMenuItem(value: type, child: Text(type));
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
@@ -141,7 +144,8 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                   ),
                   const SizedBox(height: 12),
                   CustomTextField(
-                    hintText: 'e.g., "traditional Bengali pandal with colorful lights"',
+                    hintText:
+                        'e.g., "traditional Bengali pandal with colorful lights"',
                     controller: _sceneController,
                     maxLines: 3,
                   ),
@@ -173,7 +177,9 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Row(
@@ -189,7 +195,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                   const SizedBox(height: 32),
                   if (_generatedImages.isNotEmpty) ...[
                     Text(
-                      '${_selectedPreviewType} Previews (${_generatedImages.length})',
+                      '$_selectedPreviewType Previews (${_generatedImages.length})',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -200,11 +206,12 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1.5,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.5,
+                          ),
                       itemCount: _generatedImages.length,
                       itemBuilder: (context, index) {
                         final image = _generatedImages[index];
@@ -227,7 +234,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -242,30 +249,36 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       height: double.infinity,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return Container(
-                                          color: AppColors.cardCream,
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              color: AppColors.primaryBrown,
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: AppColors.cardCream,
-                                          child: const Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              size: 48,
-                                              color: AppColors.textLight,
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Container(
+                                              color: AppColors.cardCream,
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: AppColors
+                                                          .primaryBrown,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: AppColors.cardCream,
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  size: 48,
+                                                  color: AppColors.textLight,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                     ),
                                     Container(
                                       decoration: BoxDecoration(
@@ -274,7 +287,7 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                           end: Alignment.bottomCenter,
                                           colors: [
                                             Colors.transparent,
-                                            Colors.black.withOpacity(0.5),
+                                            Colors.black.withValues(alpha: 0.5),
                                           ],
                                         ),
                                       ),
@@ -286,16 +299,20 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.all(16),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.primaryBrown.withOpacity(0.9),
-                                                borderRadius: BorderRadius.circular(12),
+                                                color: AppColors.primaryBrown
+                                                    .withValues(alpha: 0.9),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -311,7 +328,8 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                                     style: const TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ],
@@ -330,7 +348,9 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
                                             Text(
                                               'Tap to zoom and explore the full scene',
                                               style: TextStyle(
-                                                color: Colors.white.withOpacity(0.9),
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.9,
+                                                ),
                                                 fontSize: 12,
                                               ),
                                             ),

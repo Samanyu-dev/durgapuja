@@ -21,7 +21,8 @@ class EnhancedImageEditorScreen extends StatefulWidget {
   });
 
   @override
-  State<EnhancedImageEditorScreen> createState() => _EnhancedImageEditorScreenState();
+  State<EnhancedImageEditorScreen> createState() =>
+      _EnhancedImageEditorScreenState();
 }
 
 class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
@@ -31,7 +32,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
   final TapToEditService _editService = TapToEditService();
   final ImageSaveService _saveService = ImageSaveService();
 
-  ui.Image? _image;
+  // ui.Image? _image;
   List<Offset> _tracePoints = [];
   bool _isTracing = false;
   bool _isProcessing = false;
@@ -63,7 +64,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
 
       if (!mounted) return;
       setState(() {
-        _image = frame.image;
+        // _image = frame.image;
         _imageWidth = frame.image.width.toDouble();
         _imageHeight = frame.image.height.toDouble();
       });
@@ -94,7 +95,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
     setState(() {
       _isTracing = false;
     });
-    
+
     if (_tracePoints.length >= 3) {
       _showEditDialog();
     } else {
@@ -150,7 +151,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -173,9 +174,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                   ],
                 ),
               ),
-              
+
               const Divider(),
-              
+
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
@@ -194,11 +195,12 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                         controller: _editPromptController,
                         maxLines: 3,
                         decoration: const InputDecoration(
-                          hintText: 'E.g., Change to a blue saree with golden borders...',
+                          hintText:
+                              'E.g., Change to a blue saree with golden borders...',
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       const Text(
                         'Reference Image (Optional)',
                         style: TextStyle(
@@ -235,7 +237,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.6),
+                                    color: Colors.black.withValues(alpha: 0.6),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -261,7 +263,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                           ),
                         ),
                       const SizedBox(height: 24),
-                      
+
                       const Text(
                         'Quick Edits',
                         style: TextStyle(
@@ -273,42 +275,45 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: [
-                          'More detailed',
-                          'Change color',
-                          'Add jewelry',
-                          'Enhance lighting',
-                        ].map((text) {
-                          return ActionChip(
-                            label: Text(text),
-                            onPressed: () {
-                              _editPromptController.text = text;
-                            },
-                          );
-                        }).toList(),
+                        children:
+                            [
+                              'More detailed',
+                              'Change color',
+                              'Add jewelry',
+                              'Enhance lighting',
+                            ].map((text) {
+                              return ActionChip(
+                                label: Text(text),
+                                onPressed: () {
+                                  _editPromptController.text = text;
+                                },
+                              );
+                            }).toList(),
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -5),
                     ),
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: _isProcessing ? null : () {
-                    Navigator.pop(context);
-                    _applyEdit();
-                  },
+                  onPressed: _isProcessing
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          _applyEdit();
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF6B35),
                     foregroundColor: Colors.white,
@@ -316,10 +321,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                   ),
                   child: const Text(
                     'Apply Edit',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -347,7 +349,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
 
     if (_imageWidth <= 0 || _imageHeight <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image is still loading, please try again in a moment')),
+        const SnackBar(
+          content: Text('Image is still loading, please try again in a moment'),
+        ),
       );
       return;
     }
@@ -365,11 +369,12 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
       final centerY = sumY / _tracePoints.length;
 
       // Get render box for coordinate conversion
-      final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+      final RenderBox? renderBox =
+          _imageKey.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null) return;
 
       final size = renderBox.size;
-      
+
       // Convert to image coordinates
       final imageX = (centerX / size.width) * _imageWidth;
       final imageY = (centerY / size.height) * _imageHeight;
@@ -400,9 +405,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Edit failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Edit failed: $e')));
       }
     } finally {
       if (mounted) {
@@ -443,16 +448,22 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
           Center(
             child: GestureDetector(
               onPanStart: (details) {
-                final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+                final RenderBox? renderBox =
+                    _imageKey.currentContext?.findRenderObject() as RenderBox?;
                 if (renderBox != null) {
-                  final localPosition = renderBox.globalToLocal(details.globalPosition);
+                  final localPosition = renderBox.globalToLocal(
+                    details.globalPosition,
+                  );
                   _startTracing(localPosition);
                 }
               },
               onPanUpdate: (details) {
-                final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+                final RenderBox? renderBox =
+                    _imageKey.currentContext?.findRenderObject() as RenderBox?;
                 if (renderBox != null) {
-                  final localPosition = renderBox.globalToLocal(details.globalPosition);
+                  final localPosition = renderBox.globalToLocal(
+                    details.globalPosition,
+                  );
                   _updateTrace(localPosition);
                 }
               },
@@ -471,7 +482,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                         );
                       },
                     ),
-                    
+
                     if (_tracePoints.isNotEmpty)
                       CustomPaint(
                         painter: TracePainter(
@@ -485,10 +496,10 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
               ),
             ),
           ),
-          
+
           if (_isProcessing)
             Container(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               child: const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -497,16 +508,13 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                     SizedBox(height: 16),
                     Text(
                       'Processing your edit...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ],
                 ),
               ),
             ),
-          
+
           if (!_isTracing && _tracePoints.isEmpty && !_isProcessing)
             Positioned(
               bottom: 32,
@@ -515,11 +523,11 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
+                  color: Colors.white.withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 10,
                     ),
                   ],
@@ -527,11 +535,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                 child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.touch_app,
-                      size: 32,
-                      color: Color(0xFFFF6B35),
-                    ),
+                    Icon(Icons.touch_app, size: 32, color: Color(0xFFFF6B35)),
                     SizedBox(height: 8),
                     Text(
                       'Trace around the area you want to edit',
@@ -545,10 +549,7 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
                     Text(
                       'Draw with your finger to select the object',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -566,7 +567,9 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
     );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success ? 'Saved to gallery' : 'Download failed')),
+        SnackBar(
+          content: Text(success ? 'Saved to gallery' : 'Download failed'),
+        ),
       );
     }
   }
@@ -590,7 +593,7 @@ class TracePainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final glowPaint = Paint()
-      ..color = const Color(0xFFFF6B35).withOpacity(0.3)
+      ..color = const Color(0xFFFF6B35).withValues(alpha: 0.3)
       ..strokeWidth = 10.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -622,7 +625,7 @@ class TracePainter extends CustomPainter {
     if (isActive && points.isNotEmpty) {
       final lastPoint = points.last;
       final pulsePaint = Paint()
-        ..color = const Color(0xFFFF6B35).withOpacity(0.5)
+        ..color = const Color(0xFFFF6B35).withValues(alpha: 0.5)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(lastPoint, 8, pulsePaint);
     }

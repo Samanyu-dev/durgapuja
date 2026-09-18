@@ -18,7 +18,7 @@ class DatabaseService {
   }
 
   static Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'idolkaker.db');
+    final String path = join(await getDatabasesPath(), 'idolkaker.db');
     return await openDatabase(
       path,
       version: 8,
@@ -137,16 +137,28 @@ class DatabaseService {
               created_at TEXT NOT NULL
             )
           ''');
-          
+
           // Migrate existing orders table if needed
           try {
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN customer_name TEXT');
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN phone_number TEXT');
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN created_at TEXT');
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN customer_name TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN phone_number TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN created_at TEXT',
+            );
             // Copy existing name to customer_name if exists
-            await db.execute('UPDATE $_ordersTableName SET customer_name = name WHERE customer_name IS NULL');
-            await db.execute('UPDATE $_ordersTableName SET phone_number = phone WHERE phone_number IS NULL');
-            await db.execute('UPDATE $_ordersTableName SET created_at = datetime("now") WHERE created_at IS NULL');
+            await db.execute(
+              'UPDATE $_ordersTableName SET customer_name = name WHERE customer_name IS NULL',
+            );
+            await db.execute(
+              'UPDATE $_ordersTableName SET phone_number = phone WHERE phone_number IS NULL',
+            );
+            await db.execute(
+              'UPDATE $_ordersTableName SET created_at = datetime("now") WHERE created_at IS NULL',
+            );
           } catch (_) {
             // Migration already done or columns exist
           }
@@ -191,8 +203,9 @@ class DatabaseService {
               final createdAtMs = (row['createdAt'] as num?)?.toInt();
               final createdAtIso = createdAtMs == null
                   ? DateTime.now().toIso8601String()
-                  : DateTime.fromMillisecondsSinceEpoch(createdAtMs)
-                      .toIso8601String();
+                  : DateTime.fromMillisecondsSinceEpoch(
+                      createdAtMs,
+                    ).toIso8601String();
               await db.insert('${_transactionsTableName}_new', {
                 'id': row['id'],
                 'type': row['type'],
@@ -208,7 +221,9 @@ class DatabaseService {
             );
           } catch (_) {
             // If the old table isn't compatible, just ensure the new schema exists.
-            await db.execute('DROP TABLE IF EXISTS ${_transactionsTableName}_new');
+            await db.execute(
+              'DROP TABLE IF EXISTS ${_transactionsTableName}_new',
+            );
             await db.execute('''
               CREATE TABLE IF NOT EXISTS $_transactionsTableName (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -254,16 +269,25 @@ class DatabaseService {
         if (oldVersion < 5) {
           // Migrate orders table schema
           try {
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN customer_name TEXT');
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN phone_number TEXT');
-            await db.execute('ALTER TABLE $_ordersTableName ADD COLUMN created_at TEXT');
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN customer_name TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN phone_number TEXT',
+            );
+            await db.execute(
+              'ALTER TABLE $_ordersTableName ADD COLUMN created_at TEXT',
+            );
             // Copy existing name to customer_name if exists
             await db.execute(
-                'UPDATE $_ordersTableName SET customer_name = name WHERE customer_name IS NULL');
+              'UPDATE $_ordersTableName SET customer_name = name WHERE customer_name IS NULL',
+            );
             await db.execute(
-                'UPDATE $_ordersTableName SET phone_number = phone WHERE phone_number IS NULL');
+              'UPDATE $_ordersTableName SET phone_number = phone WHERE phone_number IS NULL',
+            );
             await db.execute(
-                'UPDATE $_ordersTableName SET created_at = datetime("now") WHERE created_at IS NULL');
+              'UPDATE $_ordersTableName SET created_at = datetime("now") WHERE created_at IS NULL',
+            );
           } catch (_) {
             // Migration already done or columns exist
           }
@@ -316,18 +340,14 @@ class DatabaseService {
     String? prompt,
   }) async {
     final db = await getDatabase();
-    await db.insert(
-      _conceptsTableName,
-      {
-        'id': id,
-        'title': title,
-        'image_url': imageUrl,
-        'theme': theme,
-        'prompt': prompt,
-        'created_at': DateTime.now().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_conceptsTableName, {
+      'id': id,
+      'title': title,
+      'image_url': imageUrl,
+      'theme': theme,
+      'prompt': prompt,
+      'created_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<Map<String, dynamic>>> getConcepts() async {
@@ -342,11 +362,7 @@ class DatabaseService {
 
   static Future<Map<String, dynamic>> getFinanceData() async {
     final db = await getDatabase();
-    final result = await db.query(
-      _tableName,
-      where: 'id = ?',
-      whereArgs: [1],
-    );
+    final result = await db.query(_tableName, where: 'id = ?', whereArgs: [1]);
 
     if (result.isEmpty) {
       // If row doesn't exist, create it
@@ -415,16 +431,13 @@ class DatabaseService {
     required String sourceText, // original English sentence
   }) async {
     final db = await getDatabase();
-    await db.insert(
-      _transactionsTableName,
-      {
-        'type': type,
-        'amount': amount,
-        'category': category,
-        'source_text': sourceText,
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    );
+    await db.insert(_transactionsTableName, {
+      'type': type,
+      'amount': amount,
+      'category': category,
+      'source_text': sourceText,
+      'created_at': DateTime.now().toIso8601String(),
+    });
   }
 
   static Future<void> insertWorkerPayment({
@@ -434,16 +447,13 @@ class DatabaseService {
     required double amount,
   }) async {
     final db = await getDatabase();
-    await db.insert(
-      _workerPaymentsTableName,
-      {
-        'worker_name': workerName,
-        'worker_type': workerType,
-        'idol_type': idolType,
-        'amount': amount,
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    );
+    await db.insert(_workerPaymentsTableName, {
+      'worker_name': workerName,
+      'worker_type': workerType,
+      'idol_type': idolType,
+      'amount': amount,
+      'created_at': DateTime.now().toIso8601String(),
+    });
   }
 
   /// Returns total amount paid for a given worker_type (e.g. "clay", "painting").
@@ -469,21 +479,18 @@ class DatabaseService {
     String? whatsappLink,
   }) async {
     final db = await getDatabase();
-    await db.insert(
-      _ordersTableName,
-      {
-        'customer_name': customerName,
-        'phone_number': phoneNumber,
-        'idol_name': idolName,
-        'amount_received': amountReceived,
-        'delivery_date': deliveryDate,
-        'payment_date': paymentDate,
-        'payment_method': paymentMethod,
-        'special_requirements': specialRequirements,
-        'whatsapp_link': whatsappLink,
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    );
+    await db.insert(_ordersTableName, {
+      'customer_name': customerName,
+      'phone_number': phoneNumber,
+      'idol_name': idolName,
+      'amount_received': amountReceived,
+      'delivery_date': deliveryDate,
+      'payment_date': paymentDate,
+      'payment_method': paymentMethod,
+      'special_requirements': specialRequirements,
+      'whatsapp_link': whatsappLink,
+      'created_at': DateTime.now().toIso8601String(),
+    });
     // NOTE: Orders do NOT affect idolmaker income automatically
   }
 
@@ -494,14 +501,11 @@ class DatabaseService {
     bool updateIdolMakerTotals = true,
   }) async {
     final db = await getDatabase();
-    await db.insert(
-      _samitiFundsTableName,
-      {
-        'name': name,
-        'amount': amount,
-        'date': date,
-      },
-    );
+    await db.insert(_samitiFundsTableName, {
+      'name': name,
+      'amount': amount,
+      'date': date,
+    });
     // Optionally increment total income
     if (updateIdolMakerTotals) {
       await updateIncome(amount);
@@ -544,17 +548,14 @@ class DatabaseService {
     final db = await getDatabase();
     final remaining = amountTotal - amountPaid;
     final due = amountTotal - amountPaid;
-    await db.insert(
-      _workerFundsTableName,
-      {
-        'idol_type': idolType,
-        'worker_type': workerType,
-        'amount_paid': amountPaid,
-        'amount_total': amountTotal,
-        'amount_remaining': remaining,
-        'amount_due': due,
-      },
-    );
+    await db.insert(_workerFundsTableName, {
+      'idol_type': idolType,
+      'worker_type': workerType,
+      'amount_paid': amountPaid,
+      'amount_total': amountTotal,
+      'amount_remaining': remaining,
+      'amount_due': due,
+    });
   }
 
   /// Manual entry: Insert Worker Fund with transaction log
@@ -611,10 +612,7 @@ class DatabaseService {
 
     await db.update(
       _workerFundsTableName,
-      {
-        'amount_paid': newPaid,
-        'amount_remaining': remaining,
-      },
+      {'amount_paid': newPaid, 'amount_remaining': remaining},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -662,7 +660,7 @@ class DatabaseService {
     String? whatsappLink,
   }) async {
     final db = await getDatabase();
-    Map<String, dynamic> updates = {};
+    final Map<String, dynamic> updates = {};
     if (customerName != null) updates['customer_name'] = customerName;
     if (phoneNumber != null) updates['phone_number'] = phoneNumber;
     if (idolName != null) updates['idol_name'] = idolName;
@@ -670,7 +668,9 @@ class DatabaseService {
     if (deliveryDate != null) updates['delivery_date'] = deliveryDate;
     if (paymentDate != null) updates['payment_date'] = paymentDate;
     if (paymentMethod != null) updates['payment_method'] = paymentMethod;
-    if (specialRequirements != null) updates['special_requirements'] = specialRequirements;
+    if (specialRequirements != null) {
+      updates['special_requirements'] = specialRequirements;
+    }
     if (whatsappLink != null) updates['whatsapp_link'] = whatsappLink;
 
     if (updates.isNotEmpty) {
@@ -699,7 +699,7 @@ class DatabaseService {
     String? phoneNumber,
   }) async {
     final db = await getDatabase();
-    Map<String, dynamic> updates = {'customer_name': newCustomerName};
+    final Map<String, dynamic> updates = {'customer_name': newCustomerName};
     if (phoneNumber != null) updates['phone_number'] = phoneNumber;
 
     await db.update(

@@ -17,7 +17,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
   final SpeechService _speechService = SpeechService();
   final TranslationService _translationService = TranslationService();
   final TextEditingController _amountController = TextEditingController(
-    text: "0.00",
+    text: '0.00',
   );
   final TextEditingController _dateController = TextEditingController();
   String? _selectedPaymentMethod;
@@ -70,7 +70,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
     }
 
     try {
-      final orders = await DatabaseService.getOrdersByCustomerName(widget.clientId);
+      final orders = await DatabaseService.getOrdersByCustomerName(
+        widget.clientId,
+      );
       if (orders.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -90,9 +92,9 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save payment: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save payment: $e')));
       return;
     }
 
@@ -184,19 +186,20 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
       backgroundColor: AppColors.backgroundCream,
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          String banglaText = await _speechService.listenBangla();
-          debugPrint("Bangla Text: $banglaText");
+          final String banglaText = await _speechService.listenBangla();
+          debugPrint('Bangla Text: $banglaText');
           if (banglaText.isNotEmpty) {
-            String englishText = await _translationService.translateToEnglish(
-              banglaText,
-            );
-            debugPrint("English Text: $englishText");
+            final String englishText = await _translationService
+                .translateToEnglish(banglaText);
+            debugPrint('English Text: $englishText');
 
             // Show popup for recheck
             _showVoiceNoteRecheckDialog(banglaText, englishText);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No speech detected. Please try again.')),
+              const SnackBar(
+                content: Text('No speech detected. Please try again.'),
+              ),
             );
           }
         },
@@ -271,7 +274,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                         controller: _amountController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          hintText: "0.00",
+                          hintText: '0.00',
                           border: InputBorder.none,
                         ),
                       ),
@@ -308,7 +311,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                       Expanded(
                         child: Text(
                           _dateController.text.isEmpty
-                              ? "Select date"
+                              ? 'Select date'
                               : _dateController.text,
                           style: TextStyle(
                             fontSize: 16,
@@ -351,7 +354,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                 ),
                 child: DropdownButton<String>(
                   value: _selectedPaymentMethod,
-                  hint: const Text("Select method"),
+                  hint: const Text('Select method'),
                   isExpanded: true,
                   underline: const SizedBox(),
                   icon: const Icon(Icons.arrow_drop_down),
@@ -394,7 +397,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              _signatureFileName = "img.png";
+                              _signatureFileName = 'img.png';
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -406,7 +409,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                             ),
                           ),
                           child: const Text(
-                            "Upload signature image",
+                            'Upload signature image',
                             style: TextStyle(
                               fontSize: 14,
                               color: AppColors.textDark,
@@ -435,7 +438,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                               });
                             },
                             child: const Text(
-                              "Remove",
+                              'Remove',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: AppColors.primaryBrown,
@@ -465,7 +468,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Confirm Payment",
+                    'Confirm Payment',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white,
@@ -480,7 +483,6 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
           ),
         ),
       ),
-
     );
   }
 

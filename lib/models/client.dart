@@ -33,7 +33,9 @@ class Client {
       'photoUrl': photoUrl,
       'idols': idols.map((idol) => idol.toMap()).toList(),
       'pendingAmount': pendingAmount,
-      'deliveryDates': deliveryDates.map((date) => date.toIso8601String()).toList(),
+      'deliveryDates': deliveryDates
+          .map((date) => date.toIso8601String())
+          .toList(),
       'notes': notes,
     };
   }
@@ -46,10 +48,22 @@ class Client {
         phone: map['phone'] ?? '',
         status: map['status'] ?? '',
         photoUrl: map['photoUrl'],
-        idols: (map['idols'] as List<dynamic>?)?.map((item) => IdolOrder.fromMap(item as Map<String, dynamic>)).toList() ?? [],
+        idols:
+            (map['idols'] as List<dynamic>?)
+                ?.map((item) => IdolOrder.fromMap(item as Map<String, dynamic>))
+                .toList() ??
+            [],
         pendingAmount: (map['pendingAmount'] as num?)?.toDouble() ?? 0.0,
-        deliveryDates: (map['deliveryDates'] as List<dynamic>?)?.map((item) => DateTime.parse(item as String)).toList() ?? [],
-        notes: (map['notes'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
+        deliveryDates:
+            (map['deliveryDates'] as List<dynamic>?)
+                ?.map((item) => DateTime.parse(item as String))
+                .toList() ??
+            [],
+        notes:
+            (map['notes'] as List<dynamic>?)
+                ?.map((item) => item as String)
+                .toList() ??
+            [],
       );
     } catch (e) {
       LoggingService.logError('Error parsing Client from map: $e');
@@ -64,10 +78,10 @@ class Client {
 
   // Validation methods
   bool isValid() {
-    return id.isNotEmpty && 
-           name.isNotEmpty && 
-           phone.isNotEmpty &&
-           _isValidPhoneNumber(phone);
+    return id.isNotEmpty &&
+        name.isNotEmpty &&
+        phone.isNotEmpty &&
+        _isValidPhoneNumber(phone);
   }
 
   bool _isValidPhoneNumber(String phone) {
@@ -85,5 +99,6 @@ class Client {
   }
 
   bool hasPendingPayments() => pendingAmount > 0;
-  bool hasUpcomingDeliveries() => deliveryDates.any((date) => date.isAfter(DateTime.now()));
+  bool hasUpcomingDeliveries() =>
+      deliveryDates.any((date) => date.isAfter(DateTime.now()));
 }

@@ -51,9 +51,9 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
     } catch (e) {
       setState(() => _isSaving = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving rate: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving rate: $e')));
     }
   }
 
@@ -76,7 +76,7 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
                   ),
                   const Spacer(),
                   const Text(
-                    "Add New Rate",
+                    'Add New Rate',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
@@ -87,8 +87,8 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
 
               // Material Name
               _inputField(
-                label: "Material Name",
-                hint: "e.g., Clay / Bamboo / Paint",
+                label: 'Material Name',
+                hint: 'e.g., Clay / Bamboo / Paint',
                 controller: materialController,
               ),
 
@@ -96,8 +96,8 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
 
               // Location
               _inputField(
-                label: "Location",
-                hint: "e.g., Shobhabazar / Maniktala",
+                label: 'Location',
+                hint: 'e.g., Shobhabazar / Maniktala',
                 controller: locationController,
               ),
 
@@ -108,8 +108,8 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
                 children: [
                   Expanded(
                     child: _inputField(
-                      label: "Rate",
-                      hint: "e.g., 150",
+                      label: 'Rate',
+                      hint: 'e.g., 150',
                       controller: rateController,
                       keyboard: TextInputType.number,
                     ),
@@ -117,8 +117,8 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _inputField(
-                      label: "Unit",
-                      hint: "Kg / Liter / Piece",
+                      label: 'Unit',
+                      hint: 'Kg / Liter / Piece',
                       controller: unitController,
                     ),
                   ),
@@ -146,7 +146,7 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
 
               const Center(
                 child: Text(
-                  "Tap to add details using your voice",
+                  'Tap to add details using your voice',
                   style: TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ),
@@ -175,7 +175,7 @@ class _AddNewRateScreenState extends State<AddNewRateScreen> {
                           ),
                         )
                       : const Text(
-                          "Save Rate",
+                          'Save Rate',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                 ),

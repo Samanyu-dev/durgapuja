@@ -8,8 +8,7 @@ class KreaGenerativeFillService {
 
   final String _apiToken;
 
-  KreaGenerativeFillService()
-      : _apiToken = dotenv.env['KREA_API_KEY'] ?? '';
+  KreaGenerativeFillService() : _apiToken = dotenv.env['KREA_API_KEY'] ?? '';
 
   /// Performs generative fill using Krea's inpainting capabilities
   /// This replaces Adobe Firefly for a more cost-effective solution
@@ -23,7 +22,7 @@ class KreaGenerativeFillService {
     if (_apiToken.isEmpty) {
       throw Exception(
         'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
+        'Generate your token at: https://krea.ai/settings/api-tokens',
       );
     }
 
@@ -49,14 +48,22 @@ class KreaGenerativeFillService {
         }),
       );
 
-      LoggingService.logDebug('Inpainting submit response status: ${generateResponse.statusCode}');
-      LoggingService.logDebug('Inpainting submit response body: ${generateResponse.body}');
+      LoggingService.logDebug(
+        'Inpainting submit response status: ${generateResponse.statusCode}',
+      );
+      LoggingService.logDebug(
+        'Inpainting submit response body: ${generateResponse.body}',
+      );
 
       if (generateResponse.statusCode != 200) {
         String errorMessage = 'Failed to submit inpainting job';
         try {
           final error = jsonDecode(generateResponse.body);
-          errorMessage = error['message'] ?? error['detail'] ?? error['error'] ?? generateResponse.body;
+          errorMessage =
+              error['message'] ??
+              error['detail'] ??
+              error['error'] ??
+              generateResponse.body;
         } catch (_) {
           errorMessage = generateResponse.body;
         }
@@ -71,25 +78,25 @@ class KreaGenerativeFillService {
       final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
       String status = 'queued';
       Map<String, dynamic>? result;
-      
+
       // Poll for up to 180 seconds (3 minutes) for inpainting
       for (int attempt = 0; attempt < 90; attempt++) {
-        await Future.delayed(Duration(seconds: 2));
-        
+        await Future.delayed(const Duration(seconds: 2));
+
         final statusResponse = await http.get(
           jobUrl,
-          headers: {
-            'Authorization': 'Bearer $_apiToken',
-          },
+          headers: {'Authorization': 'Bearer $_apiToken'},
         );
 
         if (statusResponse.statusCode != 200) {
-          throw Exception('Failed to check inpainting job status: ${statusResponse.body}');
+          throw Exception(
+            'Failed to check inpainting job status: ${statusResponse.body}',
+          );
         }
 
         final statusData = jsonDecode(statusResponse.body);
         status = statusData['status'] as String;
-        
+
         LoggingService.logDebug('Inpainting job $jobId status: $status');
 
         if (status == 'completed') {
@@ -113,8 +120,10 @@ class KreaGenerativeFillService {
       }
 
       final editedImageUrl = urls[0] as String;
-      LoggingService.logDebug('Inpainting completed successfully: $editedImageUrl');
-      
+      LoggingService.logDebug(
+        'Inpainting completed successfully: $editedImageUrl',
+      );
+
       return editedImageUrl;
     } catch (e) {
       LoggingService.logDebug('Error in Krea generative fill: $e');
@@ -145,8 +154,13 @@ class KreaGenerativeFillService {
   }
 
   /// Enhanced prompt for Durga idol editing
-  String enhanceEditPrompt(String basePrompt, String elementType, String originalPrompt) {
-    final enhancedPrompt = '''
+  String enhanceEditPrompt(
+    String basePrompt,
+    String elementType,
+    String originalPrompt,
+  ) {
+    final enhancedPrompt =
+        '''
 Edit the ${elementType.toLowerCase()} of this Durga idol design:
 
 Original design: $originalPrompt

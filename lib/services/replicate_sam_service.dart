@@ -30,7 +30,9 @@ class ReplicateSAMService {
           'version': 'meta/sam-2', // Using Meta SAM 2 model
           'input': {
             'image': imageUrl,
-            'points': [[normalizedX, normalizedY]],
+            'points': [
+              [normalizedX, normalizedY],
+            ],
             'point_labels': [1], // 1 indicates positive point
             'box': null,
             'mask_input': null,
@@ -43,7 +45,7 @@ class ReplicateSAMService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final predictionId = data['id'];
-        
+
         // Poll for completion
         return await _pollForCompletion(predictionId);
       } else {
@@ -58,7 +60,7 @@ class ReplicateSAMService {
   /// Poll for prediction completion
   Future<String> _pollForCompletion(String predictionId) async {
     final Uri uri = Uri.parse('$_baseUrl/predictions/$predictionId');
-    
+
     while (true) {
       final response = await http.get(
         uri,
@@ -84,7 +86,9 @@ class ReplicateSAMService {
         }
         // Continue polling if pending
       } else {
-        throw Exception('Failed to check prediction status: ${response.statusCode}');
+        throw Exception(
+          'Failed to check prediction status: ${response.statusCode}',
+        );
       }
 
       // Wait before polling again
@@ -115,7 +119,9 @@ class ReplicateSAMService {
           'version': 'lucataco/segment-anything-2', // Alternative SAM 2 model
           'input': {
             'image': imageUrl,
-            'points': [[normalizedX, normalizedY]],
+            'points': [
+              [normalizedX, normalizedY],
+            ],
             'point_labels': [1],
           },
         }),
@@ -124,7 +130,7 @@ class ReplicateSAMService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final predictionId = data['id'];
-        
+
         return await _pollForCompletion(predictionId);
       } else {
         throw Exception('Failed to generate mask: ${response.statusCode}');

@@ -7,7 +7,9 @@ import 'package:durgapuja/providers/locale_provider.dart';
 import 'package:durgapuja/services/language_service.dart';
 
 void main() {
-  testWidgets('App smoke test - renders without crashing', (WidgetTester tester) async {
+  testWidgets('App smoke test - renders without crashing', (
+    WidgetTester tester,
+  ) async {
     // Build the app with required providers
     await tester.pumpWidget(
       MultiProvider(

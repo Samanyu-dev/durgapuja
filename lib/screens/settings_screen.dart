@@ -9,9 +9,12 @@ import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
-  Future<void> _confirmSignOut(BuildContext context, AppLocalizations l10n) async {
+  Future<void> _confirmSignOut(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -24,7 +27,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.signOut, style: const TextStyle(color: AppColors.errorRed)),
+            child: Text(
+              l10n.signOut,
+              style: const TextStyle(color: AppColors.errorRed),
+            ),
           ),
         ],
       ),
@@ -51,7 +57,10 @@ class SettingsScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.home_outlined, color: AppColors.primaryBrown),
+            icon: const Icon(
+              Icons.home_outlined,
+              color: AppColors.primaryBrown,
+            ),
             onPressed: () => context.go('/'),
             tooltip: l10n.backToModuleSelection,
           ),
@@ -77,7 +86,7 @@ class SettingsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -110,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -120,7 +129,10 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.logout, color: AppColors.errorRed),
                 title: Text(
                   l10n.signOut,
-                  style: const TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    color: AppColors.errorRed,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 onTap: () => _confirmSignOut(context, l10n),
               ),

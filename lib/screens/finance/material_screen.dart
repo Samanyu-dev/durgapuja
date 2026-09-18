@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'samiti_funds_screen.dart';
 import 'add_new_rate_screen.dart';
-import 'worker_funds_screen.dart';
 
 class MaterialsScreen extends StatelessWidget {
   final bool showBottomNav;
@@ -47,17 +45,17 @@ class MaterialsScreen extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    const Icon(Icons.search, color: Colors.black54),
-                    const SizedBox(width: 10),
-                    const Expanded(
+                    Icon(Icons.search, color: Colors.black54),
+                    SizedBox(width: 10),
+                    Expanded(
                       child: Text(
-                        "Search",
+                        'Search',
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
                     ),
-                    const Icon(Icons.mic, color: Colors.black54),
+                    Icon(Icons.mic, color: Colors.black54),
                   ],
                 ),
               ),
@@ -66,7 +64,7 @@ class MaterialsScreen extends StatelessWidget {
 
               // ---------------- RECENT MATERIALS ----------------
               const Text(
-                "Recent Materials",
+                'Recent Materials',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
 
@@ -74,9 +72,9 @@ class MaterialsScreen extends StatelessWidget {
 
               _materialTile(
                 icon: Icons.category,
-                name: "Clay",
-                place: "Shop 1 - Town 1",
-                rate: "₹150 /Kg",
+                name: 'Clay',
+                place: 'Shop 1 - Town 1',
+                rate: '₹150 /Kg',
                 trendUp: true,
               ),
 
@@ -84,9 +82,9 @@ class MaterialsScreen extends StatelessWidget {
 
               _materialTile(
                 icon: Icons.brush,
-                name: "Paint",
-                place: "Town 2",
-                rate: "₹150 /Kg",
+                name: 'Paint',
+                place: 'Town 2',
+                rate: '₹150 /Kg',
                 trendUp: true,
               ),
 
@@ -94,9 +92,9 @@ class MaterialsScreen extends StatelessWidget {
 
               _materialTile(
                 icon: Icons.grass,
-                name: "Bamboo",
-                place: "Town 2",
-                rate: "₹150 /Kg",
+                name: 'Bamboo',
+                place: 'Town 2',
+                rate: '₹150 /Kg',
                 trendUp: false,
               ),
 
@@ -115,7 +113,9 @@ class MaterialsScreen extends StatelessWidget {
                     );
                     if (saved == true && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Rate saved successfully!')),
+                        const SnackBar(
+                          content: Text('Rate saved successfully!'),
+                        ),
                       );
                     }
                   },
@@ -127,7 +127,7 @@ class MaterialsScreen extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    "Add new rate",
+                    'Add new rate',
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
@@ -136,7 +136,7 @@ class MaterialsScreen extends StatelessWidget {
               const SizedBox(height: 25),
 
               const Text(
-                "Latest Trend",
+                'Latest Trend',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
 
@@ -217,11 +217,11 @@ class MaterialsScreen extends StatelessWidget {
   // ---------------- TREND TABLE ----------------
   Widget _trendTable() {
     final rows = [
-      ["Clay", "Maniktala", "12 Oct", "3%", "₹150/kg"],
-      ["Paint", "Shobhabazar", "12 Oct", "3%", "₹200/liter"],
-      ["Bamboo", "Bagbazar", "12 Oct", "3%", "₹50/piece"],
-      ["Straw", "Cossipore", "12 Oct", "3%", "₹30/bundle"],
-      ["Fiber", "Shobhabazar", "12 Oct", "3%", "₹80/meter"],
+      ['Clay', 'Maniktala', '12 Oct', '3%', '₹150/kg'],
+      ['Paint', 'Shobhabazar', '12 Oct', '3%', '₹200/liter'],
+      ['Bamboo', 'Bagbazar', '12 Oct', '3%', '₹50/piece'],
+      ['Straw', 'Cossipore', '12 Oct', '3%', '₹30/bundle'],
+      ['Fiber', 'Shobhabazar', '12 Oct', '3%', '₹80/meter'],
     ];
 
     return Container(

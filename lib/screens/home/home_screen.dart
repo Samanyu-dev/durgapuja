@@ -7,7 +7,7 @@ import '../design/create_preview_screen.dart';
 import '../design/create_backdrop_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,7 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Firebase Test Successful! ${result['data']['total_test_records']} dynamic records created and verified. Sample: ${result['data']['sample_client']}'),
+            content: Text(
+              'Firebase Test Successful! ${result['data']['total_test_records']} dynamic records created and verified. Sample: ${result['data']['sample_client']}',
+            ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 6),
           ),
@@ -113,7 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
             // Firebase Test Button
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.defaultPadding,
+              ),
               child: ElevatedButton.icon(
                 onPressed: _testFirebaseConnection,
                 icon: const Icon(Icons.cloud_upload),
@@ -123,7 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                   ),
                 ),
               ),
@@ -148,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(AppConstants.largeRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -158,11 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 40,
-              color: AppColors.primaryBrown,
-            ),
+            Icon(icon, size: 40, color: AppColors.primaryBrown),
             const SizedBox(height: AppConstants.mediumPadding),
             Text(
               title,

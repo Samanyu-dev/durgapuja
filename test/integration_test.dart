@@ -285,7 +285,10 @@ void main() {
 
       // Test that important elements have semantic labels
       expect(find.bySemanticsLabel('Skip'), findsOneWidget);
-      expect(find.bySemanticsLabel('Finance module'), findsNothing); // Would need to add semantic labels
+      expect(
+        find.bySemanticsLabel('Finance module'),
+        findsNothing,
+      ); // Would need to add semantic labels
     });
 
     testWidgets('Touch target sizes', (tester) async {

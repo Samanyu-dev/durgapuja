@@ -17,7 +17,7 @@ class AppScaffold extends StatelessWidget {
   final List<NavItem>? customNavItems;
 
   const AppScaffold({
-    Key? key,
+    super.key,
     required this.body,
     required this.currentIndex,
     required this.onNavTap,
@@ -27,7 +27,7 @@ class AppScaffold extends StatelessWidget {
     this.isDesignModule = false,
     this.isFinanceSubModule = false,
     this.customNavItems,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,8 +79,6 @@ class AppScaffold extends StatelessWidget {
       floatingActionButton: floatingActionButton,
     );
   }
-
-
 
   void _showVoiceBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -138,14 +136,22 @@ class AppScaffold extends StatelessWidget {
     try {
       final banglaText = await SpeechService().listenBangla();
       if (banglaText.isEmpty) {
-        messenger.showSnackBar(const SnackBar(content: Text('No speech detected')));
+        messenger.showSnackBar(
+          const SnackBar(content: Text('No speech detected')),
+        );
         return;
       }
-      final englishText = await TranslationService().translateToEnglish(banglaText);
-      messenger.showSnackBar(SnackBar(content: Text('Voice Note: $englishText')));
+      final englishText = await TranslationService().translateToEnglish(
+        banglaText,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text('Voice Note: $englishText')),
+      );
     } catch (e) {
       LoggingService.logError('Voice recording failed: $e');
-      messenger.showSnackBar(SnackBar(content: Text('Speech recognition failed: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Speech recognition failed: $e')),
+      );
     }
   }
 }

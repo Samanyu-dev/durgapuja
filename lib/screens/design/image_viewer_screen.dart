@@ -8,10 +8,10 @@ class ImageViewerScreen extends StatefulWidget {
   final int initialIndex;
 
   const ImageViewerScreen({
-    Key? key,
+    super.key,
     required this.images,
     this.initialIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<ImageViewerScreen> createState() => _ImageViewerScreenState();
@@ -20,7 +20,8 @@ class ImageViewerScreen extends StatefulWidget {
 class _ImageViewerScreenState extends State<ImageViewerScreen> {
   late PageController _pageController;
   late int _currentIndex;
-  final TransformationController _transformController = TransformationController();
+  final TransformationController _transformController =
+      TransformationController();
   final ImageSaveService _saveService = ImageSaveService();
   bool _isSaving = false;
 
@@ -43,7 +44,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.8),
+        backgroundColor: Colors.black.withValues(alpha: 0.8),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
@@ -68,7 +69,10 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.download, color: Colors.white),
             onPressed: _isSaving ? null : _downloadImage,
@@ -80,7 +84,8 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
-            _transformController.value = Matrix4.identity(); // Reset zoom when changing pages
+            _transformController.value =
+                Matrix4.identity(); // Reset zoom when changing pages
           });
         },
         itemCount: widget.images.length,
@@ -111,7 +116,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                              loadingProgress.expectedTotalBytes!
                         : null,
                     color: AppColors.primaryBrown,
                   ),
@@ -154,6 +159,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
     if (current.getMaxScaleOnAxis() > 1.01) {
       _transformController.value = Matrix4.identity();
     } else {
+      // ignore: deprecated_member_use
       _transformController.value = Matrix4.identity()..scale(2.5);
     }
   }
@@ -164,9 +170,9 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       await _saveService.shareImage(image.url, image.prompt);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to share image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to share image: $e')));
     }
   }
 

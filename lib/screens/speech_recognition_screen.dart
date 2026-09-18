@@ -4,15 +4,16 @@ import '../services/integrated_speech_service.dart';
 
 /// Example widget showing how to use the IntegratedSpeechService
 class SpeechRecognitionScreen extends StatefulWidget {
-  const SpeechRecognitionScreen({Key? key}) : super(key: key);
+  const SpeechRecognitionScreen({super.key});
 
   @override
-  State<SpeechRecognitionScreen> createState() => _SpeechRecognitionScreenState();
+  State<SpeechRecognitionScreen> createState() =>
+      _SpeechRecognitionScreenState();
 }
 
 class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
   final IntegratedSpeechService _speechService = IntegratedSpeechService();
-  
+
   String _bengaliText = '';
   String _englishText = '';
   bool _isRecording = false;
@@ -73,7 +74,7 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
     });
 
     final audioFile = await _speechService.stopRecording();
-    
+
     if (audioFile == null) {
       setState(() {
         _status = 'Recording failed';
@@ -94,12 +95,12 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
 
     try {
       final result = await _speechService.transcribeAudioFileBoth(audioFile);
-      
+
       setState(() {
         _bengaliText = result['bengali'] ?? '';
         _englishText = result['english'] ?? '';
         _isProcessing = false;
-        
+
         if (_bengaliText.isEmpty && _englishText.isEmpty) {
           _status = 'No speech detected. Please try again.';
         } else {
@@ -111,7 +112,9 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
         _isProcessing = false;
         _status = 'Error: ${e.toString()}';
       });
-      _showError('Transcription failed. Please check your API key and internet connection.');
+      _showError(
+        'Transcription failed. Please check your API key and internet connection.',
+      );
     }
   }
 
@@ -171,9 +174,9 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Record Button
               ElevatedButton.icon(
                 onPressed: _isProcessing ? null : _handleRecordButton,
@@ -191,9 +194,9 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Results Section
               if (_bengaliText.isNotEmpty || _englishText.isNotEmpty)
                 Expanded(
@@ -223,7 +226,7 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
                           ),
                           const SizedBox(height: 24),
                         ],
-                        
+
                         // English Translation
                         if (_englishText.isNotEmpty) ...[
                           const Text(
@@ -249,7 +252,7 @@ class _SpeechRecognitionScreenState extends State<SpeechRecognitionScreen> {
                     ),
                   ),
                 ),
-              
+
               // Processing Indicator
               if (_isProcessing)
                 const Expanded(

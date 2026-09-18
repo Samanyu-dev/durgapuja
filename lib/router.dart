@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/phone_auth_screen.dart';
@@ -46,6 +45,7 @@ final GoRouter router = GoRouter(
     // DEMO MODE: Set to false to enable real authentication
     const bool demoMode = false;
 
+    // ignore: dead_code
     if (demoMode) {
       // In demo mode, skip auth screens and go directly to main app
       if (currentPath == '/onboarding' ||
@@ -58,7 +58,8 @@ final GoRouter router = GoRouter(
     }
 
     // PRODUCTION MODE: Enforce authentication
-    final isPublicRoute = currentPath == '/onboarding' ||
+    final isPublicRoute =
+        currentPath == '/onboarding' ||
         currentPath.startsWith('/auth') ||
         currentPath.startsWith('/sign-in') ||
         currentPath.startsWith('/otp-verification');
@@ -98,10 +99,7 @@ final GoRouter router = GoRouter(
       path: '/main',
       builder: (context, state) => const ModuleSelectionScreen(),
     ),
-    GoRoute(
-      path: '/',
-      redirect: (context, state) => '/main',
-    ),
+    GoRoute(path: '/', redirect: (context, state) => '/main'),
     // Finance Module Routes
     ShellRoute(
       builder: (context, state, child) {
@@ -162,9 +160,8 @@ final GoRouter router = GoRouter(
         // Orders routes for Finance module
         GoRoute(
           path: '/finance/orders/client/:id',
-          builder: (context, state) => ClientDetailsScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              ClientDetailsScreen(clientId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/finance/orders/add-client',
@@ -172,27 +169,23 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/finance/orders/client/:id/delivery-dates',
-          builder: (context, state) => DeliveryDatesScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              DeliveryDatesScreen(clientId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/finance/orders/client/:id/send-update',
-          builder: (context, state) => SendUpdateScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              SendUpdateScreen(clientId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/finance/orders/client/:id/record-payment',
-          builder: (context, state) => RecordPaymentScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              RecordPaymentScreen(clientId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/finance/orders/client/:id/chat',
-          builder: (context, state) => ClientChatScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              ClientChatScreen(clientId: state.pathParameters['id']!),
         ),
       ],
     ),
@@ -236,9 +229,8 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/design/edit/image/:id',
-          builder: (context, state) => ElementEditScreen(
-            originalImage: state.extra as GeneratedImage,
-          ),
+          builder: (context, state) =>
+              ElementEditScreen(originalImage: state.extra as GeneratedImage),
         ),
         GoRoute(
           path: '/design/tap-to-edit',
@@ -250,16 +242,14 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: '/design/tap-to-edit/image/:id',
-          builder: (context, state) => TapToEditScreen(
-            image: state.extra as GeneratedImage,
-          ),
+          builder: (context, state) =>
+              TapToEditScreen(image: state.extra as GeneratedImage),
         ),
         // Orders routes for Design module (minimal)
         GoRoute(
           path: '/design/orders/client/:id',
-          builder: (context, state) => ClientDetailsScreen(
-            clientId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) =>
+              ClientDetailsScreen(clientId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/design/orders/add-client',
@@ -311,10 +301,14 @@ int _getDesignIndex(String path) {
   if (path == '/design/dashboard') {
     return 0;
   }
-  if (path.startsWith('/design/welcome') || path.startsWith('/design/idea-generation') ||
-      path.startsWith('/design/sculpting') || path.startsWith('/design/detailing') ||
-      path.startsWith('/design/preview') || path.startsWith('/design/backdrop') ||
-      path.startsWith('/design/lighting') || path.startsWith('/design/orders') ||
+  if (path.startsWith('/design/welcome') ||
+      path.startsWith('/design/idea-generation') ||
+      path.startsWith('/design/sculpting') ||
+      path.startsWith('/design/detailing') ||
+      path.startsWith('/design/preview') ||
+      path.startsWith('/design/backdrop') ||
+      path.startsWith('/design/lighting') ||
+      path.startsWith('/design/orders') ||
       path.startsWith('/design/reports')) {
     return 1;
   }

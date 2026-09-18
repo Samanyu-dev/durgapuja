@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../services/logging_service.dart';
 
 class LoadingSkeleton extends StatefulWidget {
   final double width;
@@ -10,12 +9,12 @@ class LoadingSkeleton extends StatefulWidget {
   final EdgeInsetsGeometry? margin;
 
   const LoadingSkeleton({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     this.borderRadius,
     this.margin,
-  }) : super(key: key);
+  });
 
   @override
   State<LoadingSkeleton> createState() => _LoadingSkeletonState();
@@ -34,9 +33,10 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
       vsync: this,
     )..repeat();
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -57,10 +57,12 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
           decoration: BoxDecoration(
             color: Color.lerp(
               AppColors.cardCream,
-              AppColors.cardCream.withOpacity(0.5),
+              AppColors.cardCream.withValues(alpha: 0.5),
               _animation.value,
             ),
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(AppConstants.borderRadius),
+            borderRadius:
+                widget.borderRadius ??
+                BorderRadius.circular(AppConstants.borderRadius),
           ),
         );
       },
@@ -69,7 +71,7 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 }
 
 class LoadingCard extends StatelessWidget {
-  const LoadingCard({Key? key}) : super(key: key);
+  const LoadingCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,33 +82,41 @@ class LoadingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const LoadingSkeleton(width: 40, height: 40, borderRadius: BorderRadius.all(Radius.circular(20))),
-              const SizedBox(width: AppConstants.mediumPadding),
+              LoadingSkeleton(
+                width: 40,
+                height: 40,
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              SizedBox(width: AppConstants.mediumPadding),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     LoadingSkeleton(width: double.infinity, height: 16),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     LoadingSkeleton(width: 100, height: 12),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppConstants.mediumPadding),
-          LoadingSkeleton(width: double.infinity, height: 80, borderRadius: BorderRadius.all(Radius.circular(8))),
+          SizedBox(height: AppConstants.mediumPadding),
+          LoadingSkeleton(
+            width: double.infinity,
+            height: 80,
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
         ],
       ),
     );
@@ -116,7 +126,7 @@ class LoadingCard extends StatelessWidget {
 class LoadingGrid extends StatelessWidget {
   final int itemCount;
 
-  const LoadingGrid({Key? key, this.itemCount = 6}) : super(key: key);
+  const LoadingGrid({super.key, this.itemCount = 6});
 
   @override
   Widget build(BuildContext context) {
@@ -134,20 +144,24 @@ class LoadingGrid extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppConstants.largeRadius),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
           padding: const EdgeInsets.all(AppConstants.mediumPadding),
-          child: Column(
+          child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              LoadingSkeleton(width: 60, height: 60, borderRadius: BorderRadius.all(Radius.circular(30))),
-              const SizedBox(height: AppConstants.mediumPadding),
+              LoadingSkeleton(
+                width: 60,
+                height: 60,
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
+              SizedBox(height: AppConstants.mediumPadding),
               LoadingSkeleton(width: double.infinity, height: 14),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               LoadingSkeleton(width: double.infinity, height: 12),
             ],
           ),

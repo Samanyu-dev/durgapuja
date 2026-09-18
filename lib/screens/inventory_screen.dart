@@ -4,7 +4,7 @@ import '../utils/constants.dart';
 import '../widgets/loading_skeleton.dart';
 
 class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({Key? key}) : super(key: key);
+  const InventoryScreen({super.key});
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -92,7 +92,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
-        title: Text('Material Inventory'),
+        title: const Text('Material Inventory'),
         backgroundColor: AppColors.backgroundCream,
         elevation: 0,
         actions: [
@@ -119,9 +119,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Widget _buildInventoryView() {
     // Group materials by status
-    final criticalMaterials = _materials.where((m) => m['status'] == 'critical').toList();
+    final criticalMaterials = _materials
+        .where((m) => m['status'] == 'critical')
+        .toList();
     final lowMaterials = _materials.where((m) => m['status'] == 'low').toList();
-    final normalMaterials = _materials.where((m) => m['status'] == 'normal').toList();
+    final normalMaterials = _materials
+        .where((m) => m['status'] == 'normal')
+        .toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -133,10 +137,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
             Container(
               padding: const EdgeInsets.all(AppConstants.mediumPadding),
               decoration: BoxDecoration(
-                color: criticalMaterials.isNotEmpty ? AppColors.errorRed.withOpacity(0.1) : AppColors.warningOrange.withOpacity(0.1),
+                color: criticalMaterials.isNotEmpty
+                    ? AppColors.errorRed.withValues(alpha: 0.1)
+                    : AppColors.warningOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                 border: Border.all(
-                  color: criticalMaterials.isNotEmpty ? AppColors.errorRed : AppColors.warningOrange,
+                  color: criticalMaterials.isNotEmpty
+                      ? AppColors.errorRed
+                      : AppColors.warningOrange,
                   width: 1,
                 ),
               ),
@@ -144,7 +152,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 children: [
                   Icon(
                     criticalMaterials.isNotEmpty ? Icons.warning : Icons.info,
-                    color: criticalMaterials.isNotEmpty ? AppColors.errorRed : AppColors.warningOrange,
+                    color: criticalMaterials.isNotEmpty
+                        ? AppColors.errorRed
+                        : AppColors.warningOrange,
                   ),
                   const SizedBox(width: AppConstants.mediumPadding),
                   Expanded(
@@ -153,7 +163,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           ? '${criticalMaterials.length} materials critically low!'
                           : '${lowMaterials.length} materials running low.',
                       style: TextStyle(
-                        color: criticalMaterials.isNotEmpty ? AppColors.errorRed : AppColors.warningOrange,
+                        color: criticalMaterials.isNotEmpty
+                            ? AppColors.errorRed
+                            : AppColors.warningOrange,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -167,7 +179,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
           // Critical Materials
           if (criticalMaterials.isNotEmpty) ...[
             _buildSectionHeader('Critical Stock', AppColors.errorRed),
-            ...criticalMaterials.map((material) => _buildMaterialCard(material)),
+            ...criticalMaterials.map(
+              (material) => _buildMaterialCard(material),
+            ),
             const SizedBox(height: AppConstants.largePadding),
           ],
 
@@ -191,15 +205,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
       padding: const EdgeInsets.only(bottom: AppConstants.mediumPadding),
       child: Row(
         children: [
-          Container(
-            width: 4,
-            height: 20,
-            color: color,
-          ),
+          Container(width: 4, height: 20, color: color),
           const SizedBox(width: AppConstants.smallPadding),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeLarge,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -237,12 +247,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           border: Border.all(
-            color: status == 'normal' ? Colors.transparent : statusColor.withOpacity(0.3),
+            color: status == 'normal'
+                ? Colors.transparent
+                : statusColor.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -259,7 +271,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     children: [
                       Text(
                         material['name'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeMedium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -268,7 +280,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       const SizedBox(height: 4),
                       Text(
                         material['category'],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeSmall,
                           color: AppColors.textLight,
                         ),
@@ -277,10 +289,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                   ),
                   child: Text(
                     status.toUpperCase(),
@@ -302,7 +319,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Current Stock',
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeSmall,
@@ -312,7 +329,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '$currentStock ${material['unit']}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -325,7 +342,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Min Threshold',
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeSmall,
@@ -335,7 +352,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '$minThreshold ${material['unit']}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -356,7 +373,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Stock Level',
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
@@ -402,7 +419,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           children: [
             Text(
               material['name'],
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -411,8 +428,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
             const SizedBox(height: AppConstants.mediumPadding),
 
             _buildDetailRow('Category', material['category']),
-            _buildDetailRow('Current Stock', '${material['currentStock']} ${material['unit']}'),
-            _buildDetailRow('Min Threshold', '${material['minThreshold']} ${material['unit']}'),
+            _buildDetailRow(
+              'Current Stock',
+              '${material['currentStock']} ${material['unit']}',
+            ),
+            _buildDetailRow(
+              'Min Threshold',
+              '${material['minThreshold']} ${material['unit']}',
+            ),
             _buildDetailRow('Supplier', material['supplier']),
             _buildDetailRow('Last Updated', material['lastUpdated']),
 
@@ -460,7 +483,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             width: 120,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppConstants.fontSizeBody,
                 color: AppColors.textLight,
               ),
@@ -469,7 +492,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: AppConstants.fontSizeBody,
                 color: AppColors.textDark,
               ),

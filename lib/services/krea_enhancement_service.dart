@@ -8,8 +8,7 @@ class KreaEnhancementService {
 
   final String _apiToken;
 
-  KreaEnhancementService()
-      : _apiToken = dotenv.env['KREA_API_KEY'] ?? '';
+  KreaEnhancementService() : _apiToken = dotenv.env['KREA_API_KEY'] ?? '';
 
   /// Enhances image quality, lighting, and details using Krea's enhancement API
   Future<String> enhanceImage({
@@ -20,7 +19,7 @@ class KreaEnhancementService {
     if (_apiToken.isEmpty) {
       throw Exception(
         'Krea API token not found. Please add KREA_API_TOKEN to your .env file.\n'
-        'Generate your token at: https://krea.ai/settings/api-tokens'
+        'Generate your token at: https://krea.ai/settings/api-tokens',
       );
     }
 
@@ -43,14 +42,22 @@ class KreaEnhancementService {
         }),
       );
 
-      LoggingService.logDebug('Enhancement submit response status: ${enhanceResponse.statusCode}');
-      LoggingService.logDebug('Enhancement submit response body: ${enhanceResponse.body}');
+      LoggingService.logDebug(
+        'Enhancement submit response status: ${enhanceResponse.statusCode}',
+      );
+      LoggingService.logDebug(
+        'Enhancement submit response body: ${enhanceResponse.body}',
+      );
 
       if (enhanceResponse.statusCode != 200) {
         String errorMessage = 'Failed to submit enhancement job';
         try {
           final error = jsonDecode(enhanceResponse.body);
-          errorMessage = error['message'] ?? error['detail'] ?? error['error'] ?? enhanceResponse.body;
+          errorMessage =
+              error['message'] ??
+              error['detail'] ??
+              error['error'] ??
+              enhanceResponse.body;
         } catch (_) {
           errorMessage = enhanceResponse.body;
         }
@@ -65,25 +72,25 @@ class KreaEnhancementService {
       final jobUrl = Uri.parse('$_baseUrl/jobs/$jobId');
       String status = 'queued';
       Map<String, dynamic>? result;
-      
+
       // Poll for up to 120 seconds (2 minutes) for enhancement
       for (int attempt = 0; attempt < 60; attempt++) {
-        await Future.delayed(Duration(seconds: 2));
-        
+        await Future.delayed(const Duration(seconds: 2));
+
         final statusResponse = await http.get(
           jobUrl,
-          headers: {
-            'Authorization': 'Bearer $_apiToken',
-          },
+          headers: {'Authorization': 'Bearer $_apiToken'},
         );
 
         if (statusResponse.statusCode != 200) {
-          throw Exception('Failed to check enhancement job status: ${statusResponse.body}');
+          throw Exception(
+            'Failed to check enhancement job status: ${statusResponse.body}',
+          );
         }
 
         final statusData = jsonDecode(statusResponse.body);
         status = statusData['status'] as String;
-        
+
         LoggingService.logDebug('Enhancement job $jobId status: $status');
 
         if (status == 'completed') {
@@ -107,8 +114,10 @@ class KreaEnhancementService {
       }
 
       final enhancedImageUrl = urls[0] as String;
-      LoggingService.logDebug('Enhancement completed successfully: $enhancedImageUrl');
-      
+      LoggingService.logDebug(
+        'Enhancement completed successfully: $enhancedImageUrl',
+      );
+
       return enhancedImageUrl;
     } catch (e) {
       LoggingService.logDebug('Error in Krea enhancement: $e');

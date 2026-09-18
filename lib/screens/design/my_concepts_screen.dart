@@ -8,7 +8,7 @@ import '../../models/generated_image.dart';
 import '../../services/database_service.dart';
 
 class MyConceptsScreen extends StatefulWidget {
-  const MyConceptsScreen({Key? key}) : super(key: key);
+  const MyConceptsScreen({super.key});
 
   @override
   State<MyConceptsScreen> createState() => _MyConceptsScreenState();
@@ -27,13 +27,13 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
     'Divine',
     'Traditional',
     'Modern',
-    'Eco-Friendly'
+    'Eco-Friendly',
   ];
   final List<String> _dates = [
     'All',
     'This Month',
     'Last Month',
-    'Last 3 Months'
+    'Last 3 Months',
   ];
 
   @override
@@ -58,9 +58,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load concepts: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load concepts: $e')));
       }
     }
   }
@@ -102,15 +102,15 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
         _concepts.removeWhere((c) => c.id == concept.id);
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Removed ${concept.title}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Removed ${concept.title}')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to remove concept: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to remove concept: $e')));
       }
     }
   }
@@ -119,7 +119,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
     final image = GeneratedImage(
       id: concept.id,
       url: concept.imageUrl,
-      prompt: concept.prompt?.isNotEmpty == true ? concept.prompt! : concept.title,
+      prompt: concept.prompt?.isNotEmpty == true
+          ? concept.prompt!
+          : concept.title,
       createdAt: DateTime.tryParse(concept.dateCreated) ?? DateTime.now(),
     );
     context.push('/design/edit/image/${concept.id}', extra: image);
@@ -217,11 +219,13 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primaryBrown),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryBrown,
+                      ),
                     )
                   : _concepts.isEmpty
-                      ? _buildEmptyState()
-                      : _buildConceptsGrid(),
+                  ? _buildEmptyState()
+                  : _buildConceptsGrid(),
             ),
           ],
         ),
@@ -242,9 +246,13 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.auto_awesome, size: 64, color: AppColors.textLight),
+                    const Icon(
+                      Icons.auto_awesome,
+                      size: 64,
+                      color: AppColors.textLight,
+                    ),
                     const SizedBox(height: 16),
-                    Text(
+                    const Text(
                       'No concepts saved yet',
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeMedium,
@@ -253,7 +261,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Generate a design and save it to see it here.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textLight),
@@ -313,10 +321,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
         isExpanded: true,
         underline: const SizedBox(),
         items: items.map((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(item),
-          );
+          return DropdownMenuItem<String>(value: item, child: Text(item));
         }).toList(),
         onChanged: onChanged,
       ),
@@ -324,7 +329,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
   }
 
   Widget _buildConceptImage(Concept concept) {
-    final isNetwork = concept.imageUrl.startsWith('http://') || concept.imageUrl.startsWith('https://');
+    final isNetwork =
+        concept.imageUrl.startsWith('http://') ||
+        concept.imageUrl.startsWith('https://');
     if (isNetwork) {
       return Image.network(
         concept.imageUrl,
@@ -333,7 +340,11 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
         height: double.infinity,
         errorBuilder: (context, error, stackTrace) => Container(
           color: AppColors.darkBrown,
-          child: const Icon(Icons.broken_image, color: Colors.white30, size: 48),
+          child: const Icon(
+            Icons.broken_image,
+            color: Colors.white30,
+            size: 48,
+          ),
         ),
       );
     }
@@ -364,7 +375,9 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                 Text('Created on ${concept.dateCreated.split('T').first}'),
                 const SizedBox(height: AppConstants.largePadding),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                   child: SizedBox(
                     height: 200,
                     width: double.infinity,
@@ -395,7 +408,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -414,7 +427,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.7),
+                        Colors.black.withValues(alpha: 0.7),
                       ],
                     ),
                   ),
@@ -459,7 +472,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

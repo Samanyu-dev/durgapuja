@@ -16,13 +16,14 @@ class WorkerDetailsScreen extends StatefulWidget {
   });
 
   // Constructor for navigation with arguments
-  WorkerDetailsScreen.fromArgs(Map<String, dynamic> args)
-      : this(
-          workerName: args['name'] ?? 'Unknown',
-          category: args['category'] ?? 'Unknown',
-          budget: args['budget'] ?? '0',
-          paid: args['paid'] ?? '0',
-        );
+  WorkerDetailsScreen.fromArgs(Map<String, dynamic> args, {Key? key})
+    : this(
+        key: key,
+        workerName: args['name'] ?? 'Unknown',
+        category: args['category'] ?? 'Unknown',
+        budget: args['budget'] ?? '0',
+        paid: args['paid'] ?? '0',
+      );
 
   @override
   State<WorkerDetailsScreen> createState() => _WorkerDetailsScreenState();
@@ -98,7 +99,8 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double pending = _parseCurrency(widget.budget) - _parseCurrency(widget.paid);
+    final double pending =
+        _parseCurrency(widget.budget) - _parseCurrency(widget.paid);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6D3),
@@ -122,7 +124,7 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Category: ${widget.category}",
+                'Category: ${widget.category}',
                 style: const TextStyle(fontSize: 14, color: Colors.black54),
               ),
 
@@ -143,12 +145,12 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Budget",
+                            'Budget',
                             style: TextStyle(color: Colors.white),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "₹ ${widget.budget}",
+                            '₹ ${widget.budget}',
                             style: const TextStyle(
                               fontSize: 18,
                               color: Colors.white,
@@ -174,12 +176,12 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Paid",
+                            'Paid',
                             style: TextStyle(color: Colors.black),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "₹ ${widget.paid}",
+                            '₹ ${widget.paid}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -205,10 +207,10 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Pending amount"),
+                    const Text('Pending amount'),
                     const SizedBox(height: 6),
                     Text(
-                      "₹ ${pending.toStringAsFixed(0)}",
+                      '₹ ${pending.toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -221,7 +223,7 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
               const SizedBox(height: 25),
 
               // Amount Paid Input
-              const Text("Amount paid", style: TextStyle(fontSize: 16)),
+              const Text('Amount paid', style: TextStyle(fontSize: 16)),
 
               const SizedBox(height: 6),
 
@@ -236,14 +238,14 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Text("₹ ", style: TextStyle(fontSize: 16)),
+                    const Text('₹ ', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 6),
                     Expanded(
                       child: TextField(
                         controller: _amountPaidController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          hintText: "0.00",
+                          hintText: '0.00',
                           border: InputBorder.none,
                         ),
                       ),
@@ -267,7 +269,7 @@ class _WorkerDetailsScreenState extends State<WorkerDetailsScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Confirm Details",
+                    'Confirm Details',
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),

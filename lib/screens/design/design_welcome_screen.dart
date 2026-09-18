@@ -5,7 +5,7 @@ import '../../utils/constants.dart';
 import '../../l10n/app_localizations.dart';
 
 class DesignWelcomeScreen extends StatefulWidget {
-  const DesignWelcomeScreen({Key? key}) : super(key: key);
+  const DesignWelcomeScreen({super.key});
 
   @override
   State<DesignWelcomeScreen> createState() => _DesignWelcomeScreenState();
@@ -36,20 +36,20 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 borderRadius: BorderRadius.circular(AppConstants.largeRadius),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 children: [
                   Icon(
                     Icons.design_services_outlined,
                     size: 64,
                     color: AppColors.primaryBrown,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     'Durga Idol Design Studio',
                     style: TextStyle(
@@ -59,7 +59,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     'Create beautiful Durga Puja designs with AI assistance',
                     style: TextStyle(
@@ -74,7 +74,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
             const SizedBox(height: AppConstants.largePadding),
 
             // Main options
-            Text(
+            const Text(
               'Choose Your Design Path',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
@@ -89,7 +89,8 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 _buildMainOption(
                   icon: Icons.auto_awesome,
                   title: 'Create New Design',
-                  subtitle: 'Generate a new Durga idol design using text or voice prompts',
+                  subtitle:
+                      'Generate a new Durga idol design using text or voice prompts',
                   onTap: () => context.go('/design/create'),
                   color: AppColors.primaryBrown,
                 ),
@@ -97,7 +98,8 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 _buildMainOption(
                   icon: Icons.image_search,
                   title: 'Image-to-Image Generation',
-                  subtitle: 'Transform existing images with AI enhancement and style transfer',
+                  subtitle:
+                      'Transform existing images with AI enhancement and style transfer',
                   onTap: () => context.go('/design/image-to-image'),
                   color: AppColors.accentOrange,
                 ),
@@ -132,7 +134,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Design Tips',
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeMedium,
@@ -142,9 +144,15 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildTip('Use descriptive prompts for better results'),
-                  _buildTip('Try voice input for natural language descriptions'),
-                  _buildTip('Upload reference images for image-to-image generation'),
-                  _buildTip('Use tap-to-edit for precise element modifications'),
+                  _buildTip(
+                    'Try voice input for natural language descriptions',
+                  ),
+                  _buildTip(
+                    'Upload reference images for image-to-image generation',
+                  ),
+                  _buildTip(
+                    'Use tap-to-edit for precise element modifications',
+                  ),
                   _buildTip('Experiment with different styles and themes'),
                 ],
               ),
@@ -170,34 +178,27 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.white, AppColors.cardCream.withOpacity(0.7)],
+            colors: [Colors.white, AppColors.cardCream.withValues(alpha: 0.7)],
           ),
           borderRadius: BorderRadius.circular(AppConstants.largeRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
+              child: Icon(icon, size: 40, color: color),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -206,7 +207,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -215,7 +216,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeBody,
                       color: AppColors.textLight,
                       height: 1.4,
@@ -224,7 +225,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 20,
               color: AppColors.textLight,
@@ -243,7 +244,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primaryBrown,
               shape: BoxShape.circle,
             ),
@@ -251,7 +252,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
           const SizedBox(width: 8),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeSmall,
               color: AppColors.textLight,
             ),

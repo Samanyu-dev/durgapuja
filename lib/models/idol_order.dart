@@ -46,16 +46,21 @@ class IdolOrder {
 
   // Validation methods
   bool isValid() {
-    return id.isNotEmpty && 
-           name.isNotEmpty && 
-           deliveryDate.isAfter(DateTime.now().subtract(const Duration(days: 365)));
+    return id.isNotEmpty &&
+        name.isNotEmpty &&
+        deliveryDate.isAfter(
+          DateTime.now().subtract(const Duration(days: 365)),
+        );
   }
 
   // Helper methods
-  bool isOverdue() => deliveryDate.isBefore(DateTime.now()) && status != 'completed';
-  bool isDueSoon() => deliveryDate.isBefore(DateTime.now().add(const Duration(days: 3))) && status != 'completed';
+  bool isOverdue() =>
+      deliveryDate.isBefore(DateTime.now()) && status != 'completed';
+  bool isDueSoon() =>
+      deliveryDate.isBefore(DateTime.now().add(const Duration(days: 3))) &&
+      status != 'completed';
   bool isCompleted() => status.toLowerCase() == 'completed';
-  
+
   String getStatusDisplay() {
     switch (status.toLowerCase()) {
       case 'new':

@@ -31,7 +31,9 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
 
   Future<void> _loadPhoneNumber() async {
     try {
-      final orders = await DatabaseService.getOrdersByCustomerName(widget.clientId);
+      final orders = await DatabaseService.getOrdersByCustomerName(
+        widget.clientId,
+      );
       if (orders.isNotEmpty && mounted) {
         setState(() {
           _phoneNumber = orders.first['phone_number'] as String?;
@@ -45,19 +47,24 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
   Future<void> _recordVoiceMessage() async {
     setState(() => _isRecording = true);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('🎙️ Recording message...'), duration: Duration(seconds: 2)),
+      const SnackBar(
+        content: Text('🎙️ Recording message...'),
+        duration: Duration(seconds: 2),
+      ),
     );
     try {
       final banglaText = await _speechService.listenBangla();
       if (banglaText.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No speech detected')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No speech detected')));
         }
         return;
       }
-      final englishText = await _translationService.translateToEnglish(banglaText);
+      final englishText = await _translationService.translateToEnglish(
+        banglaText,
+      );
       if (mounted) {
         setState(() {
           _messageController.text = _messageController.text.isEmpty
@@ -67,9 +74,9 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Voice recording failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Voice recording failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isRecording = false);
@@ -87,7 +94,9 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
     final digitsOnlyPhone = _phoneNumber?.replaceAll(RegExp(r'[^0-9]'), '');
     if (digitsOnlyPhone == null || digitsOnlyPhone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No phone number on file for this client')),
+        const SnackBar(
+          content: Text('No phone number on file for this client'),
+        ),
       );
       return;
     }
@@ -97,14 +106,19 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
     );
 
     try {
-      final launched = await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        whatsappUri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched) throw Exception('Could not open WhatsApp');
       if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Message Sent'),
-          content: Text('Your update has been sent to ${widget.clientId} via WhatsApp'),
+          content: Text(
+            'Your update has been sent to ${widget.clientId} via WhatsApp',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -118,9 +132,9 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open WhatsApp: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to open WhatsApp: $e')));
       }
     }
   }
@@ -233,7 +247,6 @@ class _SendUpdateScreenState extends State<SendUpdateScreen> {
           ],
         ),
       ),
-
     );
   }
 

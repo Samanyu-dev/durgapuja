@@ -7,7 +7,7 @@ import '../../utils/constants.dart';
 import '../../providers/auth_provider.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
-  const AdminDashboardScreen({Key? key}) : super(key: key);
+  const AdminDashboardScreen({super.key});
 
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
@@ -26,17 +26,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Future<void> _loadStats() async {
     try {
       // Get user statistics
-      final usersQuery = await FirebaseFirestore.instance.collection('users').get();
+      final usersQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .get();
       final totalUsers = usersQuery.docs.length;
-      final adminUsers = usersQuery.docs.where((doc) => doc.data()['role'] == 'admin').length;
-      final idolMakerUsers = usersQuery.docs.where((doc) => doc.data()['role'] == 'idol_maker').length;
-      final regularUsers = usersQuery.docs.where((doc) => doc.data()['role'] == 'user').length;
+      final adminUsers = usersQuery.docs
+          .where((doc) => doc.data()['role'] == 'admin')
+          .length;
+      final idolMakerUsers = usersQuery.docs
+          .where((doc) => doc.data()['role'] == 'idol_maker')
+          .length;
+      final regularUsers = usersQuery.docs
+          .where((doc) => doc.data()['role'] == 'user')
+          .length;
 
       // Get orders statistics
-      final ordersQuery = await FirebaseFirestore.instance.collectionGroup('orders').get();
+      final ordersQuery = await FirebaseFirestore.instance
+          .collectionGroup('orders')
+          .get();
       final totalOrders = ordersQuery.docs.length;
-      final pendingOrders = ordersQuery.docs.where((doc) => doc.data()['status'] == 'pending').length;
-      final completedOrders = ordersQuery.docs.where((doc) => doc.data()['status'] == 'completed').length;
+      final pendingOrders = ordersQuery.docs
+          .where((doc) => doc.data()['status'] == 'pending')
+          .length;
+      final completedOrders = ordersQuery.docs
+          .where((doc) => doc.data()['status'] == 'completed')
+          .length;
 
       setState(() {
         _stats = {
@@ -65,11 +79,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     if (!authProvider.isAdmin) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.backgroundCream,
-        body: const Center(
-          child: Text('Access denied. Admin privileges required.'),
-        ),
+        body: Center(child: Text('Access denied. Admin privileges required.')),
       );
     }
 
@@ -97,16 +109,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppConstants.mediumPadding),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.primaryBrown, AppColors.secondaryBrown],
+                        colors: [
+                          AppColors.primaryBrown,
+                          AppColors.secondaryBrown,
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.admin_panel_settings,
                           color: Colors.white,
                           size: 40,
@@ -116,7 +133,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Welcome, Admin',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -128,7 +145,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               Text(
                                 'Manage users, roles, and system settings',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: AppConstants.fontSizeBody,
                                 ),
                               ),
@@ -142,7 +159,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: AppConstants.largePadding),
 
                   // Statistics Cards
-                  Text(
+                  const Text(
                     'System Statistics',
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
@@ -202,7 +219,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: AppConstants.largePadding),
 
                   // Order Statistics
-                  Text(
+                  const Text(
                     'Order Statistics',
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
@@ -247,7 +264,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: AppConstants.largePadding),
 
                   // Management Actions
-                  Text(
+                  const Text(
                     'Management Actions',
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
@@ -297,12 +314,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature is coming soon')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$feature is coming soon')));
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, {bool isFullWidth = false}) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color, {
+    bool isFullWidth = false,
+  }) {
     return Container(
       width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(AppConstants.mediumPadding),
@@ -311,15 +334,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -327,7 +347,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const SizedBox(height: AppConstants.smallPadding),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeLarge,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -336,7 +356,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeSmall,
               color: AppColors.textLight,
             ),
@@ -347,7 +367,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildActionCard(String title, String subtitle, IconData icon, VoidCallback onTap) {
+  Widget _buildActionCard(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -357,7 +382,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -368,14 +393,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryBrown.withOpacity(0.1),
+                color: AppColors.primaryBrown.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConstants.borderRadius),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primaryBrown,
-                size: 24,
-              ),
+              child: Icon(icon, color: AppColors.primaryBrown, size: 24),
             ),
             const SizedBox(width: AppConstants.mediumPadding),
             Expanded(
@@ -384,7 +405,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -393,7 +414,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeBody,
                       color: AppColors.textLight,
                     ),
@@ -401,7 +422,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.primaryBrown,
               size: 20,

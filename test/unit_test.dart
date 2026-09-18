@@ -5,12 +5,22 @@ String enhanceDurgaIdolPrompt(String prompt) {
   final lowerPrompt = prompt.toLowerCase();
 
   // Check if this is a simple Durga idol request
-  final durgaKeywords = ['durga', 'durgapuja', 'durga puja', 'durgotsav', 'idol', 'murt'];
-  final isDurgaRelated = durgaKeywords.any((keyword) => lowerPrompt.contains(keyword));
+  final durgaKeywords = [
+    'durga',
+    'durgapuja',
+    'durga puja',
+    'durgotsav',
+    'idol',
+    'murt',
+  ];
+  final isDurgaRelated = durgaKeywords.any(
+    (keyword) => lowerPrompt.contains(keyword),
+  );
 
   // If it's a simple Durga-related prompt (less than 50 characters), enhance it
   if (isDurgaRelated && prompt.length < 50) {
-    final enhancedPrompt = '''
+    final enhancedPrompt =
+        '''
 Create a magnificent Durga idol with intricate details:
 - Goddess Durga with divine golden skin texture, realistic facial structure, and benevolent expression
 - Traditional Bengali features with almond-shaped eyes, arched eyebrows, and serene smile
@@ -22,7 +32,8 @@ Create a magnificent Durga idol with intricate details:
 - High quality, photorealistic rendering with proper lighting and shadows
 - Traditional Durga Puja color scheme with gold, red, and white accents
 Original theme: $prompt
-    '''.trim();
+    '''
+            .trim();
 
     return enhancedPrompt;
   }
@@ -43,16 +54,33 @@ void main() {
 
       for (final prompt in testPrompts) {
         final enhanced = enhanceDurgaIdolPrompt(prompt);
-        expect(enhanced, isNot(equals(prompt)), reason: 'Prompt "$prompt" should be enhanced');
-        expect(enhanced.contains('golden skin texture'), isTrue, reason: 'Enhanced prompt should contain detailed specifications');
-        expect(enhanced.contains('jewelry'), isTrue, reason: 'Enhanced prompt should contain jewelry details');
+        expect(
+          enhanced,
+          isNot(equals(prompt)),
+          reason: 'Prompt "$prompt" should be enhanced',
+        );
+        expect(
+          enhanced.contains('golden skin texture'),
+          isTrue,
+          reason: 'Enhanced prompt should contain detailed specifications',
+        );
+        expect(
+          enhanced.contains('jewelry'),
+          isTrue,
+          reason: 'Enhanced prompt should contain jewelry details',
+        );
       }
     });
 
     test('leaves complex prompts unchanged', () {
-      final complexPrompt = 'Create a beautiful Durga idol with intricate details and gold ornaments';
+      final complexPrompt =
+          'Create a beautiful Durga idol with intricate details and gold ornaments';
       final enhanced = enhanceDurgaIdolPrompt(complexPrompt);
-      expect(enhanced, equals(complexPrompt), reason: 'Complex prompts should remain unchanged');
+      expect(
+        enhanced,
+        equals(complexPrompt),
+        reason: 'Complex prompts should remain unchanged',
+      );
     });
 
     test('leaves non-Durga prompts unchanged', () {
@@ -64,7 +92,11 @@ void main() {
 
       for (final prompt in nonDurgaPrompts) {
         final enhanced = enhanceDurgaIdolPrompt(prompt);
-        expect(enhanced, equals(prompt), reason: 'Non-Durga prompts should remain unchanged');
+        expect(
+          enhanced,
+          equals(prompt),
+          reason: 'Non-Durga prompts should remain unchanged',
+        );
       }
     });
   });

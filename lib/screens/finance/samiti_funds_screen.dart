@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'worker_funds_screen.dart';
-import 'material_screen.dart';
 import '../../services/database_service.dart';
 
 class SamitiFundsScreen extends StatefulWidget {
@@ -110,7 +108,7 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
             children: [
               // Fund Sources Header
               const Text(
-                "Fund sources",
+                'Fund sources',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
 
@@ -118,22 +116,22 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
 
               // Cards
               _fundCard(
-                name: "Artisan Support Grant",
-                amount: "₹10,500",
-                date: "10 Oct",
-                status: "Repayment Due",
+                name: 'Artisan Support Grant',
+                amount: '₹10,500',
+                date: '10 Oct',
+                status: 'Repayment Due',
                 statusColor: Colors.red,
-                statusDate: "15 Oct",
+                statusDate: '15 Oct',
                 showButton: true,
               ),
 
               const SizedBox(height: 12),
 
               _fundCard(
-                name: "Artisan Support Grant",
-                amount: "₹10,500",
-                date: "10 Oct",
-                status: "Paid",
+                name: 'Artisan Support Grant',
+                amount: '₹10,500',
+                date: '10 Oct',
+                status: 'Paid',
                 statusColor: Colors.green,
                 showButton: false,
               ),
@@ -141,12 +139,12 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
               const SizedBox(height: 12),
 
               _fundCard(
-                name: "Artisan Support Grant",
-                amount: "₹10,500",
-                date: "10 Oct",
-                status: "Repayment Due",
+                name: 'Artisan Support Grant',
+                amount: '₹10,500',
+                date: '10 Oct',
+                status: 'Repayment Due',
                 statusColor: Colors.red,
-                statusDate: "15 Oct",
+                statusDate: '15 Oct',
                 showButton: true,
               ),
 
@@ -199,11 +197,11 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "Amount: $amount",
+                    'Amount: $amount',
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                   Text(
-                    "Date: $date",
+                    'Date: $date',
                     style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 ],
@@ -252,7 +250,7 @@ class _SamitiFundsScreenState extends State<SamitiFundsScreen> {
                   ),
                 ),
                 child: const Text(
-                  "✓   Mark as completed",
+                  '✓   Mark as completed',
                   style: TextStyle(
                     color: Color(0xFF9A5222),
                     fontSize: 14,

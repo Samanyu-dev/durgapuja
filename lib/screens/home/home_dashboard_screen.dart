@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../providers/locale_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/speech_service.dart';
 import '../../services/translation_service.dart';
-import '../../services/logging_service.dart';
 import '../settings_screen.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
-  const HomeDashboardScreen({Key? key}) : super(key: key);
+  const HomeDashboardScreen({super.key});
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -58,7 +56,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.home_outlined, color: AppColors.primaryBrown),
+            icon: const Icon(
+              Icons.home_outlined,
+              color: AppColors.primaryBrown,
+            ),
             onPressed: () => context.go('/'),
             tooltip: l10n.backToModuleSelection,
           ),
@@ -79,7 +80,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -112,9 +113,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     const SizedBox(height: 8),
                     Text(
                       l10n.voiceNoteDescription,
-                      style: const TextStyle(
-                        color: AppColors.textLight,
-                      ),
+                      style: const TextStyle(color: AppColors.textLight),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -166,31 +165,36 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   void _recordVoiceNote() async {
     try {
-      String banglaText = await _speechService.listenBangla();
-      debugPrint("Bangla Text: $banglaText");
+      final String banglaText = await _speechService.listenBangla();
+      debugPrint('Bangla Text: $banglaText');
       if (banglaText.isNotEmpty) {
-        String englishText = await _translationService.translateToEnglish(
+        final String englishText = await _translationService.translateToEnglish(
           banglaText,
         );
-        debugPrint("English Text: $englishText");
+        debugPrint('English Text: $englishText');
         // Show the recognized text to user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Voice Note: $englishText')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Voice Note: $englishText')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No speech detected')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No speech detected')));
       }
     } catch (e) {
-      debugPrint("Speech recognition error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Speech recognition failed: $e')),
-      );
+      debugPrint('Speech recognition error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Speech recognition failed: $e')));
     }
   }
 
-  Widget _buildSummaryCard(String title, String amount, IconData icon, {bool fullWidth = false}) {
+  Widget _buildSummaryCard(
+    String title,
+    String amount,
+    IconData icon, {
+    bool fullWidth = false,
+  }) {
     return Container(
       width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(16),
@@ -199,7 +203,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -212,10 +216,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textLight,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textLight),
           ),
           const SizedBox(height: 4),
           Text(

@@ -1,21 +1,21 @@
 // Comprehensive Firebase Testing Script
 // Run with: dart run scripts/firebase_test.dart
 
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../lib/firebase_options.dart';
-import '../lib/models/client.dart';
-import '../lib/models/idol_order.dart';
-import '../lib/models/transaction.dart' as models;
-import '../lib/services/auth_service.dart';
-import '../lib/services/firestore_service.dart';
+import 'package:durgapuja/firebase_options.dart';
+import 'package:durgapuja/models/client.dart';
+import 'package:durgapuja/models/idol_order.dart';
+import 'package:durgapuja/models/transaction.dart' as models;
+import 'package:durgapuja/services/auth_service.dart';
+import 'package:durgapuja/services/firestore_service.dart';
 
 class FirebaseTester {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
 
@@ -28,7 +28,10 @@ class FirebaseTester {
     try {
       // Initialize Firebase
       await _initializeFirebase();
-      results['firebase_init'] = {'success': true, 'message': 'Firebase initialized successfully'};
+      results['firebase_init'] = {
+        'success': true,
+        'message': 'Firebase initialized successfully',
+      };
 
       // Test Firestore operations
       await _testFirestoreOperations();
@@ -38,7 +41,6 @@ class FirebaseTester {
 
       // Generate test report
       _generateReport();
-
     } catch (e) {
       print('❌ Test suite failed: $e');
       results['overall'] = {'success': false, 'error': e.toString()};
@@ -56,7 +58,6 @@ class FirebaseTester {
       // Test basic connectivity
       final user = _auth.currentUser;
       print('📊 Current user: ${user?.uid ?? 'None'}');
-
     } catch (e) {
       print('❌ Firebase initialization failed: $e');
       rethrow;
@@ -89,7 +90,10 @@ class FirebaseTester {
       );
 
       await _firestoreService.addClient(testClient);
-      results['firestore_client_add'] = {'success': true, 'client_id': testClient.id};
+      results['firestore_client_add'] = {
+        'success': true,
+        'client_id': testClient.id,
+      };
       print('   ✅ Client added successfully');
 
       // Test 2: Retrieve clients
@@ -98,7 +102,7 @@ class FirebaseTester {
       results['firestore_clients_retrieve'] = {
         'success': true,
         'count': clients.length,
-        'has_test_client': clients.any((c) => c.id == testClient.id)
+        'has_test_client': clients.any((c) => c.id == testClient.id),
       };
       print('   ✅ Retrieved ${clients.length} clients');
 
@@ -113,7 +117,10 @@ class FirebaseTester {
       );
 
       await _firestoreService.addMaterial(testMaterial);
-      results['firestore_material_add'] = {'success': true, 'material_id': testMaterial.id};
+      results['firestore_material_add'] = {
+        'success': true,
+        'material_id': testMaterial.id,
+      };
       print('   ✅ Material added successfully');
 
       // Test 4: Add test transaction
@@ -127,7 +134,10 @@ class FirebaseTester {
       );
 
       await _firestoreService.addTransaction(testTransaction);
-      results['firestore_transaction_add'] = {'success': true, 'transaction_id': testTransaction.id};
+      results['firestore_transaction_add'] = {
+        'success': true,
+        'transaction_id': testTransaction.id,
+      };
       print('   ✅ Transaction added successfully');
 
       // Test 5: Retrieve all data
@@ -141,10 +151,11 @@ class FirebaseTester {
         'materials': materials.length,
         'transactions': transactions.length,
       };
-      print('   ✅ Data retrieval successful: ${clients.length} clients, ${materials.length} materials, ${transactions.length} transactions');
+      print(
+        '   ✅ Data retrieval successful: ${clients.length} clients, ${materials.length} materials, ${transactions.length} transactions',
+      );
 
       print('✅ All Firestore operations completed successfully');
-
     } catch (e) {
       print('❌ Firestore test failed: $e');
       results['firestore'] = {'success': false, 'error': e.toString()};
@@ -179,7 +190,6 @@ class FirebaseTester {
       print('      - Real device (not simulator)');
       print('      - Valid phone number');
       print('      - Firebase Console phone auth enabled');
-
     } catch (e) {
       print('❌ Authentication test failed: $e');
       results['auth'] = {'success': false, 'error': e.toString()};
@@ -204,7 +214,7 @@ class FirebaseTester {
       }
     });
 
-    print('\n' + '=' * 50);
+    print('\n${'=' * 50}');
     if (allPassed) {
       print('🎉 ALL TESTS PASSED! Firebase is working correctly.');
     } else {

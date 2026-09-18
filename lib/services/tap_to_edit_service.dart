@@ -1,16 +1,14 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
 import '../../models/generated_image.dart';
 import '../../models/editable_element.dart';
-import '../config/api_keys.dart';
 import 'replicate_sam_service.dart';
 import 'krea_generative_fill_service.dart';
 import 'krea_enhancement_service.dart';
 
 class TapToEditService {
   final ReplicateSAMService _samService = ReplicateSAMService();
-  final KreaGenerativeFillService _kreaFillService = KreaGenerativeFillService();
+  final KreaGenerativeFillService _kreaFillService =
+      KreaGenerativeFillService();
   final KreaEnhancementService _kreaEnhanceService = KreaEnhancementService();
 
   /// Complete Tap-to-Edit workflow
@@ -68,9 +66,13 @@ class TapToEditService {
   }
 
   /// Generate element-specific edit prompt
-  String generateElementEditPrompt(ElementType elementType, String editDescription, String originalPrompt) {
+  String generateElementEditPrompt(
+    ElementType elementType,
+    String editDescription,
+    String originalPrompt,
+  ) {
     final elementDetails = EditableElement.fromType(elementType);
-    
+
     return '''
 Edit the ${elementDetails?.type.displayName.toLowerCase() ?? 'selected element'} of this Durga idol design:
 Original design: $originalPrompt

@@ -7,7 +7,7 @@ import '../../models/generated_image.dart';
 import 'image_viewer_screen.dart';
 
 class CreateBackdropScreen extends StatefulWidget {
-  const CreateBackdropScreen({Key? key}) : super(key: key);
+  const CreateBackdropScreen({super.key});
 
   @override
   State<CreateBackdropScreen> createState() => _CreateBackdropScreenState();
@@ -25,7 +25,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
     'Floral Design',
     'Geometric Patterns',
     'Nature Inspired',
-    'Cultural Symbols'
+    'Cultural Symbols',
   ];
 
   String _selectedBackdropStyle = 'Traditional Bengali';
@@ -33,7 +33,9 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
   Future<void> _generateBackdrop() async {
     if (_backdropController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter backdrop description first')),
+        const SnackBar(
+          content: Text('Please enter backdrop description first'),
+        ),
       );
       return;
     }
@@ -43,7 +45,8 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
     });
 
     try {
-      final prompt = 'Create beautiful Durga Puja backdrop in ${_selectedBackdropStyle.toLowerCase()} style: ${_backdropController.text.trim()}. Traditional Bengali pandal background, festive decorations, intricate details, cultural elements.';
+      final prompt =
+          'Create beautiful Durga Puja backdrop in ${_selectedBackdropStyle.toLowerCase()} style: ${_backdropController.text.trim()}. Traditional Bengali pandal background, festive decorations, intricate details, cultural elements.';
 
       final images = await _kreaService.generateImages(prompt, count: 2);
 
@@ -69,7 +72,12 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
         children: [
           // Custom App Bar
           Container(
-            padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
+            padding: const EdgeInsets.only(
+              top: 50,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             color: AppColors.backgroundCream,
             child: Row(
               children: [
@@ -141,7 +149,8 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                   ),
                   const SizedBox(height: 12),
                   CustomTextField(
-                    hintText: 'e.g., "colorful flowers, traditional motifs, golden accents"',
+                    hintText:
+                        'e.g., "colorful flowers, traditional motifs, golden accents"',
                     controller: _backdropController,
                     maxLines: 3,
                   ),
@@ -173,7 +182,9 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Row(
@@ -189,7 +200,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                   const SizedBox(height: 32),
                   if (_generatedImages.isNotEmpty) ...[
                     Text(
-                      '${_selectedBackdropStyle} Backdrops (${_generatedImages.length})',
+                      '$_selectedBackdropStyle Backdrops (${_generatedImages.length})',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -200,11 +211,12 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1.8,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.8,
+                          ),
                       itemCount: _generatedImages.length,
                       itemBuilder: (context, index) {
                         final image = _generatedImages[index];
@@ -227,7 +239,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -242,30 +254,36 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       height: double.infinity,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return Container(
-                                          color: AppColors.cardCream,
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              color: AppColors.primaryBrown,
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: AppColors.cardCream,
-                                          child: const Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              size: 48,
-                                              color: AppColors.textLight,
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Container(
+                                              color: AppColors.cardCream,
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: AppColors
+                                                          .primaryBrown,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: AppColors.cardCream,
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  size: 48,
+                                                  color: AppColors.textLight,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                     ),
                                     Container(
                                       decoration: BoxDecoration(
@@ -274,7 +292,7 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                           end: Alignment.bottomCenter,
                                           colors: [
                                             Colors.transparent,
-                                            Colors.black.withOpacity(0.4),
+                                            Colors.black.withValues(alpha: 0.4),
                                           ],
                                         ),
                                       ),
@@ -286,16 +304,20 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.all(16),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.primaryBrown.withOpacity(0.9),
-                                                borderRadius: BorderRadius.circular(12),
+                                                color: AppColors.primaryBrown
+                                                    .withValues(alpha: 0.9),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -311,7 +333,8 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                                     style: const TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ],
@@ -330,7 +353,9 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
                                             Text(
                                               'Tap to zoom and see backdrop details',
                                               style: TextStyle(
-                                                color: Colors.white.withOpacity(0.9),
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.9,
+                                                ),
                                                 fontSize: 12,
                                               ),
                                             ),

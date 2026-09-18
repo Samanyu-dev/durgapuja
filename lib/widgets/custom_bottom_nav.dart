@@ -31,7 +31,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
         color: AppColors.backgroundCream,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -69,7 +69,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          "Unable to start listening",
+                          'Unable to start listening',
                           style: TextStyle(color: Colors.white),
                         ),
                         backgroundColor: Colors.red,
@@ -84,7 +84,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("Listening..."),
+                      content: Text('Listening...'),
                       behavior: SnackBarBehavior.floating,
                       duration: Duration(seconds: 2),
                     ),
@@ -96,13 +96,13 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                 setState(() {
                   _isListening = false;
                 });
-                debugPrint("Bangla Text: $banglaText");
+                debugPrint('Bangla Text: $banglaText');
 
                 if (banglaText.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                        "Recording unsuccessful, please try again",
+                        'Recording unsuccessful, please try again',
                         style: TextStyle(color: Colors.white),
                       ),
                       backgroundColor: Colors.red,
@@ -114,23 +114,23 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                 }
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text(
-                      "Recorded successfully",
+                  const SnackBar(
+                    content: Text(
+                      'Recorded successfully',
                       style: TextStyle(color: Colors.white),
                     ),
                     backgroundColor: Colors.red,
                     behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
+                    duration: Duration(seconds: 2),
                   ),
                 );
 
-                String englishText = await _translationService
+                final String englishText = await _translationService
                     .translateToEnglish(banglaText);
-                debugPrint("English Text: $englishText");
+                debugPrint('English Text: $englishText');
 
                 final gptJson = await GPTService.sendToGPT(englishText);
-                debugPrint("GPT JSON:");
+                debugPrint('GPT JSON:');
                 debugPrint(gptJson.toString());
 
                 final confirmed = await _showGptConfirmationDialog(
@@ -157,7 +157,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -215,7 +215,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isActive
-                    ? AppColors.primaryBrown.withOpacity(0.1)
+                    ? AppColors.primaryBrown.withValues(alpha: 0.1)
                     : Colors.transparent,
                 border: Border.all(
                   color: isActive ? AppColors.primaryBrown : Colors.transparent,
@@ -279,7 +279,7 @@ Future<bool> _showGptConfirmationDialog(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "$label: ",
+            '$label: ',
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
@@ -326,7 +326,7 @@ Future<bool> _showGptConfirmationDialog(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "🗣 Bengali Text",
+                      '🗣 Bengali Text',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -351,7 +351,7 @@ Future<bool> _showGptConfirmationDialog(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "🌍 English Text",
+                      '🌍 English Text',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -385,7 +385,7 @@ Future<bool> _showGptConfirmationDialog(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        "Classified Result",
+                        'Classified Result',
                         style: TextStyle(
                           color: Color(0xFF8B4513),
                           fontWeight: FontWeight.w600,
@@ -393,17 +393,17 @@ Future<bool> _showGptConfirmationDialog(
                       ),
                     ),
                     const SizedBox(height: 10),
-                    if (intent != null) buildField("Intent", asString(intent)),
-                    if (name != null) buildField("Name", asString(name)),
-                    if (amount != null) buildField("Amount", asString(amount)),
+                    if (intent != null) buildField('Intent', asString(intent)),
+                    if (name != null) buildField('Name', asString(name)),
+                    if (amount != null) buildField('Amount', asString(amount)),
                     if (category != null)
-                      buildField("Category", asString(category)),
+                      buildField('Category', asString(category)),
                     if (workerType != null)
-                      buildField("Worker Type", asString(workerType)),
+                      buildField('Worker Type', asString(workerType)),
                     if (idolType != null)
-                      buildField("Idol Type", asString(idolType)),
+                      buildField('Idol Type', asString(idolType)),
                     if (confidence != null)
-                      buildField("Confidence", asString(confidence)),
+                      buildField('Confidence', asString(confidence)),
                     if (otherFields.isNotEmpty) const SizedBox(height: 8),
                     ...otherFields,
                   ],
@@ -415,11 +415,11 @@ Future<bool> _showGptConfirmationDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("❌ NO, DISCARD"),
+            child: const Text('❌ NO, DISCARD'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("✅ YES, THIS IS CORRECT"),
+            child: const Text('✅ YES, THIS IS CORRECT'),
           ),
         ],
       );

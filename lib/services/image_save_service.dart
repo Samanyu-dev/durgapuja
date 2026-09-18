@@ -23,7 +23,11 @@ class ImageSaveService {
         }
       }
 
-      await Gal.putImageBytes(bytes, name: imageName, album: 'Durga Idol Maker');
+      await Gal.putImageBytes(
+        bytes,
+        name: imageName,
+        album: 'Durga Idol Maker',
+      );
       return true;
     } catch (e) {
       debugPrint('Save to gallery failed: $e');
@@ -32,7 +36,11 @@ class ImageSaveService {
   }
 
   /// Uploads image to Firebase Storage
-  Future<String> uploadToCloud(String imageUrl, String userId, String imageName) async {
+  Future<String> uploadToCloud(
+    String imageUrl,
+    String userId,
+    String imageName,
+  ) async {
     try {
       // Download image
       final http.Response response = await http.get(Uri.parse(imageUrl));
@@ -41,7 +49,8 @@ class ImageSaveService {
       }
 
       // Create storage reference
-      final fileName = '$userId/${imageName}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          '$userId/${imageName}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = _storage.ref().child('designs/$fileName');
 
       // Upload file
@@ -64,7 +73,9 @@ class ImageSaveService {
       if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
         final bytes = await _readBytes(imageUrl);
         final directory = await getTemporaryDirectory();
-        final file = File('${directory.path}/share_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final file = File(
+          '${directory.path}/share_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
         await file.writeAsBytes(bytes);
         await SharePlus.instance.share(
           ShareParams(text: message, files: [XFile(file.path)]),
@@ -87,7 +98,8 @@ class ImageSaveService {
 
       // Create temporary file
       final directory = Directory.systemTemp;
-      final fileName = 'edit_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          'edit_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
 

@@ -13,7 +13,7 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   String _selectedTimeframe =
-      "Last 6 months"; // Last 6 months, Last year, All years
+      'Last 6 months'; // Last 6 months, Last year, All years
   double _totalIncome = 0.0;
   double _totalExpenses = 0.0;
   double get _totalProfit => _totalIncome - _totalExpenses;
@@ -44,15 +44,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _undoTransaction(int id) async {
     try {
       await DatabaseService.deleteTransaction(id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction undone')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Transaction undone')));
       await _loadFinanceData();
       await _loadTransactions();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to undo transaction: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to undo transaction: $e')));
     }
   }
 
@@ -60,8 +60,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final date = DateTime.tryParse(value?.toString() ?? '');
     if (date == null) return '';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
@@ -73,7 +83,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
     String result = '';
     for (int i = amountStr.length - 1; i >= 0; i--) {
-      int position = amountStr.length - 1 - i;
+      final int position = amountStr.length - 1 - i;
       if (position == 3 || (position > 3 && (position - 3) % 2 == 0)) {
         result = ',$result';
       }
@@ -94,7 +104,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               // Title
               const Text(
-                "Profits",
+                'Profits',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -118,7 +128,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Total Income",
+                            'Total Income',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
@@ -126,7 +136,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "₹${_formatCurrency(_totalIncome)}",
+                            '₹${_formatCurrency(_totalIncome)}',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -149,7 +159,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Total Expenses",
+                            'Total Expenses',
                             style: TextStyle(
                               fontSize: 14,
                               color: AppColors.textLight,
@@ -157,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "₹${_formatCurrency(_totalExpenses)}",
+                            '₹${_formatCurrency(_totalExpenses)}',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -185,7 +195,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Total profit",
+                      'Total profit',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textLight,
@@ -193,7 +203,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "₹${_formatCurrency(_totalProfit)}",
+                      '₹${_formatCurrency(_totalProfit)}',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -208,7 +218,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
               // Project Profits Section
               const Text(
-                "Project Profits",
+                'Project Profits',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -221,11 +231,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
               // Time Filter Buttons
               Row(
                 children: [
-                  Expanded(child: _buildTimeFilterButton("Last 6 months")),
+                  Expanded(child: _buildTimeFilterButton('Last 6 months')),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildTimeFilterButton("Last year")),
+                  Expanded(child: _buildTimeFilterButton('Last year')),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildTimeFilterButton("All years")),
+                  Expanded(child: _buildTimeFilterButton('All years')),
                 ],
               ),
 
@@ -259,7 +269,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
               // Material Expenses Section
               const Text(
-                "Material Expenses",
+                'Material Expenses',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -279,28 +289,28 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 child: Column(
                   children: [
                     _buildBarChartItem(
-                      "Clay",
+                      'Clay',
                       125000,
                       AppColors.primaryBrown,
                       barWidth: 1.0,
                     ),
                     const SizedBox(height: 20),
                     _buildBarChartItem(
-                      "Ornaments",
+                      'Ornaments',
                       25000,
                       AppColors.accentOrange,
                       barWidth: 0.25,
                     ),
                     const SizedBox(height: 20),
                     _buildBarChartItem(
-                      "Paint",
+                      'Paint',
                       40000,
                       AppColors.primaryBrown,
                       barWidth: 0.40,
                     ),
                     const SizedBox(height: 20),
                     _buildBarChartItem(
-                      "Clothes",
+                      'Clothes',
                       45000,
                       AppColors.primaryBrown,
                       barWidth: 0.45,
@@ -313,7 +323,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
               // Transactions Section
               const Text(
-                "Transactions",
+                'Transactions',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -335,7 +345,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
               else
                 for (final transaction in _transactions) ...[
                   _buildTransactionItem(
-                    (transaction['source_text'] as String?)?.trim().isNotEmpty == true
+                    (transaction['source_text'] as String?)
+                                ?.trim()
+                                .isNotEmpty ==
+                            true
                         ? transaction['source_text'] as String
                         : (transaction['category'] as String? ?? 'Transaction'),
                     _formatTransactionDate(transaction['created_at']),
@@ -352,7 +365,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
               // Detailed Reports Section
               const Text(
-                "Detailed Reports",
+                'Detailed Reports',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -363,9 +376,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(height: 15),
 
               // Report List Items
-              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+              _buildReportItem('Durga Puja Idols', '+₹16,000', Colors.green),
               const SizedBox(height: 12),
-              _buildReportItem("Durga Puja Idols", "+₹16,000", Colors.green),
+              _buildReportItem('Durga Puja Idols', '+₹16,000', Colors.green),
 
               const SizedBox(height: 100),
             ],
@@ -439,7 +452,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Container(
               height: 30,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.3),
+                color: color.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               width: double.infinity,
@@ -475,11 +488,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   int _getMaxValueForTimeframe() {
     switch (_selectedTimeframe) {
-      case "Last 6 months":
+      case 'Last 6 months':
         return 125000;
-      case "Last year":
+      case 'Last year':
         return 300000;
-      case "All years":
+      case 'All years':
         return 500000;
       default:
         return 125000;
@@ -488,33 +501,113 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   List<Map<String, dynamic>> _getProjectProfitsData() {
     switch (_selectedTimeframe) {
-      case "Last 6 months":
+      case 'Last 6 months':
         return [
-          {'name': 'Saraswati P.', 'value': 125000, 'color': AppColors.primaryBrown, 'selected': false},
-          {'name': 'Durga P.', 'value': 25000, 'color': AppColors.accentOrange, 'selected': false},
-          {'name': 'Ganesha P.', 'value': 40000, 'color': AppColors.primaryBrown, 'selected': true},
-          {'name': 'Diwali', 'value': 45000, 'color': AppColors.primaryBrown, 'selected': false},
+          {
+            'name': 'Saraswati P.',
+            'value': 125000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
+          {
+            'name': 'Durga P.',
+            'value': 25000,
+            'color': AppColors.accentOrange,
+            'selected': false,
+          },
+          {
+            'name': 'Ganesha P.',
+            'value': 40000,
+            'color': AppColors.primaryBrown,
+            'selected': true,
+          },
+          {
+            'name': 'Diwali',
+            'value': 45000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
         ];
-      case "Last year":
+      case 'Last year':
         return [
-          {'name': 'Saraswati P.', 'value': 280000, 'color': AppColors.primaryBrown, 'selected': false},
-          {'name': 'Durga P.', 'value': 120000, 'color': AppColors.accentOrange, 'selected': false},
-          {'name': 'Ganesha P.', 'value': 95000, 'color': AppColors.primaryBrown, 'selected': true},
-          {'name': 'Diwali', 'value': 110000, 'color': AppColors.primaryBrown, 'selected': false},
+          {
+            'name': 'Saraswati P.',
+            'value': 280000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
+          {
+            'name': 'Durga P.',
+            'value': 120000,
+            'color': AppColors.accentOrange,
+            'selected': false,
+          },
+          {
+            'name': 'Ganesha P.',
+            'value': 95000,
+            'color': AppColors.primaryBrown,
+            'selected': true,
+          },
+          {
+            'name': 'Diwali',
+            'value': 110000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
         ];
-      case "All years":
+      case 'All years':
         return [
-          {'name': 'Saraswati P.', 'value': 450000, 'color': AppColors.primaryBrown, 'selected': false},
-          {'name': 'Durga P.', 'value': 320000, 'color': AppColors.accentOrange, 'selected': false},
-          {'name': 'Ganesha P.', 'value': 280000, 'color': AppColors.primaryBrown, 'selected': true},
-          {'name': 'Diwali', 'value': 350000, 'color': AppColors.primaryBrown, 'selected': false},
+          {
+            'name': 'Saraswati P.',
+            'value': 450000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
+          {
+            'name': 'Durga P.',
+            'value': 320000,
+            'color': AppColors.accentOrange,
+            'selected': false,
+          },
+          {
+            'name': 'Ganesha P.',
+            'value': 280000,
+            'color': AppColors.primaryBrown,
+            'selected': true,
+          },
+          {
+            'name': 'Diwali',
+            'value': 350000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
         ];
       default:
         return [
-          {'name': 'Saraswati P.', 'value': 125000, 'color': AppColors.primaryBrown, 'selected': false},
-          {'name': 'Durga P.', 'value': 25000, 'color': AppColors.accentOrange, 'selected': false},
-          {'name': 'Ganesha P.', 'value': 40000, 'color': AppColors.primaryBrown, 'selected': true},
-          {'name': 'Diwali', 'value': 45000, 'color': AppColors.primaryBrown, 'selected': false},
+          {
+            'name': 'Saraswati P.',
+            'value': 125000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
+          {
+            'name': 'Durga P.',
+            'value': 25000,
+            'color': AppColors.accentOrange,
+            'selected': false,
+          },
+          {
+            'name': 'Ganesha P.',
+            'value': 40000,
+            'color': AppColors.primaryBrown,
+            'selected': true,
+          },
+          {
+            'name': 'Diwali',
+            'value': 45000,
+            'color': AppColors.primaryBrown,
+            'selected': false,
+          },
         ];
     }
   }
@@ -632,18 +725,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // Format as Indian numbering system: 1,25,000 (last 3 digits, then groups of 2)
     final String valueStr = value.toString();
     if (valueStr.length <= 3) {
-      return "₹$valueStr";
+      return '₹$valueStr';
     }
 
-    List<String> parts = [];
+    final List<String> parts = [];
     // Take last 3 digits
     if (valueStr.length > 3) {
       parts.add(valueStr.substring(valueStr.length - 3));
       // Take remaining digits in groups of 2 from right
-      int remaining = valueStr.length - 3;
+      final int remaining = valueStr.length - 3;
       for (int i = remaining - 2; i >= 0; i -= 2) {
-        int start = i < 0 ? 0 : i;
-        int end = i + 2 > remaining ? remaining : i + 2;
+        final int start = i < 0 ? 0 : i;
+        final int end = i + 2 > remaining ? remaining : i + 2;
         parts.insert(0, valueStr.substring(start, end));
       }
     } else {

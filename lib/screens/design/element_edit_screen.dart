@@ -13,10 +13,7 @@ import '../../widgets/smart_image.dart';
 class ElementEditScreen extends StatefulWidget {
   final GeneratedImage originalImage;
 
-  const ElementEditScreen({
-    Key? key,
-    required this.originalImage,
-  }) : super(key: key);
+  const ElementEditScreen({super.key, required this.originalImage});
 
   @override
   State<ElementEditScreen> createState() => _ElementEditScreenState();
@@ -24,10 +21,11 @@ class ElementEditScreen extends StatefulWidget {
 
 class _ElementEditScreenState extends State<ElementEditScreen> {
   final ElementEditService _editService = ElementEditService();
-      final IntegratedSpeechService _speechService = IntegratedSpeechService();
+  final IntegratedSpeechService _speechService = IntegratedSpeechService();
 
   ElementType _selectedElement = ElementType.face;
-  final TextEditingController _editDescriptionController = TextEditingController();
+  final TextEditingController _editDescriptionController =
+      TextEditingController();
   bool _isEditing = false;
   bool _isListening = false;
   GeneratedImage? _editedImage;
@@ -50,16 +48,16 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
     try {
       final recognizedText = await _speechService.listenBangla();
-      
+
       if (recognizedText.isNotEmpty) {
         setState(() {
           _editDescriptionController.text = recognizedText;
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice input failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Voice input failed: $e')));
     } finally {
       setState(() {
         _isListening = false;
@@ -73,9 +71,9 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
       // Note: stopListening() just stops recording, it doesn't return text
       // The text is captured in startVoiceInput() when listenBangla() completes
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to stop voice input: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to stop voice input: $e')));
     } finally {
       setState(() {
         _isListening = false;
@@ -85,7 +83,7 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
 
   Future<void> _applyElementEdit() async {
     final description = _editDescriptionController.text.trim();
-    
+
     if (!_editService.validateEditDescription(description)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid edit description')),
@@ -117,9 +115,9 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
       setState(() {
         _isEditing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to edit element: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to edit element: $e')));
     }
   }
 
@@ -135,7 +133,9 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
     try {
       await DatabaseService.insertConcept(
         id: image.id,
-        title: image.prompt.isNotEmpty ? image.prompt.split('\n').first : 'Edited design',
+        title: image.prompt.isNotEmpty
+            ? image.prompt.split('\n').first
+            : 'Edited design',
         imageUrl: image.url,
         theme: 'Traditional',
         prompt: image.prompt,
@@ -146,9 +146,9 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save image: $e')));
     }
   }
 
@@ -176,410 +176,430 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // Original Image
-            Text(
-              'Original Design',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeLarge,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                child: SmartImage(
-                  widget.originalImage.url,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: AppColors.cardCream,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryBrown,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: AppColors.cardCream,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 48,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                    );
-                  },
+              // Original Image
+              const Text(
+                'Original Design',
+                style: TextStyle(
+                  fontSize: AppConstants.fontSizeLarge,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
                 ),
               ),
-            ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            // Element Selection
-            Text(
-              'Select Element to Edit',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeLarge,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: ElementType.values.map((element) {
-                final isSelected = _selectedElement == element;
-                return FilterChip(
-                  label: Text(element.displayName),
-                  selected: isSelected,
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      setState(() {
-                        _selectedElement = element;
-                      });
-                    }
-                  },
-                  selectedColor: AppColors.primaryBrown,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textDark,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.primaryBrown : AppColors.textLight,
+              const SizedBox(height: 8),
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            // Edit Description
-            Text(
-              'Edit Description',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeLarge,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _editService.getElementGuidance(_selectedElement),
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeBody,
-                color: AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _editDescriptionController,
-                      maxLines: 3,
-                      style: const TextStyle(fontSize: 16),
-                      decoration: InputDecoration(
-                        hintText: 'Describe what you want to change...',
-                        hintStyle: TextStyle(color: AppColors.textLight),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  VoiceInputButton(
-                    onPressed: _startVoiceInput,
-                    isListening: _isListening,
-                  ),
-                  const SizedBox(width: 8),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            // Example Prompts
-            Text(
-              'Example Prompts',
-              style: TextStyle(
-                fontSize: AppConstants.fontSizeMedium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _editService.getExamplePrompts(_selectedElement).map((prompt) {
-                return ActionChip(
-                  label: Text(
-                    prompt,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  onPressed: () => _selectExamplePrompt(prompt),
-                  backgroundColor: AppColors.cardCream,
-                  labelStyle: TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 12,
-                  ),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: AppConstants.largePadding),
-
-            // Edit Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isEditing ? null : _applyElementEdit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accentOrange,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                  ),
+                  ],
                 ),
-                child: _isEditing
-                    ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                  child: SmartImage(
+                    widget.originalImage.url,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: AppColors.cardCream,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryBrown,
                           ),
-                          SizedBox(width: 12),
-                          Text('Editing Element...'),
-                        ],
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.edit),
-                          SizedBox(width: 8),
-                          Text('Apply Element Edit'),
-                        ],
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Tap-to-Edit Button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  context.push('/design/tap-to-edit/image/${widget.originalImage.id}', 
-                    extra: widget.originalImage);
-                },
-                icon: const Icon(Icons.touch_app),
-                label: const Text('Try Tap-to-Edit'),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.primaryBrown),
-                  foregroundColor: AppColors.primaryBrown,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.cardCream,
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-            ),
 
-            // Status Section
-            if (_isEditing)
               const SizedBox(height: AppConstants.largePadding),
 
-            if (_isEditing)
+              // Element Selection
+              const Text(
+                'Select Element to Edit',
+                style: TextStyle(
+                  fontSize: AppConstants.fontSizeLarge,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ElementType.values.map((element) {
+                  final isSelected = _selectedElement == element;
+                  return FilterChip(
+                    label: Text(element.displayName),
+                    selected: isSelected,
+                    onSelected: (bool selected) {
+                      if (selected) {
+                        setState(() {
+                          _selectedElement = element;
+                        });
+                      }
+                    },
+                    selectedColor: AppColors.primaryBrown,
+                    backgroundColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : AppColors.textDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.primaryBrown
+                            : AppColors.textLight,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: AppConstants.largePadding),
+
+              // Edit Description
+              const Text(
+                'Edit Description',
+                style: TextStyle(
+                  fontSize: AppConstants.fontSizeLarge,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _editService.getElementGuidance(_selectedElement),
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeBody,
+                  color: AppColors.textLight,
+                ),
+              ),
+              const SizedBox(height: 16),
+
               Container(
-                padding: const EdgeInsets.all(AppConstants.mediumPadding),
                 decoration: BoxDecoration(
-                  color: AppColors.cardCream,
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Editing ${element?.type.displayName ?? 'Element'}...',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeMedium,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'AI is modifying the selected element while preserving the rest of your design',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeSmall,
-                              color: AppColors.textLight,
-                            ),
-                          ),
-                        ],
+                      child: TextField(
+                        controller: _editDescriptionController,
+                        maxLines: 3,
+                        style: const TextStyle(fontSize: 16),
+                        decoration: const InputDecoration(
+                          hintText: 'Describe what you want to change...',
+                          hintStyle: TextStyle(color: AppColors.textLight),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(16),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    VoiceInputButton(
+                      onPressed: _startVoiceInput,
+                      isListening: _isListening,
+                    ),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ),
 
-            // Edited Image
-            if (_editedImage != null)
               const SizedBox(height: AppConstants.largePadding),
 
-            if (_editedImage != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Edited Design',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeLarge,
-                      fontWeight: FontWeight.w600,
+              // Example Prompts
+              const Text(
+                'Example Prompts',
+                style: TextStyle(
+                  fontSize: AppConstants.fontSizeMedium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _editService.getExamplePrompts(_selectedElement).map((
+                  prompt,
+                ) {
+                  return ActionChip(
+                    label: Text(prompt, style: const TextStyle(fontSize: 12)),
+                    onPressed: () => _selectExamplePrompt(prompt),
+                    backgroundColor: AppColors.cardCream,
+                    labelStyle: const TextStyle(
                       color: AppColors.textDark,
+                      fontSize: 12,
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: AppConstants.largePadding),
+
+              // Edit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isEditing ? null : _applyElementEdit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentOrange,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                      child: SmartImage(
-                        _editedImage!.url,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: AppColors.cardCream,
-                            child: const Center(
+                  child: _isEditing
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
-                                color: AppColors.primaryBrown,
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.cardCream,
-                            child: const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                size: 48,
+                            SizedBox(width: 12),
+                            Text('Editing Element...'),
+                          ],
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.edit),
+                            SizedBox(width: 8),
+                            Text('Apply Element Edit'),
+                          ],
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Tap-to-Edit Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    context.push(
+                      '/design/tap-to-edit/image/${widget.originalImage.id}',
+                      extra: widget.originalImage,
+                    );
+                  },
+                  icon: const Icon(Icons.touch_app),
+                  label: const Text('Try Tap-to-Edit'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primaryBrown),
+                    foregroundColor: AppColors.primaryBrown,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Status Section
+              if (_isEditing) const SizedBox(height: AppConstants.largePadding),
+
+              if (_isEditing)
+                Container(
+                  padding: const EdgeInsets.all(AppConstants.mediumPadding),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardCream,
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.accentOrange,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Editing ${element?.type.displayName ?? 'Element'}...',
+                              style: const TextStyle(
+                                fontSize: AppConstants.fontSizeMedium,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'AI is modifying the selected element while preserving the rest of your design',
+                              style: TextStyle(
+                                fontSize: AppConstants.fontSizeSmall,
                                 color: AppColors.textLight,
                               ),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _saveEditedImage(),
-                          icon: const Icon(Icons.save),
-                          label: const Text('Save'),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.accentOrange),
-                            foregroundColor: AppColors.accentOrange,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Continue editing
-                            setState(() {
-                              _editedImage = null;
-                              _editDescriptionController.clear();
-                            });
-                          },
-                          icon: const Icon(Icons.edit),
-                          label: const Text('Edit More'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryBrown,
-                            foregroundColor: Colors.white,
-                          ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-          ],
+                ),
+
+              // Edited Image
+              if (_editedImage != null)
+                const SizedBox(height: AppConstants.largePadding),
+
+              if (_editedImage != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Edited Design',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeLarge,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.largeRadius,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.largeRadius,
+                        ),
+                        child: SmartImage(
+                          _editedImage!.url,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: AppColors.cardCream,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primaryBrown,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: AppColors.cardCream,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  size: 48,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _saveEditedImage(),
+                            icon: const Icon(Icons.save),
+                            label: const Text('Save'),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: AppColors.accentOrange,
+                              ),
+                              foregroundColor: AppColors.accentOrange,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // Continue editing
+                              setState(() {
+                                _editedImage = null;
+                                _editDescriptionController.clear();
+                              });
+                            },
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Edit More'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBrown,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
-    )
     );
   }
 }

@@ -46,7 +46,8 @@ class ClientOptionsScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => SendUpdateScreen(clientId: clientName),
+                          builder: (_) =>
+                              SendUpdateScreen(clientId: clientName),
                         ),
                       );
                     },
@@ -63,7 +64,7 @@ class ClientOptionsScreen extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Options",
+                  'Options',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -101,7 +102,7 @@ class ClientOptionsScreen extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        "View Details",
+                        'View Details',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white,
@@ -135,7 +136,7 @@ class ClientOptionsScreen extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        "Add Payment",
+                        'Add Payment',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.primaryBrown,
@@ -155,7 +156,8 @@ class ClientOptionsScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => DeliveryDatesScreen(clientId: clientName),
+                            builder: (_) =>
+                                DeliveryDatesScreen(clientId: clientName),
                           ),
                         );
                       },
@@ -170,10 +172,14 @@ class ClientOptionsScreen extends StatelessWidget {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.local_shipping_outlined, color: Colors.green, size: 20),
+                          Icon(
+                            Icons.local_shipping_outlined,
+                            color: Colors.green,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Text(
-                            "Manage Delivery",
+                            'Manage Delivery',
                             style: TextStyle(
                               fontSize: 16,
                               color: AppColors.primaryBrown,

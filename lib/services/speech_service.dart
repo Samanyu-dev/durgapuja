@@ -6,7 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 class SpeechService {
   final SpeechToText _speechToText = SpeechToText();
   bool _isListening = false;
-  
+
   // Callbacks for UI updates
   ValueChanged<String>? onSpeechResult;
   ValueChanged<bool>? onRecordingStateChanged;
@@ -23,7 +23,7 @@ class SpeechService {
         debugPrint('Speech recognition status: $status');
       },
     );
-    
+
     if (!hasSpeech) {
       throw Exception('Speech recognition not available');
     }
@@ -32,7 +32,7 @@ class SpeechService {
   /// Start listening for speech
   Future<void> startListening({String? locale}) async {
     if (_isListening) return;
-    
+
     try {
       _isListening = true;
       if (onRecordingStateChanged != null) {
@@ -51,7 +51,6 @@ class SpeechService {
         listenFor: const Duration(seconds: 10),
         pauseFor: const Duration(seconds: 3),
       );
-      
     } catch (e) {
       _isListening = false;
       if (onRecordingStateChanged != null) {
@@ -64,7 +63,7 @@ class SpeechService {
   /// Stop listening
   Future<void> stopListening() async {
     if (!_isListening) return;
-    
+
     try {
       _isListening = false;
       if (onRecordingStateChanged != null) {
@@ -72,7 +71,6 @@ class SpeechService {
       }
 
       await _speechToText.stop();
-      
     } catch (e) {
       _isListening = false;
       if (onRecordingStateChanged != null) {
@@ -87,20 +85,21 @@ class SpeechService {
     if (_isListening) {
       await stopListening();
     }
-    
+
     final completer = Completer<String>();
+    // ignore: unused_local_variable
     String recognizedText = '';
-    
+
     // Set up the result callback
     final originalCallback = onSpeechResult;
     onSpeechResult = (text) {
       recognizedText = text;
       completer.complete(text);
     };
-    
+
     try {
       await startListening(locale: 'bn-BD');
-      
+
       // Wait for result or timeout
       final result = await completer.future.timeout(
         const Duration(seconds: 15),
@@ -109,7 +108,7 @@ class SpeechService {
           return '';
         },
       );
-      
+
       return result;
     } catch (e) {
       return '';
@@ -127,7 +126,7 @@ class SpeechService {
   Future<bool> isAvailable() async {
     return await _speechToText.initialize();
   }
-  
+
   /// Get available locales
   Future<List<String>> getAvailableLocales() async {
     try {
@@ -137,15 +136,17 @@ class SpeechService {
       return ['en-US', 'bn-BD'];
     }
   }
-  
+
   /// Get current locale
   Future<String> getCurrentLocale() async {
     try {
       final locales = await _speechToText.locales();
-      return locales.firstWhere(
-        (locale) => locale.localeId == 'bn-BD',
-        orElse: () => locales.first,
-      ).localeId;
+      return locales
+          .firstWhere(
+            (locale) => locale.localeId == 'bn-BD',
+            orElse: () => locales.first,
+          )
+          .localeId;
     } catch (e) {
       return 'bn-BD';
     }

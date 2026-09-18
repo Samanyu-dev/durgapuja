@@ -12,8 +12,9 @@ class FinanceProcessor {
     final intent = gptJson['intent'] as String?;
     final amount = (gptJson['amount'] as num?)?.toDouble() ?? 0.0;
     final categoryRaw = gptJson['category'];
-    final category =
-        (categoryRaw is String && categoryRaw.isNotEmpty) ? categoryRaw : 'other';
+    final category = (categoryRaw is String && categoryRaw.isNotEmpty)
+        ? categoryRaw
+        : 'other';
 
     if (amount <= 0) return;
     if (intent == null || intent == 'unknown') return;
@@ -58,7 +59,8 @@ class FinanceProcessor {
       // Map idol_type to database format
       String idolType = 'Unknown';
       if (idolTypeRaw != null && idolTypeRaw.toLowerCase() != 'unknown') {
-        idolType = idolTypeRaw.substring(0, 1).toUpperCase() +
+        idolType =
+            idolTypeRaw.substring(0, 1).toUpperCase() +
             idolTypeRaw.substring(1).toLowerCase();
       }
 
@@ -174,4 +176,3 @@ class FinanceProcessor {
     }
   }
 }
-

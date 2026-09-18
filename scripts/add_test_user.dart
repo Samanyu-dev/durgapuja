@@ -1,13 +1,13 @@
+// ignore_for_file: avoid_print
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../lib/firebase_options.dart';
-import '../lib/models/user.dart';
+import 'package:durgapuja/firebase_options.dart';
+import 'package:durgapuja/models/user.dart';
 
 Future<void> main() async {
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Test user data
   final testUser = UserModel(
@@ -39,7 +39,6 @@ Future<void> main() async {
     print('3. Enter phone: 9000012025');
     print('4. Enter password: 123456');
     print('5. Access admin dashboard at /admin');
-
   } catch (e) {
     print('❌ Error adding test user: $e');
 

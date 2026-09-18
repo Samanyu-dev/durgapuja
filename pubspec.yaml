@@ -60,6 +60,8 @@ dependencies:
   gal: ^2.3.3
   share_plus: ^13.3.0
 
+  path: any
+  http_parser: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

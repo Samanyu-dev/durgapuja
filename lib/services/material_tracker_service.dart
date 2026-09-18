@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'database_service.dart';
 
 class MaterialTrackerService {
@@ -72,30 +70,24 @@ class MaterialTrackerService {
   }) async {
     final db = await _db();
 
-    final result = await db.insert(
-      _materialsTableName,
-      {
-        'name': name,
-        'category': category,
-        'unit': unit,
-        'current_rate': currentRate,
-        'min_rate': minRate,
-        'max_rate': maxRate,
-        'last_updated': DateTime.now().toIso8601String(),
-        'supplier': supplier,
-      },
-    );
+    final result = await db.insert(_materialsTableName, {
+      'name': name,
+      'category': category,
+      'unit': unit,
+      'current_rate': currentRate,
+      'min_rate': minRate,
+      'max_rate': maxRate,
+      'last_updated': DateTime.now().toIso8601String(),
+      'supplier': supplier,
+    });
 
     // Add to price history
-    await db.insert(
-      _priceHistoryTableName,
-      {
-        'material_id': result,
-        'rate': currentRate,
-        'date': DateTime.now().toIso8601String(),
-        'source': 'Manual Entry',
-      },
-    );
+    await db.insert(_priceHistoryTableName, {
+      'material_id': result,
+      'rate': currentRate,
+      'date': DateTime.now().toIso8601String(),
+      'source': 'Manual Entry',
+    });
   }
 
   static Future<void> updateMaterial({
@@ -123,20 +115,17 @@ class MaterialTrackerService {
     );
 
     // Add to price history
-    await db.insert(
-      _priceHistoryTableName,
-      {
-        'material_id': materialId,
-        'rate': currentRate,
-        'date': DateTime.now().toIso8601String(),
-        'source': 'Manual Update',
-      },
-    );
+    await db.insert(_priceHistoryTableName, {
+      'material_id': materialId,
+      'rate': currentRate,
+      'date': DateTime.now().toIso8601String(),
+      'source': 'Manual Update',
+    });
   }
 
   static Future<void> updateMaterialRate(int materialId, double newRate) async {
     final db = await _db();
-    
+
     await db.update(
       _materialsTableName,
       {
@@ -148,15 +137,12 @@ class MaterialTrackerService {
     );
 
     // Add to price history
-    await db.insert(
-      _priceHistoryTableName,
-      {
-        'material_id': materialId,
-        'rate': newRate,
-        'date': DateTime.now().toIso8601String(),
-        'source': 'Manual Update',
-      },
-    );
+    await db.insert(_priceHistoryTableName, {
+      'material_id': materialId,
+      'rate': newRate,
+      'date': DateTime.now().toIso8601String(),
+      'source': 'Manual Update',
+    });
   }
 
   static Future<void> recordMaterialUsage({
@@ -167,7 +153,7 @@ class MaterialTrackerService {
     String? description,
   }) async {
     final db = await _db();
-    
+
     // Get current rate
     final materialResult = await db.query(
       _materialsTableName,
@@ -180,18 +166,15 @@ class MaterialTrackerService {
     final currentRate = materialResult.first['current_rate'] as double;
     final totalCost = quantity * currentRate;
 
-    await db.insert(
-      _materialUsageTableName,
-      {
-        'material_id': materialId,
-        'quantity': quantity,
-        'unit_cost': currentRate,
-        'total_cost': totalCost,
-        'project_id': projectId,
-        'date': DateTime.now().toIso8601String(),
-        'description': description,
-      },
-    );
+    await db.insert(_materialUsageTableName, {
+      'material_id': materialId,
+      'quantity': quantity,
+      'unit_cost': currentRate,
+      'total_cost': totalCost,
+      'project_id': projectId,
+      'date': DateTime.now().toIso8601String(),
+      'description': description,
+    });
   }
 
   static Future<List<Map<String, dynamic>>> getMaterials() async {
@@ -200,7 +183,9 @@ class MaterialTrackerService {
     return result;
   }
 
-  static Future<List<Map<String, dynamic>>> getPriceHistory(int materialId) async {
+  static Future<List<Map<String, dynamic>>> getPriceHistory(
+    int materialId,
+  ) async {
     final db = await _db();
     final result = await db.query(
       _priceHistoryTableName,
@@ -211,7 +196,9 @@ class MaterialTrackerService {
     return result;
   }
 
-  static Future<List<Map<String, dynamic>>> getMaterialUsage(int materialId) async {
+  static Future<List<Map<String, dynamic>>> getMaterialUsage(
+    int materialId,
+  ) async {
     final db = await _db();
     final result = await db.query(
       _materialUsageTableName,
@@ -224,18 +211,19 @@ class MaterialTrackerService {
 
   static Future<Map<String, dynamic>> getMaterialAnalytics() async {
     final db = await _db();
-    
+
     // Get total materials
     final totalMaterialsResult = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM $_materialsTableName'
+      'SELECT COUNT(*) as count FROM $_materialsTableName',
     );
     final totalMaterials = totalMaterialsResult.first['count'] as int;
 
     // Get total usage cost
     final totalUsageResult = await db.rawQuery(
-      'SELECT SUM(total_cost) as total FROM $_materialUsageTableName'
+      'SELECT SUM(total_cost) as total FROM $_materialUsageTableName',
     );
-    final totalUsageCost = (totalUsageResult.first['total'] as num?)?.toDouble() ?? 0.0;
+    final totalUsageCost =
+        (totalUsageResult.first['total'] as num?)?.toDouble() ?? 0.0;
 
     // Get most expensive material
     final expensiveMaterialResult = await db.rawQuery('''
@@ -244,8 +232,8 @@ class MaterialTrackerService {
       ORDER BY current_rate DESC 
       LIMIT 1
     ''');
-    final expensiveMaterial = expensiveMaterialResult.isNotEmpty 
-        ? expensiveMaterialResult.first['name'] as String 
+    final expensiveMaterial = expensiveMaterialResult.isNotEmpty
+        ? expensiveMaterialResult.first['name'] as String
         : 'N/A';
 
     // Get category-wise spending
@@ -267,11 +255,14 @@ class MaterialTrackerService {
 
   static Future<List<Map<String, dynamic>>> getTrendingMaterials() async {
     final db = await _db();
-    
+
     // Get materials with price changes in last 30 days
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30)).toIso8601String();
-    
-    final result = await db.rawQuery('''
+    final thirtyDaysAgo = DateTime.now()
+        .subtract(const Duration(days: 30))
+        .toIso8601String();
+
+    final result = await db.rawQuery(
+      '''
       SELECT m.name, m.category, m.current_rate, m.last_updated,
              ph.rate as previous_rate,
              ((m.current_rate - ph.rate) / ph.rate * 100) as change_percent
@@ -286,26 +277,28 @@ class MaterialTrackerService {
       )
       ORDER BY ABS(change_percent) DESC
       LIMIT 10
-    ''', [thirtyDaysAgo, thirtyDaysAgo]);
+    ''',
+      [thirtyDaysAgo, thirtyDaysAgo],
+    );
 
     return result;
   }
 
   static Future<void> deleteMaterial(int materialId) async {
     final db = await _db();
-    
+
     await db.delete(
       _materialsTableName,
       where: 'id = ?',
       whereArgs: [materialId],
     );
-    
+
     await db.delete(
       _priceHistoryTableName,
       where: 'material_id = ?',
       whereArgs: [materialId],
     );
-    
+
     await db.delete(
       _materialUsageTableName,
       where: 'material_id = ?',

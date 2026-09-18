@@ -41,16 +41,17 @@ class GeneratedImage {
 
   // Validation methods
   bool isValid() {
-    return id.isNotEmpty && 
-           url.isNotEmpty && 
-           prompt.isNotEmpty &&
-           createdAt.isBefore(DateTime.now().add(const Duration(hours: 1)));
+    return id.isNotEmpty &&
+        url.isNotEmpty &&
+        prompt.isNotEmpty &&
+        createdAt.isBefore(DateTime.now().add(const Duration(hours: 1)));
   }
 
   // Helper methods
   String getFormattedDate() {
     return createdAt.toLocal().toString().split(' ').first;
   }
-  
-  bool isRecent() => createdAt.isAfter(DateTime.now().subtract(const Duration(hours: 24)));
+
+  bool isRecent() =>
+      createdAt.isAfter(DateTime.now().subtract(const Duration(hours: 24)));
 }

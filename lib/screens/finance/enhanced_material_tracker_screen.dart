@@ -9,19 +9,21 @@ class EnhancedMaterialTrackerScreen extends StatefulWidget {
   const EnhancedMaterialTrackerScreen({super.key});
 
   @override
-  State<EnhancedMaterialTrackerScreen> createState() => _EnhancedMaterialTrackerScreenState();
+  State<EnhancedMaterialTrackerScreen> createState() =>
+      _EnhancedMaterialTrackerScreenState();
 }
 
-class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerScreen> {
+class _EnhancedMaterialTrackerScreenState
+    extends State<EnhancedMaterialTrackerScreen> {
   late Future<List<Map<String, dynamic>>> _materialsFuture;
   late Future<Map<String, dynamic>> _analyticsFuture;
   late Future<List<Map<String, dynamic>>> _trendingFuture;
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rateController = TextEditingController();
   final TextEditingController _supplierController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
-  
+
   String _selectedCategory = MaterialCategory.CLAY;
   String _selectedUnit = MaterialUnit.KG;
   bool _isLoading = false;
@@ -94,17 +96,19 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(editingId != null
-              ? 'Material updated successfully!'
-              : 'Material added successfully!'),
+          content: Text(
+            editingId != null
+                ? 'Material updated successfully!'
+                : 'Material added successfully!',
+          ),
         ),
       );
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving material: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving material: $e')));
     }
   }
 
@@ -121,9 +125,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
 
   Future<void> _recordUsage(int materialId, String materialName) async {
     if (_quantityController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter quantity')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter quantity')));
       return;
     }
 
@@ -148,7 +152,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
             onPressed: () async {
               Navigator.pop(context);
               setState(() => _isLoading = true);
-              
+
               try {
                 await MaterialTrackerService.recordMaterialUsage(
                   materialId: materialId,
@@ -156,7 +160,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                   unit: _selectedUnit,
                   description: 'Manual usage entry',
                 );
-                
+
                 _refreshData();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Usage recorded successfully!')),
@@ -181,7 +185,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Material'),
-        content: Text('Are you sure you want to delete $materialName? This will also delete all associated data.'),
+        content: Text(
+          'Are you sure you want to delete $materialName? This will also delete all associated data.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -191,12 +197,14 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
             onPressed: () async {
               Navigator.pop(context);
               setState(() => _isLoading = true);
-              
+
               try {
                 await MaterialTrackerService.deleteMaterial(materialId);
                 _refreshData();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Material deleted successfully!')),
+                  const SnackBar(
+                    content: Text('Material deleted successfully!'),
+                  ),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -260,7 +268,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
           // Loading Overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: const Center(
                 child: CircularProgressIndicator(color: AppColors.accentOrange),
               ),
@@ -289,7 +297,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
 
         return Column(
           children: [
-            Text(
+            const Text(
               'Material Analytics',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeLarge,
@@ -345,7 +353,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -360,7 +368,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
               const SizedBox(width: 8),
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: AppConstants.fontSizeSmall,
                   color: AppColors.textLight,
                 ),
@@ -370,7 +378,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeLarge,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -392,8 +400,10 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _editingMaterialId != null ? 'Edit Material' : 'Add New Material',
-                  style: TextStyle(
+                  _editingMaterialId != null
+                      ? 'Edit Material'
+                      : 'Add New Material',
+                  style: const TextStyle(
                     fontSize: AppConstants.fontSizeMedium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textDark,
@@ -443,14 +453,38 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                     label: 'Category',
                     value: _selectedCategory,
                     items: [
-                      DropdownMenuItem(value: 'Clay', child: Text('Clay')),
-                      DropdownMenuItem(value: 'Paint', child: Text('Paint')),
-                      DropdownMenuItem(value: 'Bamboo', child: Text('Bamboo')),
-                      DropdownMenuItem(value: 'Straw', child: Text('Straw')),
-                      DropdownMenuItem(value: 'Fiber', child: Text('Fiber')),
-                      DropdownMenuItem(value: 'Decoration', child: Text('Decoration')),
-                      DropdownMenuItem(value: 'Tools', child: Text('Tools')),
-                      DropdownMenuItem(value: 'Others', child: Text('Others')),
+                      const DropdownMenuItem(
+                        value: 'Clay',
+                        child: Text('Clay'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Paint',
+                        child: Text('Paint'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Bamboo',
+                        child: Text('Bamboo'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Straw',
+                        child: Text('Straw'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Fiber',
+                        child: Text('Fiber'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Decoration',
+                        child: Text('Decoration'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Tools',
+                        child: Text('Tools'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Others',
+                        child: Text('Others'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() => _selectedCategory = value as String);
@@ -476,13 +510,28 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                     label: 'Unit',
                     value: _selectedUnit,
                     items: [
-                      DropdownMenuItem(value: 'kg', child: Text('kg')),
-                      DropdownMenuItem(value: 'liter', child: Text('liter')),
-                      DropdownMenuItem(value: 'piece', child: Text('piece')),
-                      DropdownMenuItem(value: 'bundle', child: Text('bundle')),
-                      DropdownMenuItem(value: 'meter', child: Text('meter')),
-                      DropdownMenuItem(value: 'box', child: Text('box')),
-                      DropdownMenuItem(value: 'packet', child: Text('packet')),
+                      const DropdownMenuItem(value: 'kg', child: Text('kg')),
+                      const DropdownMenuItem(
+                        value: 'liter',
+                        child: Text('liter'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'piece',
+                        child: Text('piece'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'bundle',
+                        child: Text('bundle'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'meter',
+                        child: Text('meter'),
+                      ),
+                      const DropdownMenuItem(value: 'box', child: Text('box')),
+                      const DropdownMenuItem(
+                        value: 'packet',
+                        child: Text('packet'),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() => _selectedUnit = value as String);
@@ -497,7 +546,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 Expanded(
                   child: CustomButton(
                     onPressed: _addMaterial,
-                    label: _editingMaterialId != null ? 'Update Material' : 'Add Material',
+                    label: _editingMaterialId != null
+                        ? 'Update Material'
+                        : 'Add Material',
                     backgroundColor: AppColors.primaryBrown,
                   ),
                 ),
@@ -505,7 +556,8 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 Expanded(
                   child: CustomButton(
                     onPressed: () {
-                      if (_nameController.text.isNotEmpty && _quantityController.text.isNotEmpty) {
+                      if (_nameController.text.isNotEmpty &&
+                          _quantityController.text.isNotEmpty) {
                         // Find material by name
                         _materialsFuture.then((materials) {
                           final material = materials.firstWhere(
@@ -513,16 +565,27 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                             orElse: () => {},
                           );
                           if (material.isNotEmpty) {
-                            _recordUsage(material['id'] as int, material['name'] as String);
+                            _recordUsage(
+                              material['id'] as int,
+                              material['name'] as String,
+                            );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Material not found. Please add it first.')),
+                              const SnackBar(
+                                content: Text(
+                                  'Material not found. Please add it first.',
+                                ),
+                              ),
                             );
                           }
                         });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter material name and quantity')),
+                          const SnackBar(
+                            content: Text(
+                              'Please enter material name and quantity',
+                            ),
+                          ),
                         );
                       }
                     },
@@ -549,7 +612,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: AppConstants.fontSizeSmall,
             color: AppColors.textLight,
           ),
@@ -597,7 +660,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Price Trends (Last 30 Days)',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeMedium,
@@ -622,12 +685,14 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                           Expanded(
                             child: Text(
                               material['name'] as String,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           Text(
                             material['category'] as String,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textLight,
                             ),
@@ -639,16 +704,23 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: isPositive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                              color: isPositive
+                                  ? Colors.green.withValues(alpha: 0.1)
+                                  : Colors.red.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                                  isPositive
+                                      ? Icons.arrow_upward
+                                      : Icons.arrow_downward,
                                   size: 12,
                                   color: isPositive ? Colors.green : Colors.red,
                                 ),
@@ -657,7 +729,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                                   '${(changePercent ?? 0).abs().toStringAsFixed(1)}%',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isPositive ? Colors.green : Colors.red,
+                                    color: isPositive
+                                        ? Colors.green
+                                        : Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -691,9 +765,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
 
         final materials = snapshot.data!;
         if (materials.isEmpty) {
-          return Card(
+          return const Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               child: Center(
                 child: Text(
                   'No materials found. Add your first material above!',
@@ -713,7 +787,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Materials List',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeMedium,
@@ -758,7 +832,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 Expanded(
                   child: Text(
                     name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeMedium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,
@@ -779,14 +853,17 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.cardCream,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     category,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textDark,
                     ),
@@ -796,7 +873,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 if (supplier != null)
                   Text(
                     supplier,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textLight,
                     ),
@@ -804,7 +881,7 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 const Spacer(),
                 Text(
                   'Updated: ${_formatDate(lastUpdated)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 10,
                     color: AppColors.textLight,
                   ),
@@ -831,7 +908,8 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                         _rateController.text = currentRate.toString();
                         _supplierController.text = supplier ?? '';
                         _selectedCategory = category;
-                        _selectedUnit = material['unit'] as String? ?? _selectedUnit;
+                        _selectedUnit =
+                            material['unit'] as String? ?? _selectedUnit;
                       });
                     },
                     label: 'Edit',
@@ -841,7 +919,8 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
                 const SizedBox(width: 8),
                 Expanded(
                   child: CustomButton(
-                    onPressed: () => _deleteMaterial(material['id'] as int, name),
+                    onPressed: () =>
+                        _deleteMaterial(material['id'] as int, name),
                     label: 'Delete',
                     backgroundColor: Colors.red,
                   ),
@@ -855,9 +934,9 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
   }
 
   Widget _buildLoadingCard() {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Center(
           child: CircularProgressIndicator(color: AppColors.accentOrange),
         ),
@@ -872,7 +951,10 @@ class _EnhancedMaterialTrackerScreenState extends State<EnhancedMaterialTrackerS
         child: Center(
           child: Text(
             'Error loading data: $error',
-            style: TextStyle(color: Colors.red, fontSize: AppConstants.fontSizeBody),
+            style: const TextStyle(
+              color: Colors.red,
+              fontSize: AppConstants.fontSizeBody,
+            ),
           ),
         ),
       ),

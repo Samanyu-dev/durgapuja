@@ -6,7 +6,7 @@ import '../../widgets/custom_button.dart';
 import 'samiti_funds_screen.dart';
 
 class MaterialTrackerScreen extends StatefulWidget {
-  const MaterialTrackerScreen({Key? key}) : super(key: key);
+  const MaterialTrackerScreen({super.key});
 
   @override
   State<MaterialTrackerScreen> createState() => _MaterialTrackerScreenState();
@@ -107,15 +107,13 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
             margin: const EdgeInsets.all(AppConstants.mediumPadding),
             decoration: BoxDecoration(
               color: AppColors.cardCream,
-              borderRadius:
-                  BorderRadius.circular(AppConstants.borderRadius),
+              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
             ),
             child: TabBar(
               controller: _tabController,
               indicator: BoxDecoration(
                 color: AppColors.primaryBrown,
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
               ),
               labelColor: Colors.white,
               unselectedLabelColor: AppColors.textDark,
@@ -128,19 +126,12 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildMaterialTrackerTab(),
-                const SamitiFundsScreen(),
-              ],
+              children: [_buildMaterialTrackerTab(), const SamitiFundsScreen()],
             ),
           ),
         ],
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 3,
-        onTap: (index) {
-        },
-      ),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 3, onTap: (index) {}),
     );
   }
 
@@ -166,8 +157,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
               filled: true,
               fillColor: AppColors.cardCream,
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                 borderSide: BorderSide.none,
               ),
             ),
@@ -191,9 +181,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
             icon: Icons.mic_outlined,
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🎙️ Recording material rate...'),
-                ),
+                const SnackBar(content: Text('🎙️ Recording material rate...')),
               );
             },
             backgroundColor: AppColors.primaryBrown,
@@ -224,7 +212,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -239,7 +227,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
               color: AppColors.primaryBrown,
               borderRadius: BorderRadius.circular(AppConstants.borderRadius),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.category_outlined,
               color: Colors.white,
               size: 24,
@@ -288,8 +276,9 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
                 ),
                 decoration: BoxDecoration(
                   color: material['trendColor'].withOpacity(0.1),
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                 ),
                 child: Text(
                   material['trend'],
@@ -314,7 +303,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -324,31 +313,19 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
         children: [
           Container(
             padding: const EdgeInsets.all(AppConstants.mediumPadding),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.cardCream,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(AppConstants.borderRadius),
                 topRight: Radius.circular(AppConstants.borderRadius),
               ),
             ),
             child: Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildTableHeader('Material'),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: _buildTableHeader('Town'),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: _buildTableHeader('Date'),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: _buildTableHeader('Trend'),
-                ),
+                Expanded(flex: 2, child: _buildTableHeader('Material')),
+                Expanded(flex: 1, child: _buildTableHeader('Town')),
+                Expanded(flex: 1, child: _buildTableHeader('Date')),
+                Expanded(flex: 1, child: _buildTableHeader('Trend')),
               ],
             ),
           ),
@@ -372,13 +349,8 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
   Widget _buildTrendRow(Map<String, dynamic> trend) {
     return Container(
       padding: const EdgeInsets.all(AppConstants.mediumPadding),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: AppColors.cardCream,
-            width: 1,
-          ),
-        ),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.cardCream, width: 1)),
       ),
       child: Row(
         children: [
@@ -421,8 +393,7 @@ class _MaterialTrackerScreenState extends State<MaterialTrackerScreen>
               ),
               decoration: BoxDecoration(
                 color: trend['trendColor'].withOpacity(0.1),
-                borderRadius:
-                    BorderRadius.circular(AppConstants.borderRadius),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
               ),
               child: Text(
                 trend['trend'],

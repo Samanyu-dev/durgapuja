@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
-import '../services/logging_service.dart';
 
 class AppProgressIndicator extends StatelessWidget {
   final String? message;
   final bool showMessage;
 
   const AppProgressIndicator({
-    Key? key,
+    super.key,
     this.message,
     this.showMessage = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +21,7 @@ class AppProgressIndicator extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -31,14 +30,14 @@ class AppProgressIndicator extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBrown),
           ),
           if (showMessage && message != null) ...[
             const SizedBox(height: AppConstants.mediumPadding),
             Text(
               message!,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textDark,
                 fontSize: AppConstants.fontSizeBody,
               ),
@@ -57,11 +56,11 @@ class LoadingOverlay extends StatelessWidget {
   final String? message;
 
   const LoadingOverlay({
-    Key? key,
+    super.key,
     required this.child,
     required this.isLoading,
     this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +69,8 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: AppProgressIndicator(message: message),
-            ),
+            color: Colors.black.withValues(alpha: 0.5),
+            child: Center(child: AppProgressIndicator(message: message)),
           ),
       ],
     );
@@ -87,12 +84,12 @@ class LinearProgressWithLabel extends StatelessWidget {
   final Color? progressColor;
 
   const LinearProgressWithLabel({
-    Key? key,
+    super.key,
     required this.progress,
     this.label,
     this.backgroundColor,
     this.progressColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +99,7 @@ class LinearProgressWithLabel extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textDark,
               fontSize: AppConstants.fontSizeSmall,
               fontWeight: FontWeight.w500,
@@ -131,11 +128,11 @@ class StepProgressIndicator extends StatelessWidget {
   final List<String>? stepLabels;
 
   const StepProgressIndicator({
-    Key? key,
+    super.key,
     required this.currentStep,
     required this.totalSteps,
     this.stepLabels,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,24 +152,24 @@ class StepProgressIndicator extends StatelessWidget {
                   color: isCompleted
                       ? AppColors.successGreen
                       : isCurrent
-                          ? AppColors.primaryBrown
-                          : AppColors.cardCream,
+                      ? AppColors.primaryBrown
+                      : AppColors.cardCream,
                   border: Border.all(
-                    color: isCurrent ? AppColors.primaryBrown : Colors.transparent,
+                    color: isCurrent
+                        ? AppColors.primaryBrown
+                        : Colors.transparent,
                     width: 2,
                   ),
                 ),
                 child: isCompleted
-                    ? const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 16,
-                      )
+                    ? const Icon(Icons.check, color: Colors.white, size: 16)
                     : Center(
                         child: Text(
                           '${index + 1}',
                           style: TextStyle(
-                            color: isCurrent ? Colors.white : AppColors.textLight,
+                            color: isCurrent
+                                ? Colors.white
+                                : AppColors.textLight,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),

@@ -1,11 +1,13 @@
 // Simple Firebase Testing Script - No Flutter dependencies
 // Run with: dart run scripts/firebase_test_simple.dart
 
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../lib/firebase_options.dart';
+import 'package:durgapuja/firebase_options.dart';
 
 class FirebaseTester {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,7 +22,10 @@ class FirebaseTester {
     try {
       // Initialize Firebase
       await _initializeFirebase();
-      results['firebase_init'] = {'success': true, 'message': 'Firebase initialized successfully'};
+      results['firebase_init'] = {
+        'success': true,
+        'message': 'Firebase initialized successfully',
+      };
 
       // Test Firestore operations
       await _testFirestoreOperations();
@@ -30,7 +35,6 @@ class FirebaseTester {
 
       // Generate test report
       _generateReport();
-
     } catch (e) {
       print('❌ Test suite failed: $e');
       results['overall'] = {'success': false, 'error': e.toString()};
@@ -48,7 +52,6 @@ class FirebaseTester {
       // Test basic connectivity
       final user = _auth.currentUser;
       print('📊 Current user: ${user?.uid ?? 'None'}');
-
     } catch (e) {
       print('❌ Firebase initialization failed: $e');
       rethrow;
@@ -69,13 +72,19 @@ class FirebaseTester {
         'number_field': 42,
       };
 
-      await _firestore.collection('test_collection').doc(testDocId).set(testData);
+      await _firestore
+          .collection('test_collection')
+          .doc(testDocId)
+          .set(testData);
       results['firestore_write'] = {'success': true, 'doc_id': testDocId};
       print('   ✅ Document added successfully');
 
       // Test 2: Read the document back
       print('   Reading test document...');
-      final docSnapshot = await _firestore.collection('test_collection').doc(testDocId).get();
+      final docSnapshot = await _firestore
+          .collection('test_collection')
+          .doc(testDocId)
+          .get();
 
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
@@ -91,12 +100,16 @@ class FirebaseTester {
 
       // Test 3: Query documents
       print('   Querying documents...');
-      final querySnapshot = await _firestore.collection('test_collection').get();
+      final querySnapshot = await _firestore
+          .collection('test_collection')
+          .get();
       results['firestore_query'] = {
         'success': true,
         'total_docs': querySnapshot.docs.length,
       };
-      print('   ✅ Query successful: ${querySnapshot.docs.length} documents found');
+      print(
+        '   ✅ Query successful: ${querySnapshot.docs.length} documents found',
+      );
 
       // Test 4: Delete test document
       print('   Deleting test document...');
@@ -105,7 +118,6 @@ class FirebaseTester {
       print('   ✅ Document deleted successfully');
 
       print('✅ All Firestore operations completed successfully');
-
     } catch (e) {
       print('❌ Firestore test failed: $e');
       results['firestore'] = {'success': false, 'error': e.toString()};
@@ -138,7 +150,6 @@ class FirebaseTester {
       print('      - Valid phone number');
       print('      - Firebase Console phone auth enabled');
       print('      - Test it through the actual Flutter app');
-
     } catch (e) {
       print('❌ Authentication test failed: $e');
       results['auth'] = {'success': false, 'error': e.toString()};
@@ -163,7 +174,7 @@ class FirebaseTester {
       }
     });
 
-    print('\n' + '=' * 50);
+    print('\n${'=' * 50}');
     if (allPassed) {
       print('🎉 ALL TESTS PASSED! Firebase is working correctly.');
       print('💡 Next: Test phone authentication in the actual Flutter app');

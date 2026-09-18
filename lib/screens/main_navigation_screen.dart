@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
-import '../../widgets/app_scaffold.dart';
 import '../../l10n/app_localizations.dart';
 import 'home/home_dashboard_screen.dart';
 import 'design/design_welcome_screen.dart';
@@ -11,7 +10,7 @@ import 'finance/finance_home_screen.dart';
 import 'reports/reports_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  const MainNavigationScreen({super.key});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -19,8 +18,6 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-
-  final List<String> _routes = ['/', '/design', '/orders', '/finance', '/reports'];
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              AppColors.backgroundCream.withOpacity(0.3),
+              AppColors.backgroundCream.withValues(alpha: 0.3),
               AppColors.backgroundCream,
             ],
           ),
@@ -61,7 +58,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               borderRadius: BorderRadius.circular(50),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
                   spreadRadius: 5,
                   offset: const Offset(0, -5),

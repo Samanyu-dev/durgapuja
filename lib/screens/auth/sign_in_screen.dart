@@ -7,7 +7,7 @@ import '../../widgets/custom_button.dart';
 import '../../providers/auth_provider.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({Key? key}) : super(key: key);
+  const SignInScreen({super.key});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
@@ -33,16 +33,16 @@ class _SignInScreenState extends State<SignInScreen> {
       _errorMessage = null;
     });
 
-      try {
-        final authProvider = context.read<AuthProvider>();
-        final phoneNumber = '+91${_phoneController.text.trim()}';
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final phoneNumber = '+91${_phoneController.text.trim()}';
 
-        await authProvider.signInWithPhone(phoneNumber);
+      await authProvider.signInWithPhone(phoneNumber);
 
-        if (mounted) {
-          // Navigate directly to home dashboard after successful sign in
-          context.push('/home');
-        }
+      if (mounted) {
+        // Navigate directly to home dashboard after successful sign in
+        context.push('/home');
+      }
     } catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e);
@@ -86,8 +86,6 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,10 +105,10 @@ class _SignInScreenState extends State<SignInScreen> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBrown.withOpacity(0.1),
+                    color: AppColors.primaryBrown.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.palette_outlined,
                     size: 60,
                     color: AppColors.primaryBrown,
@@ -120,7 +118,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: AppConstants.largePadding),
 
                 // Title
-                Text(
+                const Text(
                   'Durga Idol Maker',
                   style: TextStyle(
                     fontSize: 28,
@@ -133,7 +131,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Subtitle
-                Text(
+                const Text(
                   'Enter your phone number to continue',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeBody,
@@ -148,10 +146,12 @@ class _SignInScreenState extends State<SignInScreen> {
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -161,19 +161,17 @@ class _SignInScreenState extends State<SignInScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     maxLength: 10,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Phone Number',
                       hintText: 'Enter 10-digit mobile number',
                       prefixText: '+91',
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: EdgeInsets.all(16),
                       counterText: '',
                     ),
                     validator: _validatePhone,
                   ),
                 ),
-
-
 
                 // Error Message
                 if (_errorMessage != null) ...[
@@ -181,12 +179,14 @@ class _SignInScreenState extends State<SignInScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppConstants.smallPadding),
                     decoration: BoxDecoration(
-                      color: AppColors.errorRed.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      color: AppColors.errorRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline,
                           color: AppColors.errorRed,
                           size: 20,
@@ -195,7 +195,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.errorRed,
                               fontSize: AppConstants.fontSizeSmall,
                             ),
@@ -222,7 +222,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Info Text
-                Text(
+                const Text(
                   'We will send an OTP to your phone number for verification',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeSmall,
@@ -234,7 +234,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Terms and Privacy
-                Text.rich(
+                const Text.rich(
                   TextSpan(
                     text: 'By continuing, you agree to our ',
                     style: TextStyle(
@@ -249,7 +249,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const TextSpan(text: ' and '),
+                      TextSpan(text: ' and '),
                       TextSpan(
                         text: 'Privacy Policy',
                         style: TextStyle(

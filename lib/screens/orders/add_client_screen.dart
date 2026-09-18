@@ -5,7 +5,7 @@ import '../../widgets/custom_button.dart';
 import '../../services/database_service.dart';
 
 class AddClientScreen extends StatefulWidget {
-  const AddClientScreen({Key? key}) : super(key: key);
+  const AddClientScreen({super.key});
 
   @override
   State<AddClientScreen> createState() => _AddClientScreenState();
@@ -117,7 +117,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.textLight.withOpacity(0.3)),
+                    border: Border.all(
+                      color: AppColors.textLight.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -127,12 +129,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                               ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
                               : 'Select delivery date',
                           style: TextStyle(
-                            color: _selectedDate != null ? AppColors.textDark : AppColors.textLight,
+                            color: _selectedDate != null
+                                ? AppColors.textDark
+                                : AppColors.textLight,
                             fontSize: 16,
                           ),
                         ),
                       ),
-                      Icon(
+                      const Icon(
                         Icons.calendar_today,
                         color: AppColors.primaryBrown,
                       ),
@@ -205,9 +209,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
         context.go('/finance/orders');
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving client: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving client: $e')));
       }
     }
   }
@@ -215,7 +219,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
   Future<void> _addAnotherIdol() async {
     if (_clientNameController.text.isEmpty || _phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter client name and contact number first')),
+        const SnackBar(
+          content: Text('Please enter client name and contact number first'),
+        ),
       );
       return;
     }
@@ -237,7 +243,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Idol added. Enter another idol or tap Save Client to finish.')),
+        const SnackBar(
+          content: Text(
+            'Idol added. Enter another idol or tap Save Client to finish.',
+          ),
+        ),
       );
 
       setState(() {
@@ -246,9 +256,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
         _selectedDate = null;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding idol: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error adding idol: $e')));
     }
   }
 

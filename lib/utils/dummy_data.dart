@@ -26,10 +26,7 @@ class DummyData {
         ),
       ],
       pendingAmount: 15000,
-      deliveryDates: [
-        DateTime(2024, 10, 15),
-        DateTime(2024, 11, 1),
-      ],
+      deliveryDates: [DateTime(2024, 10, 15), DateTime(2024, 11, 1)],
       notes: [
         'Excited about the Ganesh idol progress',
         'Requested larger Durga idol',
@@ -50,12 +47,8 @@ class DummyData {
         ),
       ],
       pendingAmount: 0,
-      deliveryDates: [
-        DateTime(2024, 10, 20),
-      ],
-      notes: [
-        'Very satisfied with the Lakshmi idol',
-      ],
+      deliveryDates: [DateTime(2024, 10, 20)],
+      notes: ['Very satisfied with the Lakshmi idol'],
     ),
     Client(
       id: '3',
@@ -72,12 +65,8 @@ class DummyData {
         ),
       ],
       pendingAmount: 8000,
-      deliveryDates: [
-        DateTime(2024, 10, 25),
-      ],
-      notes: [
-        'Requested changes to the veena design',
-      ],
+      deliveryDates: [DateTime(2024, 10, 25)],
+      notes: ['Requested changes to the veena design'],
     ),
   ];
 

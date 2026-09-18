@@ -7,7 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class ModuleSelectionScreen extends StatelessWidget {
-  const ModuleSelectionScreen({Key? key}) : super(key: key);
+  const ModuleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +29,10 @@ class ModuleSelectionScreen extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBrown.withOpacity(0.1),
+                  color: AppColors.primaryBrown.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.dashboard,
                   size: 60,
                   color: AppColors.primaryBrown,
@@ -44,7 +44,7 @@ class ModuleSelectionScreen extends StatelessWidget {
               // Title
               Text(
                 l10n.chooseYourModule,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
@@ -57,7 +57,7 @@ class ModuleSelectionScreen extends StatelessWidget {
               // Subtitle
               Text(
                 l10n.selectModuleDescription,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: AppConstants.fontSizeBody,
                   color: AppColors.textLight,
                 ),
@@ -118,7 +118,7 @@ class ModuleSelectionScreen extends StatelessWidget {
                 onPressed: () => context.go('/design'),
                 child: Text(
                   l10n.continueWithDesign,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.primaryBrown,
                     fontSize: AppConstants.fontSizeSmall,
                   ),
@@ -150,7 +150,7 @@ class ModuleSelectionScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -165,14 +165,10 @@ class ModuleSelectionScreen extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 28,
-                    color: color,
-                  ),
+                  child: Icon(icon, size: 28, color: color),
                 ),
                 const SizedBox(width: AppConstants.mediumPadding),
                 Expanded(
@@ -181,7 +177,7 @@ class ModuleSelectionScreen extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeXLarge,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
@@ -190,7 +186,7 @@ class ModuleSelectionScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         description,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeBody,
                           color: AppColors.textLight,
                         ),

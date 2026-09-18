@@ -13,17 +13,18 @@ class CreateDesignScreen extends StatefulWidget {
   State<CreateDesignScreen> createState() => _CreateDesignScreenState();
 }
 
-class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTickerProviderStateMixin {
+class _CreateDesignScreenState extends State<CreateDesignScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _promptController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
   final KreaAIService _kreaService = KreaAIService();
   final List<File> _referenceImages = [];
-  
+
   late stt.SpeechToText _speechToText;
   bool _isListening = false;
   bool _isGenerating = false;
   String _confidence = '';
-  
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -32,12 +33,12 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     super.initState();
     _speechToText = stt.SpeechToText();
     _initializeSpeech();
-    
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -59,7 +60,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
     try {
       final available = await _speechToText.initialize(
         onStatus: (status) {
-          if ((status == 'done' || status == 'notListening') && mounted && _isListening) {
+          if ((status == 'done' || status == 'notListening') &&
+              mounted &&
+              _isListening) {
             setState(() => _isListening = false);
           }
         },
@@ -79,14 +82,16 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Speech recognition is not available on this device')),
+          const SnackBar(
+            content: Text('Speech recognition is not available on this device'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Voice input failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Voice input failed: $e')));
       }
       setState(() => _isListening = false);
     }
@@ -147,9 +152,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
 
   Future<void> _generateImage() async {
     if (_promptController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a prompt')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a prompt')));
       return;
     }
 
@@ -157,14 +162,16 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
 
     try {
       GeneratedImage generatedImage;
-      
+
       if (_referenceImages.isNotEmpty) {
         generatedImage = await _kreaService.generateImageWithReferences(
           _promptController.text,
           _referenceImages,
         );
       } else {
-        generatedImage = await _kreaService.generateImage(_promptController.text);
+        generatedImage = await _kreaService.generateImage(
+          _promptController.text,
+        );
       }
 
       if (mounted) {
@@ -180,9 +187,9 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Generation failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Generation failed: $e')));
       }
     } finally {
       if (mounted) {
@@ -229,11 +236,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Icon(
-              Icons.auto_awesome,
-              size: 48,
-              color: Colors.white,
-            ),
+            const Icon(Icons.auto_awesome, size: 48, color: Colors.white),
             const SizedBox(height: 12),
             const Text(
               'Create Your Durga Idol',
@@ -248,7 +251,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               'Use text, voice, or reference images',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ],
@@ -264,16 +267,13 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.edit, color: Color(0xFFFF6B35)),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.edit, color: Color(0xFFFF6B35)),
+                SizedBox(width: 8),
+                Text(
                   'Describe Your Design',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -282,7 +282,8 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
               controller: _promptController,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'E.g., Traditional Bengali Durga idol with golden jewelry and red saree...',
+                hintText:
+                    'E.g., Traditional Bengali Durga idol with golden jewelry and red saree...',
                 suffixIcon: _isListening
                     ? ScaleTransition(
                         scale: _pulseAnimation,
@@ -292,7 +293,10 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                         ),
                       )
                     : IconButton(
-                        icon: const Icon(Icons.mic_none, color: Color(0xFFFF6B35)),
+                        icon: const Icon(
+                          Icons.mic_none,
+                          color: Color(0xFFFF6B35),
+                        ),
                         onPressed: _startListening,
                       ),
               ),
@@ -302,10 +306,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   'Confidence: $_confidence%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ),
           ],
@@ -327,28 +328,19 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 const SizedBox(width: 8),
                 const Text(
                   'Reference Images',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 Text(
                   '${_referenceImages.length}/3',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               'Add up to 3 reference images to guide the AI',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -395,7 +387,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
         width: 100,
         decoration: BoxDecoration(
           color: _referenceImages.length < 3
-              ? const Color(0xFFFF6B35).withOpacity(0.1)
+              ? const Color(0xFFFF6B35).withValues(alpha: 0.1)
               : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -439,10 +431,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
           width: 100,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: FileImage(image),
-              fit: BoxFit.cover,
-            ),
+            image: DecorationImage(image: FileImage(image), fit: BoxFit.cover),
           ),
         ),
         Positioned(
@@ -453,14 +442,10 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.close,
-                size: 16,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.close, size: 16, color: Colors.white),
             ),
           ),
         ),
@@ -475,9 +460,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
         backgroundColor: const Color(0xFFFF6B35),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: _isGenerating
           ? const SizedBox(
@@ -495,10 +478,7 @@ class _CreateDesignScreenState extends State<CreateDesignScreen> with SingleTick
                 SizedBox(width: 8),
                 Text(
                   'Generate Design',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),

@@ -42,13 +42,18 @@ class ImageToImageService {
         if (enhanceColors) 'richer, more vibrant colors',
         if (enhanceLighting) 'improved, natural lighting',
       ];
-      final enhancePrompt = '''
+      final enhancePrompt =
+          '''
 Enhance this Durga idol design image: improve ${aspects.isEmpty ? 'overall quality' : aspects.join(', ')}.
 Keep the composition, pose and identity of the idol exactly the same.
 ${prompt != null && prompt.trim().isNotEmpty ? 'Additional guidance: ${prompt.trim()}' : ''}
-'''.trim();
+'''
+              .trim();
 
-      return await _runWithReferences(prompt: enhancePrompt, imagePaths: [imagePath]);
+      return await _runWithReferences(
+        prompt: enhancePrompt,
+        imagePaths: [imagePath],
+      );
     } catch (e) {
       LoggingService.logDebug('Error in Krea image enhancement: $e');
       throw Exception('Image enhancement failed: $e');
@@ -68,10 +73,12 @@ ${prompt != null && prompt.trim().isNotEmpty ? 'Additional guidance: ${prompt.tr
       LoggingService.logDebug('Reference image: $referenceImagePath');
       LoggingService.logDebug('Style strength: $styleStrength');
 
-      final stylePrompt = '''
+      final stylePrompt =
+          '''
 Redraw the first reference image (the original Durga idol design), applying the visual style ($styleType style) of the second reference image with $styleStrength strength.
 Preserve the pose, composition and identity of the idol from the first image; only its artistic style should change.
-'''.trim();
+'''
+              .trim();
 
       return await _runWithReferences(
         prompt: stylePrompt,
@@ -96,11 +103,16 @@ Preserve the pose, composition and identity of the idol from the first image; on
       LoggingService.logDebug('Prompt: $prompt');
       LoggingService.logDebug('Transformation type: $transformationType');
 
-      final creativePrompt = '''
+      final creativePrompt =
+          '''
 Creatively transform this Durga idol design image ($transformationType transformation): $prompt
-'''.trim();
+'''
+              .trim();
 
-      return await _runWithReferences(prompt: creativePrompt, imagePaths: [imagePath]);
+      return await _runWithReferences(
+        prompt: creativePrompt,
+        imagePaths: [imagePath],
+      );
     } catch (e) {
       LoggingService.logDebug('Error in Krea creative transformation: $e');
       throw Exception('Creative transformation failed: $e');
@@ -138,7 +150,8 @@ Creatively transform this Durga idol design image ($transformationType transform
       case 'vintage':
         return applyCreativeTransformation(
           imagePath: imagePath,
-          prompt: 'Give this image a vintage, old photograph look with sepia tones',
+          prompt:
+              'Give this image a vintage, old photograph look with sepia tones',
           transformationType: 'vintage',
         );
       case 'high_contrast':

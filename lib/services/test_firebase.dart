@@ -3,13 +3,9 @@
 import 'firestore_service.dart';
 import 'logging_service.dart';
 import '../models/client.dart';
-import 'logging_service.dart';
 import '../models/transaction.dart';
-import 'logging_service.dart';
 import '../models/idol_order.dart';
-import 'logging_service.dart';
 import 'dart:math';
-import 'logging_service.dart';
 
 class FirebaseTestService {
   final FirestoreService _firestore = FirestoreService();
@@ -17,14 +13,17 @@ class FirebaseTestService {
 
   /// Generate a random ID
   String _generateRandomId() {
-    return DateTime.now().millisecondsSinceEpoch.toString() + _random.nextInt(1000).toString();
+    return DateTime.now().millisecondsSinceEpoch.toString() +
+        _random.nextInt(1000).toString();
   }
 
   /// Generate dynamic test data and test Firebase connection
   Future<Map<String, dynamic>> testFirebaseConnection() async {
     try {
       // Test 1: Create and add dynamic clients
-      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic clients...');
+      LoggingService.logDebug(
+        'Testing Firebase: Creating and adding dynamic clients...',
+      );
       final testClients = _generateTestClients(3);
       for (var client in testClients) {
         await _firestore.addClient(client);
@@ -32,7 +31,9 @@ class FirebaseTestService {
       }
 
       // Test 2: Create and add dynamic materials
-      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic materials...');
+      LoggingService.logDebug(
+        'Testing Firebase: Creating and adding dynamic materials...',
+      );
       final testMaterials = _generateTestMaterials(3);
       for (var material in testMaterials) {
         await _firestore.addMaterial(material);
@@ -40,7 +41,9 @@ class FirebaseTestService {
       }
 
       // Test 3: Create and add dynamic transactions
-      LoggingService.logDebug('Testing Firebase: Creating and adding dynamic transactions...');
+      LoggingService.logDebug(
+        'Testing Firebase: Creating and adding dynamic transactions...',
+      );
       final testTransactions = _generateTestTransactions(3);
       for (var transaction in testTransactions) {
         await _firestore.addTransaction(transaction);
@@ -55,16 +58,22 @@ class FirebaseTestService {
 
       LoggingService.logDebug('✓ Retrieved ${clients.length} clients');
       LoggingService.logDebug('✓ Retrieved ${materials.length} materials');
-      LoggingService.logDebug('✓ Retrieved ${transactions.length} transactions');
+      LoggingService.logDebug(
+        '✓ Retrieved ${transactions.length} transactions',
+      );
 
       // Test 5: Verify data integrity by checking a specific client
       if (clients.isNotEmpty) {
         final firstClient = clients.first;
         final retrievedClient = await _firestore.getClientById(firstClient.id);
         if (retrievedClient != null) {
-          LoggingService.logDebug('✓ Client data integrity verified: ${retrievedClient.name}');
+          LoggingService.logDebug(
+            '✓ Client data integrity verified: ${retrievedClient.name}',
+          );
         } else {
-          throw Exception('Client retrieval failed - data integrity check failed');
+          throw Exception(
+            'Client retrieval failed - data integrity check failed',
+          );
         }
       }
 
@@ -76,8 +85,9 @@ class FirebaseTestService {
           'materials_count': materials.length,
           'transactions_count': transactions.length,
           'sample_client': clients.isNotEmpty ? clients.first.name : null,
-          'total_test_records': clients.length + materials.length + transactions.length,
-        }
+          'total_test_records':
+              clients.length + materials.length + transactions.length,
+        },
       };
     } catch (e) {
       LoggingService.logDebug('✗ Firebase test failed: $e');
@@ -91,8 +101,20 @@ class FirebaseTestService {
 
   /// Generate dynamic test clients
   List<Client> _generateTestClients(int count) {
-    final names = ['Rajesh Kumar', 'Priya Sharma', 'Amit Singh', 'Sunita Patel', 'Vikram Gupta'];
-    final phones = ['9876543210', '8765432109', '7654321098', '6543210987', '5432109876'];
+    final names = [
+      'Rajesh Kumar',
+      'Priya Sharma',
+      'Amit Singh',
+      'Sunita Patel',
+      'Vikram Gupta',
+    ];
+    final phones = [
+      '9876543210',
+      '8765432109',
+      '7654321098',
+      '6543210987',
+      '5432109876',
+    ];
 
     return List.generate(count, (index) {
       final name = names[_random.nextInt(names.length)];
@@ -107,9 +129,15 @@ class FirebaseTestService {
         idols: [
           IdolOrder(
             id: _generateRandomId(),
-            name: ['Ganesh Idol', 'Durga Idol', 'Lakshmi Idol'][_random.nextInt(3)],
+            name: [
+              'Ganesh Idol',
+              'Durga Idol',
+              'Lakshmi Idol',
+            ][_random.nextInt(3)],
             requirements: 'Custom design with traditional elements',
-            deliveryDate: DateTime.now().add(Duration(days: _random.nextInt(30) + 1)),
+            deliveryDate: DateTime.now().add(
+              Duration(days: _random.nextInt(30) + 1),
+            ),
             status: ['Pending', 'In Progress', 'Completed'][_random.nextInt(3)],
           ),
         ],
@@ -127,7 +155,13 @@ class FirebaseTestService {
 
   /// Generate dynamic test materials
   List<MaterialRate> _generateTestMaterials(int count) {
-    final materialNames = ['Clay', 'Paint', 'Bamboo', 'Gold Leaf', 'Marble Powder'];
+    final materialNames = [
+      'Clay',
+      'Paint',
+      'Bamboo',
+      'Gold Leaf',
+      'Marble Powder',
+    ];
     final units = ['kg', 'liter', 'piece', 'sheet', 'gram'];
 
     return List.generate(count, (index) {
@@ -136,7 +170,9 @@ class FirebaseTestService {
         materialName: materialNames[_random.nextInt(materialNames.length)],
         unit: units[_random.nextInt(units.length)],
         rate: (_random.nextInt(500) + 50).toDouble(),
-        lastUpdated: DateTime.now().subtract(Duration(days: _random.nextInt(30))),
+        lastUpdated: DateTime.now().subtract(
+          Duration(days: _random.nextInt(30)),
+        ),
       );
     });
   }
@@ -144,8 +180,12 @@ class FirebaseTestService {
   /// Generate dynamic test transactions
   List<Transaction> _generateTestTransactions(int count) {
     final titles = [
-      'Material Purchase', 'Client Payment', 'Equipment Maintenance',
-      'Workshop Rent', 'Marketing Expenses', 'Idol Sale'
+      'Material Purchase',
+      'Client Payment',
+      'Equipment Maintenance',
+      'Workshop Rent',
+      'Marketing Expenses',
+      'Idol Sale',
     ];
     final categories = ['Income', 'Expense'];
 

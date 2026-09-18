@@ -48,9 +48,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load clients: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load clients: $e')));
       }
     }
   }
@@ -113,7 +113,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
     try {
       final banglaText = await SpeechService().listenBangla();
       if (banglaText.isNotEmpty) {
-        final englishText = await TranslationService().translateToEnglish(banglaText);
+        final englishText = await TranslationService().translateToEnglish(
+          banglaText,
+        );
         setState(() {
           _searchController.text = englishText;
           _searchQuery = englishText;
@@ -121,9 +123,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Voice search failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Voice search failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isListening = false);
@@ -143,9 +145,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Future<void> _openChat(String clientId) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ClientChatScreen(clientId: clientId),
-      ),
+      MaterialPageRoute(builder: (_) => ClientChatScreen(clientId: clientId)),
     );
   }
 
@@ -162,9 +162,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Future<void> _markDelivered(int orderId) async {
     try {
       await DatabaseService.markOrderDelivered(orderId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Marked as delivered')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Marked as delivered')));
       _loadOrders();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -184,7 +184,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
             children: [
               // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
@@ -202,17 +205,23 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         child: TextField(
                           controller: _searchController,
                           decoration: const InputDecoration(
-                            hintText: "Search clients or idols",
-                            hintStyle: TextStyle(fontSize: 16, color: Colors.black54),
+                            hintText: 'Search clients or idols',
+                            hintStyle: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black54,
+                            ),
                             border: InputBorder.none,
                           ),
-                          onChanged: (value) => setState(() => _searchQuery = value),
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
                         ),
                       ),
                       IconButton(
                         icon: Icon(
                           _isListening ? Icons.mic : Icons.mic_none,
-                          color: _isListening ? AppColors.primaryBrown : Colors.black54,
+                          color: _isListening
+                              ? AppColors.primaryBrown
+                              : Colors.black54,
                         ),
                         onPressed: _isListening ? null : _startVoiceSearch,
                       ),
@@ -233,7 +242,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Upcoming Deliveries",
+                      'Upcoming Deliveries',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -245,18 +254,24 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       children: [
                         Expanded(
                           child: _buildSummaryCard(
-                            "${_countDueWithin(0)}",
-                            "Due Today",
+                            '${_countDueWithin(0)}',
+                            'Due Today',
                             isHighlighted: true,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildSummaryCard("${_countDueWithin(1)}", "Due Tomorrow"),
+                          child: _buildSummaryCard(
+                            '${_countDueWithin(1)}',
+                            'Due Tomorrow',
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildSummaryCard("$_totalUpcoming", "Total Upcoming"),
+                          child: _buildSummaryCard(
+                            '$_totalUpcoming',
+                            'Total Upcoming',
+                          ),
                         ),
                       ],
                     ),
@@ -276,7 +291,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       child: Column(
                         children: [
                           Text(
-                            "Pending Payments",
+                            'Pending Payments',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -301,7 +316,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       child: Column(
                         children: [
                           Text(
-                            "Upcoming Deliveries",
+                            'Upcoming Deliveries',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -335,27 +350,36 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
-                            if (_selectedTab == 0) ..._buildPendingPaymentsList(),
-                            if (_selectedTab == 1) ..._buildUpcomingDeliveriesList(),
+                            if (_selectedTab == 0)
+                              ..._buildPendingPaymentsList(),
+                            if (_selectedTab == 1)
+                              ..._buildUpcomingDeliveriesList(),
                             const SizedBox(height: 20),
                             // Add new client button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  await context.push('/finance/orders/add-client');
+                                  await context.push(
+                                    '/finance/orders/add-client',
+                                  );
                                   _loadOrders();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryBrown,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
                                   ),
                                 ),
                                 child: const Text(
-                                  "Add new client",
-                                  style: TextStyle(fontSize: 16, color: Colors.white),
+                                  'Add new client',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -414,7 +438,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
       final idolName = order['idol_name'] as String?;
       return _buildPendingPaymentCard(
         name: name,
-        subtitle: idolName != null && idolName.isNotEmpty ? idolName : 'No payment recorded',
+        subtitle: idolName != null && idolName.isNotEmpty
+            ? idolName
+            : 'No payment recorded',
       );
     }).toList();
   }
@@ -437,7 +463,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
       } else {
         label = 'in $daysLeft days';
       }
-      return _buildUpcomingDeliveryCard(name: name, daysLeft: label, orderId: id);
+      return _buildUpcomingDeliveryCard(
+        name: name,
+        daysLeft: label,
+        orderId: id,
+      );
     }).toList();
   }
 
@@ -518,7 +548,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   ),
                 ),
                 child: const Text(
-                  "Record Payment",
+                  'Record Payment',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.primaryBrown,
@@ -608,7 +638,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     Icon(Icons.check, color: Colors.green, size: 18),
                     SizedBox(width: 6),
                     Text(
-                      "Delivery Done",
+                      'Delivery Done',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.primaryBrown,

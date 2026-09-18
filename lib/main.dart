@@ -25,7 +25,7 @@ void main() async {
 
   // Load environment variables
   try {
-    await dotenv.load(fileName: ".env");
+    await dotenv.load(fileName: '.env');
     LoggingService.logInfo('Environment variables loaded successfully');
   } catch (e) {
     LoggingService.logError('Failed to load environment variables: $e');
@@ -67,7 +67,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +81,7 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: AppColors.backgroundCream,
           ),
           locale: localeProvider.locale,
-          supportedLocales: const [
-            Locale('en'),
-            Locale('bn'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('bn')],
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -98,4 +95,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

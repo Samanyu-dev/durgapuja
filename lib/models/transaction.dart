@@ -46,16 +46,17 @@ class Transaction {
 
   // Validation methods
   bool isValid() {
-    return id.isNotEmpty && 
-           title.isNotEmpty && 
-           amount != 0.0 &&
-           category.isNotEmpty;
+    return id.isNotEmpty &&
+        title.isNotEmpty &&
+        amount != 0.0 &&
+        category.isNotEmpty;
   }
 
   // Helper methods
   bool isIncome() => amount > 0;
   bool isExpense() => amount < 0;
-  String getFormattedAmount() => isIncome() ? '+₹${amount.abs()}' : '-₹${amount.abs()}';
+  String getFormattedAmount() =>
+      isIncome() ? '+₹${amount.abs()}' : '-₹${amount.abs()}';
   String getDisplayCategory() => category.isEmpty ? 'Uncategorized' : category;
 }
 
@@ -107,13 +108,14 @@ class MaterialRate {
 
   // Validation methods
   bool isValid() {
-    return id.isNotEmpty && 
-           materialName.isNotEmpty && 
-           unit.isNotEmpty && 
-           rate > 0;
+    return id.isNotEmpty &&
+        materialName.isNotEmpty &&
+        unit.isNotEmpty &&
+        rate > 0;
   }
 
   // Helper methods
   String getFormattedRate() => '₹$rate / $unit';
-  bool isRecentUpdate() => lastUpdated.isAfter(DateTime.now().subtract(const Duration(days: 30)));
+  bool isRecentUpdate() =>
+      lastUpdated.isAfter(DateTime.now().subtract(const Duration(days: 30)));
 }

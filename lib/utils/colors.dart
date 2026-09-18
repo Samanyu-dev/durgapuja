@@ -11,7 +11,9 @@ class AppColors {
 
   static const Color accentOrange = Color(0xFFD97757);
   static const Color warningOrange = Color(0xFFFF9800);
-  static const Color warningRed = Color(0xFFE53935); // Alias for backward compatibility
+  static const Color warningRed = Color(
+    0xFFE53935,
+  ); // Alias for backward compatibility
   static const Color successGreen = Color(0xFF4CAF50);
   static const Color errorRed = Color(0xFFE53935);
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'samiti_funds_screen.dart';
 import 'worker_details_screen.dart';
-import 'material_screen.dart';
 import '../../services/database_service.dart';
 
 class WorkerFundsScreen extends StatefulWidget {
@@ -44,7 +42,7 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
     }
     String result = '';
     for (int i = amountStr.length - 1; i >= 0; i--) {
-      int position = amountStr.length - 1 - i;
+      final int position = amountStr.length - 1 - i;
       if (position == 3 || (position > 3 && (position - 3) % 2 == 0)) {
         result = ',$result';
       }
@@ -84,10 +82,10 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("Durga Idol", style: TextStyle(fontSize: 16)),
+                  children: [
+                    Text('Durga Idol', style: TextStyle(fontSize: 16)),
                     Icon(Icons.arrow_drop_down),
                   ],
                 ),
@@ -98,15 +96,15 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
               // SECTION 1: Clay Modeling
               _categoryCard(
                 context,
-                title: "Clay Modeling",
-                workers: "3 workers",
-                paid: "₹ ${_formatCurrency(_clayPaid)}",
+                title: 'Clay Modeling',
+                workers: '3 workers',
+                paid: '₹ ${_formatCurrency(_clayPaid)}',
                 total: _formatCurrency(_clayTotalAssigned),
-                workerName: "Ramesh",
+                workerName: 'Ramesh',
                 workerPaid:
-                    "₹ ${_formatCurrency(_clayPaid)}", // display same as paid summary
+                    '₹ ${_formatCurrency(_clayPaid)}', // display same as paid summary
                 workerPending:
-                    "₹ ${_formatCurrency(_clayTotalAssigned - _clayPaid)}",
+                    '₹ ${_formatCurrency(_clayTotalAssigned - _clayPaid)}',
                 progress: _clayTotalAssigned <= 0
                     ? 0.0
                     : (_clayPaid / _clayTotalAssigned).clamp(0.0, 1.0),
@@ -117,15 +115,15 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
               // SECTION 2: Painting
               _categoryCard(
                 context,
-                title: "Painting",
-                workers: "3 workers",
-                paid: "₹ ${_formatCurrency(_paintingPaid)}",
+                title: 'Painting',
+                workers: '3 workers',
+                paid: '₹ ${_formatCurrency(_paintingPaid)}',
                 total: _formatCurrency(_paintingTotalAssigned),
-                workerName: "Ramesh",
+                workerName: 'Ramesh',
                 workerPaid:
-                    "₹ ${_formatCurrency(_paintingPaid)}", // display same as paid summary
+                    '₹ ${_formatCurrency(_paintingPaid)}', // display same as paid summary
                 workerPending:
-                    "₹ ${_formatCurrency(_paintingTotalAssigned - _paintingPaid)}",
+                    '₹ ${_formatCurrency(_paintingTotalAssigned - _paintingPaid)}',
                 progress: _paintingTotalAssigned <= 0
                     ? 0.0
                     : (_paintingPaid / _paintingTotalAssigned).clamp(0.0, 1.0),
@@ -141,11 +139,11 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => WorkerDetailsScreen(
-                          workerName: "New Worker",
-                          category: "Durga Idol / Claymaking",
-                          budget: "0",
-                          paid: "0",
+                        builder: (_) => const WorkerDetailsScreen(
+                          workerName: 'New Worker',
+                          category: 'Durga Idol / Claymaking',
+                          budget: '0',
+                          paid: '0',
                         ),
                       ),
                     );
@@ -158,7 +156,7 @@ class _WorkerFundsScreenState extends State<WorkerFundsScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Add new worker",
+                    'Add new worker',
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
@@ -208,7 +206,7 @@ Widget _categoryCard(
         Text(workers, style: const TextStyle(color: Colors.black54)),
         const SizedBox(height: 4),
         Text(
-          "Paid: $paid of $total",
+          'Paid: $paid of $total',
           style: const TextStyle(fontSize: 14, color: Colors.black54),
         ),
 
@@ -246,7 +244,7 @@ Widget _categoryCard(
 
         const SizedBox(height: 4),
         Text(
-          "Paid: $workerPaid  /  Pending: $workerPending",
+          'Paid: $workerPaid  /  Pending: $workerPending',
           style: const TextStyle(fontSize: 14, color: Colors.green),
         ),
 
@@ -298,7 +296,7 @@ Widget _categoryCard(
               ),
             ),
             child: const Text(
-              "✓   Mark as completed",
+              '✓   Mark as completed',
               style: TextStyle(
                 color: Color(0xFF9A5222),
                 fontSize: 14,

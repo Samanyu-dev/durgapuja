@@ -17,7 +17,7 @@ import '../../widgets/smart_image.dart';
 class TapToEditScreen extends StatefulWidget {
   final GeneratedImage? image;
 
-  const TapToEditScreen({Key? key, this.image}) : super(key: key);
+  const TapToEditScreen({super.key, this.image});
 
   @override
   State<TapToEditScreen> createState() => _TapToEditScreenState();
@@ -27,7 +27,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   final TapToEditService _tapToEditService = TapToEditService();
   final TextEditingController _promptController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  
+
   GeneratedImage? _currentImage;
   bool _isEditing = false;
   bool _isListening = false;
@@ -35,22 +35,22 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   bool _showImageSourceOptions = false;
   bool _isTracing = false;
   bool _showConfirmSelection = false;
-  
+
   // Freehand tracing state
   List<Offset> _tracePoints = [];
-  List<List<Offset>> _completedTraces = [];
+  final List<List<Offset>> _completedTraces = [];
   Path? _currentTracePath;
-  
+
   double _imageWidth = 0;
   double _imageHeight = 0;
   ElementType? _selectedElementType;
   final GlobalKey _imageKey = GlobalKey();
-  
+
   @override
   void initState() {
     super.initState();
     _currentImage = widget.image;
-    
+
     // Get image dimensions after the frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getImageDimensions();
@@ -58,7 +58,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   void _getImageDimensions() {
-    final RenderBox? renderBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        _imageKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox != null) {
       setState(() {
         _imageWidth = renderBox.size.width;
@@ -83,16 +84,16 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
     try {
       final speechService = SpeechService();
       final recognizedText = await speechService.listenBangla();
-      
+
       if (recognizedText.isNotEmpty) {
         setState(() {
           _promptController.text = recognizedText;
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice input failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Voice input failed: $e')));
     } finally {
       setState(() {
         _isListening = false;
@@ -131,9 +132,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
     }
   }
 
@@ -153,7 +154,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   /// selection line up with the actual image pixels sent to the
   /// segmentation API.
   Offset? _imageLocalOffset(Offset globalPosition) {
-    final RenderBox? imageBox = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? imageBox =
+        _imageKey.currentContext?.findRenderObject() as RenderBox?;
     if (imageBox == null || !imageBox.hasSize) return null;
 
     final Offset local = imageBox.globalToLocal(globalPosition);
@@ -197,7 +199,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
     setState(() {
       _isTracing = false;
-      if (_tracePoints.length > 5) { // Minimum trace length
+      if (_tracePoints.length > 5) {
+        // Minimum trace length
         _completedTraces.add(_tracePoints.toList());
         _showConfirmSelection = true;
       } else {
@@ -242,9 +245,13 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
   }
 
   Future<void> _applyEdit() async {
-    if (_currentImage == null || _completedTraces.isEmpty || _selectedElementType == null) {
+    if (_currentImage == null ||
+        _completedTraces.isEmpty ||
+        _selectedElementType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please trace an area and select element type')),
+        const SnackBar(
+          content: Text('Please trace an area and select element type'),
+        ),
       );
       return;
     }
@@ -270,7 +277,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
     if (_imageWidth <= 0 || _imageHeight <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image is still loading, please try again in a moment')),
+        const SnackBar(
+          content: Text('Image is still loading, please try again in a moment'),
+        ),
       );
       return;
     }
@@ -301,7 +310,11 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           _isEditing = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please trace a valid area inside the image and describe the change')),
+          const SnackBar(
+            content: Text(
+              'Please trace a valid area inside the image and describe the change',
+            ),
+          ),
         );
         return;
       }
@@ -334,9 +347,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       setState(() {
         _isEditing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Edit failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Edit failed: $e')));
     }
   }
 
@@ -358,9 +371,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save image: $e')));
     }
   }
 
@@ -408,23 +421,22 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
             _buildImageViewer(),
 
             // Image Source Options
-            if (_showImageSourceOptions)
-              _buildImageSourceOptions(),
+            if (_showImageSourceOptions) _buildImageSourceOptions(),
 
             // Confirm Selection Overlay
-            if (_showConfirmSelection)
-              _buildConfirmSelectionOverlay(),
+            if (_showConfirmSelection) _buildConfirmSelectionOverlay(),
 
             // Edit Panel
-            if (_showEditPanel)
-              _buildEditPanel(),
+            if (_showEditPanel) _buildEditPanel(),
 
             // Loading Overlay
-            if (_isEditing)
-              _buildLoadingOverlay(),
+            if (_isEditing) _buildLoadingOverlay(),
 
             // Instructions
-            if (_currentImage != null && _completedTraces.isEmpty && _currentTracePath == null && !_showEditPanel)
+            if (_currentImage != null &&
+                _completedTraces.isEmpty &&
+                _currentTracePath == null &&
+                !_showEditPanel)
               _buildInstructions(),
           ],
         ),
@@ -440,10 +452,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           child: Text(
             'No image selected\nTap the image icon to select one',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
       );
@@ -472,7 +481,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                   return child;
                 }
                 return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryBrown),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryBrown,
+                  ),
                 );
               },
               errorBuilder: (context, error, stackTrace) {
@@ -497,7 +508,8 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 onPanUpdate: _handlePanUpdate,
                 onPanEnd: _handlePanEnd,
                 onTapDown: _handleTap,
-                child: (_completedTraces.isNotEmpty || _currentTracePath != null)
+                child:
+                    (_completedTraces.isNotEmpty || _currentTracePath != null)
                     ? CustomPaint(
                         painter: TracingPainter(
                           completedTraces: _completedTraces,
@@ -526,7 +538,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -535,7 +547,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Tracing Confirmed',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
@@ -544,7 +556,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Element traced and ready for editing',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeSmall,
@@ -586,13 +598,13 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
+          color: Colors.black.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         ),
-        child: Row(
+        child: const Row(
           children: [
             Icon(Icons.touch_app, color: AppColors.accentOrange, size: 20),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Trace around the element you want to edit with your finger',
@@ -620,7 +632,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -629,7 +641,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Select Image Source',
               style: TextStyle(
                 fontSize: AppConstants.fontSizeMedium,
@@ -694,7 +706,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, -4),
             ),
@@ -709,7 +721,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.textLight.withOpacity(0.3),
+                  color: AppColors.textLight.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -719,7 +731,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               if (_selectedElementType == null)
                 Column(
                   children: [
-                    Text(
+                    const Text(
                       'Select Element to Edit',
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeMedium,
@@ -743,7 +755,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                             ],
                           ),
                           selected: _selectedElementType == elementType,
-                          selectedColor: AppColors.accentOrange.withOpacity(0.3),
+                          selectedColor: AppColors.accentOrange.withValues(
+                            alpha: 0.3,
+                          ),
                           onSelected: (selected) {
                             if (selected) {
                               setState(() {
@@ -762,10 +776,12 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.accentOrange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    color: AppColors.accentOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                     border: Border.all(
-                      color: AppColors.accentOrange.withOpacity(0.3),
+                      color: AppColors.accentOrange.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -779,7 +795,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                       Expanded(
                         child: Text(
                           'Selected: ${_selectedElementType!.displayName}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: AppConstants.fontSizeSmall,
                             color: AppColors.textDark,
                             fontWeight: FontWeight.w600,
@@ -807,15 +823,17 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.accentOrange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    color: AppColors.accentOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                     border: Border.all(
-                      color: AppColors.accentOrange.withOpacity(0.3),
+                      color: AppColors.accentOrange.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.lightbulb_outline,
                         size: 20,
                         color: AppColors.accentOrange,
@@ -823,8 +841,10 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _tapToEditService.getElementGuidance(_selectedElementType!),
-                          style: TextStyle(
+                          _tapToEditService.getElementGuidance(
+                            _selectedElementType!,
+                          ),
+                          style: const TextStyle(
                             fontSize: AppConstants.fontSizeSmall,
                             color: AppColors.textDark,
                           ),
@@ -840,8 +860,12 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                  border: Border.all(color: AppColors.primaryBrown.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
+                  border: Border.all(
+                    color: AppColors.primaryBrown.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -855,7 +879,9 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                           hintText: _selectedElementType != null
                               ? 'Describe changes for ${_selectedElementType!.displayName.toLowerCase()}...'
                               : 'Select an element type first',
-                          hintStyle: TextStyle(color: AppColors.textLight),
+                          hintStyle: const TextStyle(
+                            color: AppColors.textLight,
+                          ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.all(16),
                         ),
@@ -877,11 +903,13 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
               // Example Prompts
               if (_selectedElementType != null &&
-                  _tapToEditService.getExamplePrompts(_selectedElementType!).isNotEmpty)
+                  _tapToEditService
+                      .getExamplePrompts(_selectedElementType!)
+                      .isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Example Prompts:',
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
@@ -896,34 +924,37 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
                       children: _tapToEditService
                           .getExamplePrompts(_selectedElementType!)
                           .map((prompt) {
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              _promptController.text = prompt;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppColors.primaryBrown.withOpacity(0.3),
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _promptController.text = prompt;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppColors.primaryBrown.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  prompt,
+                                  style: const TextStyle(
+                                    fontSize: AppConstants.fontSizeSmall,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              prompt,
-                              style: TextStyle(
-                                fontSize: AppConstants.fontSizeSmall,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          })
+                          .toList(),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -954,26 +985,29 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
               ),
 
               // Success Indicator
-              if (_currentImage != null && _currentImage!.id != widget.image?.id)
+              if (_currentImage != null &&
+                  _currentImage!.id != widget.image?.id)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.accentOrange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      color: AppColors.accentOrange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                       border: Border.all(
-                        color: AppColors.accentOrange.withOpacity(0.3),
+                        color: AppColors.accentOrange.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(
                           Icons.check_circle,
                           size: 20,
                           color: AppColors.accentOrange,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Image has been edited! View the result above.',
@@ -997,7 +1031,7 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
   Widget _buildLoadingOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.7),
+      color: Colors.black.withValues(alpha: 0.7),
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1053,12 +1087,12 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Edit Complete!'),
-          content: Column(
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Your image has been successfully edited.'),
-              const SizedBox(height: 16),
-              const Text(
+              Text('Your image has been successfully edited.'),
+              SizedBox(height: 16),
+              Text(
                 'You can now view the edited image in the viewer above.',
                 style: TextStyle(color: Colors.grey),
               ),
@@ -1095,7 +1129,7 @@ class TracingPainter extends CustomPainter {
     // Draw completed traces
     for (final trace in completedTraces) {
       if (trace.length < 2) continue;
-      
+
       final path = Path();
       path.moveTo(trace.first.dx, trace.first.dy);
       for (int i = 1; i < trace.length; i++) {
@@ -1105,7 +1139,7 @@ class TracingPainter extends CustomPainter {
 
       // Dark overlay outside the traced area
       final overlayPaint = Paint()
-        ..color = Colors.black.withOpacity(0.5)
+        ..color = Colors.black.withValues(alpha: 0.5)
         ..style = PaintingStyle.fill;
 
       final combinedPath = Path()
@@ -1125,7 +1159,7 @@ class TracingPainter extends CustomPainter {
 
       // Fill the traced area with semi-transparent color
       final fillPaint = Paint()
-        ..color = AppColors.accentOrange.withOpacity(0.2)
+        ..color = AppColors.accentOrange.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
 
       canvas.drawPath(path, fillPaint);
@@ -1148,7 +1182,7 @@ class TracingPainter extends CustomPainter {
       if (metrics.isNotEmpty) {
         final lastMetric = metrics.last;
         final pos = lastMetric.getTangentForOffset(lastMetric.length)?.position;
-        
+
         if (pos != null) {
           final centerPaint = Paint()
             ..color = AppColors.accentOrange
@@ -1170,27 +1204,27 @@ class TracingPainter extends CustomPainter {
   Path _createDashedPath(Path path, double dashLength, double dashSpace) {
     final metrics = path.computeMetrics();
     final newPath = Path();
-    
+
     for (final metric in metrics) {
       double distance = 0;
       bool draw = true;
-      
+
       while (distance < metric.length) {
         if (draw) {
           final startTangent = metric.getTangentForOffset(distance);
           final endTangent = metric.getTangentForOffset(distance + dashLength);
-          
+
           if (startTangent != null && endTangent != null) {
             newPath.moveTo(startTangent.position.dx, startTangent.position.dy);
             newPath.lineTo(endTangent.position.dx, endTangent.position.dy);
           }
         }
-        
+
         distance += dashLength + dashSpace;
         draw = !draw;
       }
     }
-    
+
     return newPath;
   }
 
@@ -1218,7 +1252,7 @@ class CircleSelectionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Dark overlay outside the circle
     final overlayPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
 
     final circlePath = Path()
@@ -1239,7 +1273,7 @@ class CircleSelectionPainter extends CustomPainter {
     // Animated dashed circle if drawing
     if (isDrawing) {
       final dashedPaint = Paint()
-        ..color = Colors.white.withOpacity(0.7)
+        ..color = Colors.white.withValues(alpha: 0.7)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
@@ -1287,7 +1321,12 @@ class CircleSelectionPainter extends CustomPainter {
     }
   }
 
-  void _drawDashedCircle(Canvas canvas, Offset center, double radius, Paint paint) {
+  void _drawDashedCircle(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Paint paint,
+  ) {
     const dashLength = 10.0;
     const dashSpace = 5.0;
     const totalDashes = 360 / (dashLength + dashSpace);

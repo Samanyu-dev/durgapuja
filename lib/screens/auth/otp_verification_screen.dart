@@ -9,14 +9,17 @@ import '../../providers/auth_provider.dart';
 import '../../services/logging_service.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-  const OtpVerificationScreen({Key? key}) : super(key: key);
+  const OtpVerificationScreen({super.key});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (index) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
   final _formKey = GlobalKey<FormState>();
 
@@ -185,10 +188,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBrown.withOpacity(0.1),
+                    color: AppColors.primaryBrown.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.message,
                     size: 50,
                     color: AppColors.primaryBrown,
@@ -198,7 +201,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 const SizedBox(height: AppConstants.largePadding),
 
                 // Title
-                Text(
+                const Text(
                   'Verify Your Phone',
                   style: TextStyle(
                     fontSize: 28,
@@ -211,7 +214,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Subtitle
-                Text(
+                const Text(
                   'Enter the 6-digit code sent to',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeBody,
@@ -224,7 +227,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   const SizedBox(height: 4),
                   Text(
                     _phoneNumber!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeBody,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryBrown,
@@ -244,14 +247,18 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.borderRadius,
+                        ),
                         border: Border.all(
-                          color: _errorMessage != null ? AppColors.errorRed : AppColors.primaryBrown.withOpacity(0.3),
+                          color: _errorMessage != null
+                              ? AppColors.errorRed
+                              : AppColors.primaryBrown.withValues(alpha: 0.3),
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -263,7 +270,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         keyboardType: TextInputType.number,
                         maxLength: 1,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
@@ -284,12 +291,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppConstants.smallPadding),
                     decoration: BoxDecoration(
-                      color: AppColors.errorRed.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      color: AppColors.errorRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline,
                           color: AppColors.errorRed,
                           size: 20,
@@ -298,7 +307,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.errorRed,
                               fontSize: AppConstants.fontSizeSmall,
                             ),
@@ -328,7 +337,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "Didn't receive OTP? ",
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeSmall,
@@ -341,7 +350,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         _canResend ? 'Resend' : 'Resend in ${_resendTimer}s',
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeSmall,
-                          color: _canResend ? AppColors.primaryBrown : AppColors.textLight,
+                          color: _canResend
+                              ? AppColors.primaryBrown
+                              : AppColors.textLight,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -355,17 +366,19 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppConstants.smallPadding),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBrown.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    color: AppColors.primaryBrown.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
                       Icon(
                         Icons.info_outline,
                         color: AppColors.primaryBrown,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'OTP sent via SMS to your phone number',

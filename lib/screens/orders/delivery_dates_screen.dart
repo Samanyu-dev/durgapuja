@@ -33,7 +33,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
   Future<void> _loadOrders() async {
     setState(() => _isLoading = true);
     try {
-      final orders = await DatabaseService.getOrdersByCustomerName(widget.clientId);
+      final orders = await DatabaseService.getOrdersByCustomerName(
+        widget.clientId,
+      );
       if (mounted) {
         setState(() {
           _orders = orders;
@@ -43,9 +45,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load orders: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load orders: $e')));
       }
     }
   }
@@ -101,9 +103,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
   Future<void> _markDelivered(int orderId) async {
     try {
       await DatabaseService.markOrderDelivered(orderId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Marked as delivered')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Marked as delivered')));
       _loadOrders();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,23 +115,25 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
   }
 
   Future<void> _recordWithVoice() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Listening...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Listening...')));
     try {
       final banglaText = await SpeechService().listenBangla();
       if (!mounted) return;
       if (banglaText.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No speech detected')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No speech detected')));
         return;
       }
-      final englishText = await TranslationService().translateToEnglish(banglaText);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Recognized: $englishText')),
+      final englishText = await TranslationService().translateToEnglish(
+        banglaText,
       );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Recognized: $englishText')));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -184,7 +188,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -194,7 +198,8 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                         firstDay: DateTime.now(),
                         lastDay: DateTime.now().add(const Duration(days: 730)),
                         focusedDay: _focusedDay,
-                        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDay, day),
                         onDaySelected: (selectedDay, focusedDay) {
                           setState(() {
                             _selectedDay = selectedDay;
@@ -204,7 +209,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                         onPageChanged: (focusedDay) {
                           _focusedDay = focusedDay;
                         },
-                        calendarStyle: CalendarStyle(
+                        calendarStyle: const CalendarStyle(
                           selectedDecoration: BoxDecoration(
                             color: AppColors.primaryBrown,
                             shape: BoxShape.circle,
@@ -213,12 +218,14 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                             color: AppColors.accentOrange,
                             shape: BoxShape.circle,
                           ),
-                          weekendTextStyle: TextStyle(color: AppColors.warningRed),
+                          weekendTextStyle: TextStyle(
+                            color: AppColors.warningRed,
+                          ),
                         ),
-                        headerStyle: HeaderStyle(
+                        headerStyle: const HeaderStyle(
                           formatButtonVisible: false,
                           titleCentered: true,
-                          titleTextStyle: const TextStyle(
+                          titleTextStyle: TextStyle(
                             fontSize: AppConstants.fontSizeLarge,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -264,7 +271,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryBrown,
-                      borderRadius: BorderRadius.circular(AppConstants.largeRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.largeRadius,
+                      ),
                     ),
                     child: TextButton.icon(
                       onPressed: _recordWithVoice,
@@ -297,7 +306,7 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -311,7 +320,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  idolName != null && idolName.isNotEmpty ? idolName : 'Idol order',
+                  idolName != null && idolName.isNotEmpty
+                      ? idolName
+                      : 'Idol order',
                   style: const TextStyle(
                     fontSize: AppConstants.fontSizeMedium,
                     fontWeight: FontWeight.w600,
@@ -323,7 +334,9 @@ class _DeliveryDatesScreenState extends State<DeliveryDatesScreen> {
                   delivered ? 'Delivered' : _formatDate(order['delivery_date']),
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeSmall,
-                    color: delivered ? AppColors.successGreen : AppColors.textLight,
+                    color: delivered
+                        ? AppColors.successGreen
+                        : AppColors.textLight,
                   ),
                 ),
               ],

@@ -8,7 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/logging_service.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
-  const PhoneAuthScreen({Key? key}) : super(key: key);
+  const PhoneAuthScreen({super.key});
 
   @override
   State<PhoneAuthScreen> createState() => _PhoneAuthScreenState();
@@ -45,9 +45,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       LoggingService.logInfo('OTP sent successfully to $phoneNumber');
 
       if (mounted) {
-        context.push('/otp-verification', extra: {
-          'phoneNumber': phoneNumber,
-        });
+        context.push('/otp-verification', extra: {'phoneNumber': phoneNumber});
       }
     } catch (e) {
       LoggingService.logError('OTP send failed with error: $e');
@@ -113,10 +111,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBrown.withOpacity(0.1),
+                    color: AppColors.primaryBrown.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.phone_android,
                     size: 60,
                     color: AppColors.primaryBrown,
@@ -126,7 +124,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 const SizedBox(height: AppConstants.largePadding),
 
                 // Title
-                Text(
+                const Text(
                   'Welcome to Durga Idol Maker',
                   style: TextStyle(
                     fontSize: 28,
@@ -139,7 +137,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Subtitle
-                Text(
+                const Text(
                   'Enter your phone number to continue',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeBody,
@@ -154,10 +152,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -172,7 +172,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                       hintText: 'Enter 10-digit mobile number',
                       prefixIcon: Container(
                         padding: const EdgeInsets.all(16),
-                        child: Text(
+                        child: const Text(
                           '+91',
                           style: TextStyle(
                             color: AppColors.textDark,
@@ -193,12 +193,14 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppConstants.smallPadding),
                     decoration: BoxDecoration(
-                      color: AppColors.errorRed.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      color: AppColors.errorRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline,
                           color: AppColors.errorRed,
                           size: 20,
@@ -207,7 +209,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.errorRed,
                               fontSize: AppConstants.fontSizeSmall,
                             ),
@@ -234,7 +236,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 const SizedBox(height: AppConstants.mediumPadding),
 
                 // Info Text
-                Text(
+                const Text(
                   'We will send an OTP to your phone number for verification',
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeSmall,
@@ -246,7 +248,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                 const SizedBox(height: AppConstants.largePadding),
 
                 // Terms and Privacy
-                Text.rich(
+                const Text.rich(
                   TextSpan(
                     text: 'By continuing, you agree to our ',
                     style: TextStyle(
@@ -261,7 +263,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const TextSpan(text: ' and '),
+                      TextSpan(text: ' and '),
                       TextSpan(
                         text: 'Privacy Policy',
                         style: TextStyle(

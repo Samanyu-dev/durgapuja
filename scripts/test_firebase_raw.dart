@@ -1,6 +1,8 @@
 // Raw Firebase Testing Script - No app dependencies
 // Run with: dart test_firebase_raw.dart
 
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,8 +36,9 @@ class FirebaseRawTester {
 
       print('\n🎉 Firebase testing completed successfully!');
       print('📊 Check Firebase Console for created test data.');
-      print('🔗 Console URL: https://console.firebase.google.com/project/idolmakers-e7c0c/firestore');
-
+      print(
+        '🔗 Console URL: https://console.firebase.google.com/project/idolmakers-e7c0c/firestore',
+      );
     } catch (e) {
       print('❌ Test suite failed: $e');
       print('🔍 Check Firebase Console for any partial data that was created.');
@@ -45,15 +48,12 @@ class FirebaseRawTester {
   Future<void> _initializeFirebase() async {
     print('📱 Initializing Firebase with raw config...');
     try {
-      await Firebase.initializeApp(
-        options: firebaseOptions,
-      );
+      await Firebase.initializeApp(options: firebaseOptions);
       print('✅ Firebase initialized successfully');
 
       // Test basic connectivity
       final user = _auth.currentUser;
       print('📊 Current user: ${user?.uid ?? 'None'}');
-
     } catch (e) {
       print('❌ Firebase initialization failed: $e');
       rethrow;
@@ -77,18 +77,25 @@ class FirebaseRawTester {
             'id': 'test_idol_1',
             'name': 'Test Durga Idol',
             'requirements': 'Firebase connectivity test',
-            'deliveryDate': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+            'deliveryDate': DateTime.now()
+                .add(const Duration(days: 7))
+                .toIso8601String(),
             'status': 'Testing',
-          }
+          },
         ],
         'pendingAmount': 15000.0,
-        'deliveryDates': [DateTime.now().add(const Duration(days: 7)).toIso8601String()],
+        'deliveryDates': [
+          DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+        ],
         'notes': ['Created during Firebase testing'],
         'createdAt': FieldValue.serverTimestamp(),
         'testType': 'raw_firebase_test',
       };
 
-      await _firestore.collection('clients').doc(clientData['id'] as String).set(clientData);
+      await _firestore
+          .collection('clients')
+          .doc(clientData['id'] as String)
+          .set(clientData);
       print('   ✅ Test client created: ${clientData['id']}');
 
       // Test 2: Create test material document
@@ -102,7 +109,10 @@ class FirebaseRawTester {
         'testType': 'raw_firebase_test',
       };
 
-      await _firestore.collection('materials').doc(materialData['id'] as String).set(materialData);
+      await _firestore
+          .collection('materials')
+          .doc(materialData['id'] as String)
+          .set(materialData);
       print('   ✅ Test material created: ${materialData['id']}');
 
       // Test 3: Create test transaction document
@@ -116,7 +126,10 @@ class FirebaseRawTester {
         'testType': 'raw_firebase_test',
       };
 
-      await _firestore.collection('transactions').doc(transactionData['id'] as String).set(transactionData);
+      await _firestore
+          .collection('transactions')
+          .doc(transactionData['id'] as String)
+          .set(transactionData);
       print('   ✅ Test transaction created: ${transactionData['id']}');
 
       // Test 4: Query and verify data
@@ -152,7 +165,6 @@ class FirebaseRawTester {
       }
 
       print('✅ All Firestore operations completed successfully');
-
     } catch (e) {
       print('❌ Firestore test failed: $e');
       rethrow;
@@ -181,7 +193,6 @@ class FirebaseRawTester {
       print('      - Valid phone number');
       print('      - Firebase Console phone auth enabled');
       print('      - Test through the actual Flutter app');
-
     } catch (e) {
       print('❌ Authentication test failed: $e');
     }
@@ -200,6 +211,10 @@ void main() async {
 
   print('\n🔚 Script completed.');
   print('📊 Check Firebase Console:');
-  print('   - Firestore Database: https://console.firebase.google.com/project/idolmakers-e7c0c/firestore');
-  print('   - Authentication: https://console.firebase.google.com/project/idolmakers-e7c0c/authentication');
+  print(
+    '   - Firestore Database: https://console.firebase.google.com/project/idolmakers-e7c0c/firestore',
+  );
+  print(
+    '   - Authentication: https://console.firebase.google.com/project/idolmakers-e7c0c/authentication',
+  );
 }

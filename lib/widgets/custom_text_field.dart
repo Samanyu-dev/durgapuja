@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
-import '../services/logging_service.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
@@ -32,7 +31,7 @@ class CustomTextField extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -46,12 +45,15 @@ class CustomTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           labelText: labelText,
-          hintStyle: TextStyle(color: AppColors.textLight, fontSize: 16),
-          labelStyle: TextStyle(color: AppColors.textLight, fontSize: 14),
+          hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 16),
+          labelStyle: const TextStyle(color: AppColors.textLight, fontSize: 14),
           prefixIcon: prefixIcon,
           suffixIcon: hasVoiceInput
               ? IconButton(
-                  icon: Icon(Icons.mic_outlined, color: AppColors.primaryBrown),
+                  icon: const Icon(
+                    Icons.mic_outlined,
+                    color: AppColors.primaryBrown,
+                  ),
                   onPressed: onVoicePressed,
                 )
               : null,
