@@ -41,5 +41,12 @@
   "tryLights": "আলো পরীক্ষা করুন",
   "tryLightsDesc": "আলোর প্রভাব নিয়ে পরীক্ষা করুন",
   "clients": "ক্লায়েন্ট",
-  "searchClients": "ক্লায়েন্ট খুঁজুন"
+  "searchClients": "ক্লায়েন্ট খুঁজুন",
+  "chooseYourModule": "আপনার মডিউল নির্বাচন করুন",
+  "selectModuleDescription": "আপনি যে মডিউল নিয়ে কাজ করতে চান তা নির্বাচন করুন",
+  "designModule": "ডিজাইন মডিউল",
+  "designModuleDescription": "মূর্তি ডিজাইন তৈরি এবং কাস্টমাইজ করুন",
+  "financeModule": "অর্থ মডিউল",
+  "financeModuleDescription": "ব্যয়, উপকরণ এবং অর্থ প্রদান ট্র্যাক করুন",
+  "continueWithDesign": "ডিজাইন দিয়ে এগিয়ে যান (ডিফল্ট)"
 }

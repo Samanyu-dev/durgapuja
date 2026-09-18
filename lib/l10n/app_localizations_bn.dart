@@ -139,25 +139,25 @@ class AppLocalizationsBn extends AppLocalizations {
   String get searchClients => 'ক্লায়েন্ট খুঁজুন';
 
   @override
-  String get chooseYourModule => 'Choose Your Module';
+  String get chooseYourModule => 'আপনার মডিউল নির্বাচন করুন';
 
   @override
   String get selectModuleDescription =>
-      'Select the module you want to work with';
+      'আপনি যে মডিউল নিয়ে কাজ করতে চান তা নির্বাচন করুন';
 
   @override
-  String get designModule => 'Design Module';
+  String get designModule => 'ডিজাইন মডিউল';
 
   @override
-  String get designModuleDescription => 'Create and customize idol designs';
+  String get designModuleDescription => 'মূর্তি ডিজাইন তৈরি এবং কাস্টমাইজ করুন';
 
   @override
-  String get financeModule => 'Finance Module';
+  String get financeModule => 'অর্থ মডিউল';
 
   @override
   String get financeModuleDescription =>
-      'Track expenses, materials, and payments';
+      'ব্যয়, উপকরণ এবং অর্থ প্রদান ট্র্যাক করুন';
 
   @override
-  String get continueWithDesign => 'Continue with Design (Default)';
+  String get continueWithDesign => 'ডিজাইন দিয়ে এগিয়ে যান (ডিফল্ট)';
 }
