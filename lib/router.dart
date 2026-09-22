@@ -33,6 +33,7 @@ import 'widgets/app_scaffold.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/onboarding',
+  refreshListenable: AuthProvider.routerRefreshNotifier,
   redirect: (context, state) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentPath = state.uri.toString();

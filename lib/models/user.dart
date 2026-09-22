@@ -41,6 +41,18 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    DateTime parseDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+      if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+      try {
+        return (value as dynamic).toDate();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return UserModel(
       uid: map['uid'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
@@ -48,8 +60,8 @@ class UserModel {
       name: map['name'],
       role: UserRole.fromString(map['role'] ?? 'user'),
       isActive: map['isActive'] ?? true,
-      createdAt: (map['createdAt'] as dynamic)?.toDate() ?? DateTime.now(),
-      lastLogin: (map['lastLogin'] as dynamic)?.toDate() ?? DateTime.now(),
+      createdAt: parseDate(map['createdAt']),
+      lastLogin: parseDate(map['lastLogin']),
     );
   }
 

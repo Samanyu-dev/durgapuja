@@ -4,7 +4,22 @@ import '../services/auth_service.dart';
 import '../services/logging_service.dart';
 import '../models/user.dart';
 
+class RouterRefreshListenable extends ChangeNotifier {
+  void refresh() {
+    notifyListeners();
+  }
+}
+
 class AuthProvider with ChangeNotifier {
+  static final RouterRefreshListenable routerRefreshNotifier =
+      RouterRefreshListenable();
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    routerRefreshNotifier.refresh();
+  }
+
   final AuthService _authService;
 
   User? _firebaseUser;
@@ -35,12 +50,20 @@ class AuthProvider with ChangeNotifier {
           'AuthProvider: Loading user profile for ${user.uid}',
         );
         _userModel = await _authService.getUserProfile(user.uid);
-        LoggingService.logInfo(
-          'AuthProvider: User model loaded: ${_userModel?.name}',
-        );
-        if (_userModel != null) {
-          await _authService.updateLastLogin(user.uid);
+        if (_userModel == null) {
+          _userModel = UserModel(
+            uid: user.uid,
+            phoneNumber: user.phoneNumber ?? '',
+            role: UserRole.user,
+            isActive: true,
+            createdAt: DateTime.now(),
+            lastLogin: DateTime.now(),
+          );
         }
+        LoggingService.logInfo(
+          'AuthProvider: User model loaded: ${_userModel?.name ?? _userModel?.phoneNumber}',
+        );
+        await _authService.updateLastLogin(user.uid);
       } else {
         _userModel = null;
       }
@@ -67,7 +90,24 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      return await _authService.verifyOTP(smsCode);
+      final credential = await _authService.verifyOTP(smsCode);
+      if (credential.user != null) {
+        _firebaseUser = credential.user;
+        _userModel = await _authService.getUserProfile(credential.user!.uid);
+        if (_userModel == null) {
+          _userModel = UserModel(
+            uid: credential.user!.uid,
+            phoneNumber: credential.user!.phoneNumber ??
+                _authService.pendingPhoneNumber ??
+                '',
+            role: UserRole.user,
+            isActive: true,
+            createdAt: DateTime.now(),
+            lastLogin: DateTime.now(),
+          );
+        }
+      }
+      return credential;
     } finally {
       _isLoading = false;
       notifyListeners();
