@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../services/integrated_speech_service.dart';
 import '../../utils/colors.dart';
 import '../../services/translation_service.dart';
 import '../../services/gpt_service.dart';
 import '../../services/database_service.dart';
 import '../../services/finance_processor.dart';
+import '../../providers/locale_provider.dart';
 import '../orders/record_payment_screen.dart';
 
 class FinanceHomeScreen extends StatefulWidget {
@@ -88,8 +90,11 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () {
-                          // Navigate back to main module selection
-                          context.go('/');
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/main');
+                          }
                         },
                         tooltip: 'Back to Modules',
                       ),
@@ -103,9 +108,30 @@ class _FinanceHomeScreenState extends State<FinanceHomeScreen> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.settings, size: 26),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Consumer<LocaleProvider>(
+                        builder: (context, localeProvider, child) {
+                          return TextButton.icon(
+                            onPressed: () => localeProvider.toggleLanguage(),
+                            icon: const Icon(Icons.language, size: 18),
+                            label: Text(
+                              localeProvider.locale.languageCode == 'en'
+                                  ? 'বাং'
+                                  : 'EN',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.settings, size: 26),
+                      ),
+                    ],
                   ),
                 ],
               ),

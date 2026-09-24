@@ -35,50 +35,31 @@ class DynamicIslandNav extends StatelessWidget {
           const NavItem(icon: Icons.bar_chart_outlined, label: 'Reports'),
         ];
 
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
+    return Center(
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.transparent,
-              AppColors.backgroundCream.withValues(alpha: 0.3),
-              AppColors.backgroundCream,
-            ],
-          ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              spreadRadius: 2,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        padding: const EdgeInsets.only(bottom: 20, top: 10),
-        child: Center(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(50),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (int i = 0; i < items.length; i++)
-                  _buildNavItem(
-                    icon: items[i].icon,
-                    label: items[i].label,
-                    index: i,
-                  ),
-              ],
-            ),
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < items.length; i++)
+              _buildNavItem(
+                icon: items[i].icon,
+                label: items[i].label,
+                index: i,
+              ),
+          ],
         ),
       ),
     );

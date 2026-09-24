@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/colors.dart';
-import '../services/logging_service.dart';
 import '../services/speech_service.dart';
 import '../services/translation_service.dart';
 import 'dynamic_island_nav.dart';
 
-class AppScaffold extends StatelessWidget {
+class AppScaffold extends StatefulWidget {
   final Widget body;
   final int currentIndex;
   final Function(int) onNavTap;
@@ -30,18 +31,28 @@ class AppScaffold extends StatelessWidget {
   });
 
   @override
+  State<AppScaffold> createState() => _AppScaffoldState();
+}
+
+class _AppScaffoldState extends State<AppScaffold> {
+  bool _isVisible = true;
+
+  @override
   Widget build(BuildContext context) {
     // Use custom nav items if provided
-    List<NavItem> navItems = customNavItems ?? [];
+    List<NavItem> navItems = widget.customNavItems ?? [];
 
     if (navItems.isEmpty) {
       // Define navigation items based on the module
-      if (showHomeIcon) {
-        if (isDesignModule) {
-          // Design module: Dashboard, Design (no finance parts)
+      if (widget.showHomeIcon) {
+        if (widget.isDesignModule) {
+          // Design module: Studio, My Concepts
           navItems = [
-            const NavItem(icon: Icons.home_outlined, label: 'Dashboard'),
-            const NavItem(icon: Icons.palette_outlined, label: 'Design'),
+            const NavItem(icon: Icons.palette_outlined, label: 'Studio'),
+            const NavItem(
+              icon: Icons.photo_library_outlined,
+              label: 'My Concepts',
+            ),
           ];
         } else {
           // Finance module: Dashboard, Orders, Reports (no design parts)
@@ -63,20 +74,59 @@ class AppScaffold extends StatelessWidget {
       }
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      body: Stack(
-        children: [
-          body,
-          DynamicIslandNav(
-            currentIndex: currentIndex,
-            onTap: onNavTap,
-            onVoiceTap: onFabTap ?? () => _showVoiceBottomSheet(context),
-            navItems: navItems,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/main');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        body: NotificationListener<UserScrollNotification>(
+          onNotification: (notification) {
+            if (notification.direction == ScrollDirection.reverse) {
+              // Scrolling down -> hide the bottom bar
+              if (_isVisible) {
+                setState(() => _isVisible = false);
+              }
+            } else if (notification.direction == ScrollDirection.forward) {
+              // Scrolling up -> show the bottom bar
+              if (!_isVisible) {
+                setState(() => _isVisible = true);
+              }
+            }
+            return false;
+          },
+          child: Stack(
+            children: [
+              widget.body,
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                bottom: _isVisible ? 20 : -90,
+                left: 0,
+                right: 0,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  child: DynamicIslandNav(
+                    currentIndex: widget.currentIndex,
+                    onTap: widget.onNavTap,
+                    onVoiceTap:
+                        widget.onFabTap ?? () => _showVoiceBottomSheet(context),
+                    navItems: navItems,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+        floatingActionButton: widget.floatingActionButton,
       ),
-      floatingActionButton: floatingActionButton,
     );
   }
 
@@ -102,25 +152,35 @@ class AppScaffold extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Tap to start recording your voice note',
+              'Record voice notes for quick updates',
               style: TextStyle(color: AppColors.textLight),
             ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _startVoiceRecording(context),
-                  icon: const Icon(Icons.mic),
-                  label: const Text('Start Recording'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBrown,
-                    foregroundColor: Colors.white,
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  iconSize: 32,
+                ),
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryBrown,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: () => _handleVoiceRecording(context),
+                    icon: const Icon(Icons.mic, color: Colors.white),
+                    iconSize: 32,
                   ),
                 ),
-                OutlinedButton(
+                IconButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  icon: const Icon(Icons.check),
+                  iconSize: 32,
                 ),
               ],
             ),
@@ -130,28 +190,28 @@ class AppScaffold extends StatelessWidget {
     );
   }
 
-  Future<void> _startVoiceRecording(BuildContext context) async {
-    Navigator.pop(context);
-    final messenger = ScaffoldMessenger.of(context);
+  void _handleVoiceRecording(BuildContext context) async {
     try {
-      final banglaText = await SpeechService().listenBangla();
-      if (banglaText.isEmpty) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('No speech detected')),
+      final speechService = SpeechService();
+      final translationService = TranslationService();
+
+      final String banglaText = await speechService.listenBangla();
+      if (banglaText.isNotEmpty) {
+        final String englishText = await translationService.translateToEnglish(
+          banglaText,
         );
-        return;
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Voice Note: $englishText')));
+        }
       }
-      final englishText = await TranslationService().translateToEnglish(
-        banglaText,
-      );
-      messenger.showSnackBar(
-        SnackBar(content: Text('Voice Note: $englishText')),
-      );
     } catch (e) {
-      LoggingService.logError('Voice recording failed: $e');
-      messenger.showSnackBar(
-        SnackBar(content: Text('Speech recognition failed: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Recording failed: $e')));
+      }
     }
   }
 }

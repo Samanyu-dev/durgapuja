@@ -132,13 +132,31 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/main');
+            }
+          },
+          tooltip: 'Back to Modules',
+        ),
         title: const Text('My Concepts'),
-        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => context.go('/design/create'),
+            onPressed: () => context.push('/design/create'),
             tooltip: 'Create new concept',
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.dashboard_outlined,
+              color: AppColors.primaryBrown,
+            ),
+            onPressed: () => context.go('/main'),
+            tooltip: 'Modules',
           ),
         ],
       ),
@@ -268,7 +286,7 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: () => context.go('/design/create'),
+                      onPressed: () => context.push('/design/create'),
                       icon: const Icon(Icons.add),
                       label: const Text('Create New Design'),
                     ),
@@ -288,7 +306,12 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
       return const Center(child: Text('No concepts match your filters'));
     }
     return GridView.builder(
-      padding: const EdgeInsets.all(AppConstants.mediumPadding),
+      padding: const EdgeInsets.only(
+        left: AppConstants.mediumPadding,
+        right: AppConstants.mediumPadding,
+        top: AppConstants.mediumPadding,
+        bottom: 100, // Bottom padding to prevent DynamicIslandNav occlusion
+      ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: AppConstants.mediumPadding,

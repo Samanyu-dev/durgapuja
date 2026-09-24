@@ -5,6 +5,7 @@ import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/locale_provider.dart';
 
 class ModuleSelectionScreen extends StatelessWidget {
   const ModuleSelectionScreen({super.key});
@@ -16,13 +17,43 @@ class ModuleSelectionScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          Consumer<LocaleProvider>(
+            builder: (context, localeProvider, child) {
+              return TextButton.icon(
+                onPressed: () => localeProvider.toggleLanguage(),
+                icon: const Icon(
+                  Icons.language,
+                  color: AppColors.primaryBrown,
+                  size: 20,
+                ),
+                label: Text(
+                  localeProvider.locale.languageCode == 'en'
+                      ? 'বাং (Bangla)'
+                      : 'EN (English)',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBrown,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.defaultPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: AppConstants.largePadding * 2),
+              const SizedBox(height: AppConstants.largePadding),
 
               // Logo/Icon
               Container(

@@ -50,16 +50,14 @@ class AuthProvider with ChangeNotifier {
           'AuthProvider: Loading user profile for ${user.uid}',
         );
         _userModel = await _authService.getUserProfile(user.uid);
-        if (_userModel == null) {
-          _userModel = UserModel(
-            uid: user.uid,
-            phoneNumber: user.phoneNumber ?? '',
-            role: UserRole.user,
-            isActive: true,
-            createdAt: DateTime.now(),
-            lastLogin: DateTime.now(),
-          );
-        }
+        _userModel ??= UserModel(
+          uid: user.uid,
+          phoneNumber: user.phoneNumber ?? '',
+          role: UserRole.user,
+          isActive: true,
+          createdAt: DateTime.now(),
+          lastLogin: DateTime.now(),
+        );
         LoggingService.logInfo(
           'AuthProvider: User model loaded: ${_userModel?.name ?? _userModel?.phoneNumber}',
         );
@@ -94,18 +92,17 @@ class AuthProvider with ChangeNotifier {
       if (credential.user != null) {
         _firebaseUser = credential.user;
         _userModel = await _authService.getUserProfile(credential.user!.uid);
-        if (_userModel == null) {
-          _userModel = UserModel(
-            uid: credential.user!.uid,
-            phoneNumber: credential.user!.phoneNumber ??
-                _authService.pendingPhoneNumber ??
-                '',
-            role: UserRole.user,
-            isActive: true,
-            createdAt: DateTime.now(),
-            lastLogin: DateTime.now(),
-          );
-        }
+        _userModel ??= UserModel(
+          uid: credential.user!.uid,
+          phoneNumber:
+              credential.user!.phoneNumber ??
+              _authService.pendingPhoneNumber ??
+              '',
+          role: UserRole.user,
+          isActive: true,
+          createdAt: DateTime.now(),
+          lastLogin: DateTime.now(),
+        );
       }
       return credential;
     } finally {

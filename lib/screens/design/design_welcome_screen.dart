@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 
 class DesignWelcomeScreen extends StatefulWidget {
   const DesignWelcomeScreen({super.key});
@@ -19,12 +21,53 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundCream,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/main');
+            }
+          },
+          tooltip: 'Back to Modules',
+        ),
         title: Text(l10n.welcomeArtisan),
-        automaticallyImplyLeading: false,
         elevation: 0,
+        actions: [
+          Consumer<LocaleProvider>(
+            builder: (context, localeProvider, child) {
+              return IconButton(
+                icon: Text(
+                  localeProvider.locale.languageCode == 'en' ? 'বাং' : 'EN',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryBrown,
+                  ),
+                ),
+                onPressed: () => localeProvider.toggleLanguage(),
+                tooltip: l10n.language,
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.dashboard_outlined,
+              color: AppColors.primaryBrown,
+            ),
+            onPressed: () => context.go('/main'),
+            tooltip: l10n.backToModuleSelection,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.only(
+          left: AppConstants.defaultPadding,
+          right: AppConstants.defaultPadding,
+          top: AppConstants.defaultPadding,
+          bottom: 100, // Bottom padding to prevent DynamicIslandNav occlusion
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,7 +134,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   title: 'Create New Design',
                   subtitle:
                       'Generate a new Durga idol design using text or voice prompts',
-                  onTap: () => context.go('/design/create'),
+                  onTap: () => context.push('/design/create'),
                   color: AppColors.primaryBrown,
                 ),
                 const SizedBox(height: AppConstants.mediumPadding),
@@ -100,7 +143,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   title: 'Image-to-Image Generation',
                   subtitle:
                       'Transform existing images with AI enhancement and style transfer',
-                  onTap: () => context.go('/design/image-to-image'),
+                  onTap: () => context.push('/design/image-to-image'),
                   color: AppColors.accentOrange,
                 ),
                 const SizedBox(height: AppConstants.mediumPadding),
@@ -116,7 +159,7 @@ class _DesignWelcomeScreenState extends State<DesignWelcomeScreen> {
                   icon: Icons.touch_app,
                   title: 'Tap-to-Edit',
                   subtitle: 'Trace and edit specific elements in your designs',
-                  onTap: () => context.go('/design/tap-to-edit'),
+                  onTap: () => context.push('/design/tap-to-edit'),
                   color: AppColors.accentOrange,
                 ),
               ],

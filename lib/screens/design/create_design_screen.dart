@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/krea_ai_service.dart';
@@ -200,29 +201,51 @@ class _CreateDesignScreenState extends State<CreateDesignScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Durga Idol Designer',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/design/welcome');
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/design/welcome');
+              }
+            },
+            tooltip: 'Back to Studio',
+          ),
+          title: const Text(
+            'Durga Idol Designer',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeaderSection(),
-              const SizedBox(height: 24),
-              _buildPromptSection(),
-              const SizedBox(height: 24),
-              _buildReferenceImagesSection(),
-              const SizedBox(height: 32),
-              _buildGenerateButton(),
-              const SizedBox(height: 16),
-              _buildQuickPrompts(),
-            ],
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeaderSection(),
+                const SizedBox(height: 24),
+                _buildPromptSection(),
+                const SizedBox(height: 24),
+                _buildReferenceImagesSection(),
+                const SizedBox(height: 32),
+                _buildGenerateButton(),
+                const SizedBox(height: 16),
+                _buildQuickPrompts(),
+              ],
+            ),
           ),
         ),
       ),

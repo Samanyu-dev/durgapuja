@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/image_to_image_service.dart';
@@ -273,39 +274,61 @@ class _ImageToImageScreenState extends State<ImageToImageScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        title: const Text('Image-to-Image Generation'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/design/welcome');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              setState(() {
-                _originalImage = null;
-                _referenceImage = null;
-                _promptController.clear();
-              });
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/design/welcome');
+              }
             },
+            tooltip: 'Back to Studio',
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildImageSelectionSection(),
-              const SizedBox(height: AppConstants.mediumPadding),
-              _buildEnhancementModeSection(),
-              const SizedBox(height: AppConstants.mediumPadding),
-              _buildPromptSection(),
-              const SizedBox(height: AppConstants.mediumPadding),
-              _buildQuickEnhancementsSection(),
-              const SizedBox(height: AppConstants.mediumPadding),
-              _buildProcessButton(),
-            ],
+          title: const Text('Image-to-Image Generation'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  _originalImage = null;
+                  _referenceImage = null;
+                  _promptController.clear();
+                });
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildImageSelectionSection(),
+                const SizedBox(height: AppConstants.mediumPadding),
+                _buildEnhancementModeSection(),
+                const SizedBox(height: AppConstants.mediumPadding),
+                _buildPromptSection(),
+                const SizedBox(height: AppConstants.mediumPadding),
+                _buildQuickEnhancementsSection(),
+                const SizedBox(height: AppConstants.mediumPadding),
+                _buildProcessButton(),
+              ],
+            ),
           ),
         ),
       ),

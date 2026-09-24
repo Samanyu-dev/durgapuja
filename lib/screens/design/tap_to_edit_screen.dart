@@ -379,66 +379,76 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              // No screen to return to (e.g. deep-linked here directly)
-              context.go('/design/dashboard');
-            }
-          },
-          tooltip: 'Back',
-        ),
-        title: const Text('Tap-to-Edit'),
-        actions: [
-          if (_completedTraces.isNotEmpty || _currentTracePath != null)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/design/welcome');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/design/welcome');
+              }
+            },
+            tooltip: 'Back to Studio',
+          ),
+          title: const Text('Tap-to-Edit'),
+          actions: [
+            if (_completedTraces.isNotEmpty || _currentTracePath != null)
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _resetSelection,
+                tooltip: 'Clear Selection',
+              ),
             IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _resetSelection,
-              tooltip: 'Clear Selection',
+              icon: const Icon(Icons.image),
+              onPressed: _selectImageSource,
+              tooltip: 'Select Image',
             ),
-          IconButton(
-            icon: const Icon(Icons.image),
-            onPressed: _selectImageSource,
-            tooltip: 'Select Image',
-          ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _currentImage == null ? null : _saveCurrentImage,
-            tooltip: 'Save',
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Image Viewer with Circle Selection
-            _buildImageViewer(),
-
-            // Image Source Options
-            if (_showImageSourceOptions) _buildImageSourceOptions(),
-
-            // Confirm Selection Overlay
-            if (_showConfirmSelection) _buildConfirmSelectionOverlay(),
-
-            // Edit Panel
-            if (_showEditPanel) _buildEditPanel(),
-
-            // Loading Overlay
-            if (_isEditing) _buildLoadingOverlay(),
-
-            // Instructions
-            if (_currentImage != null &&
-                _completedTraces.isEmpty &&
-                _currentTracePath == null &&
-                !_showEditPanel)
-              _buildInstructions(),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _currentImage == null ? null : _saveCurrentImage,
+              tooltip: 'Save',
+            ),
           ],
+        ),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Image Viewer with Circle Selection
+              _buildImageViewer(),
+
+              // Image Source Options
+              if (_showImageSourceOptions) _buildImageSourceOptions(),
+
+              // Confirm Selection Overlay
+              if (_showConfirmSelection) _buildConfirmSelectionOverlay(),
+
+              // Edit Panel
+              if (_showEditPanel) _buildEditPanel(),
+
+              // Loading Overlay
+              if (_isEditing) _buildLoadingOverlay(),
+
+              // Instructions
+              if (_currentImage != null &&
+                  _completedTraces.isEmpty &&
+                  _currentTracePath == null &&
+                  !_showEditPanel)
+                _buildInstructions(),
+            ],
+          ),
         ),
       ),
     );

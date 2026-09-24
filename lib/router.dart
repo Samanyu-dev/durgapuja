@@ -4,7 +4,6 @@ import 'screens/auth/phone_auth_screen.dart';
 import 'screens/auth/otp_verification_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/module_selection_screen.dart';
-import 'screens/home/home_dashboard_screen.dart';
 import 'screens/design/design_welcome_screen.dart';
 import 'screens/design/create_design_screen.dart';
 import 'screens/design/element_edit_screen.dart';
@@ -190,14 +189,14 @@ final GoRouter router = GoRouter(
         ),
       ],
     ),
-    // Design Module Routes
+    // Design Module Routes (Tabbed Shell)
     ShellRoute(
       builder: (context, state, child) {
         return AppScaffold(
           body: child,
           currentIndex: _getDesignIndex(state.uri.toString()),
           onNavTap: (index) {
-            final routes = ['/design/dashboard', '/design/welcome'];
+            final routes = ['/design/welcome', '/design/edit'];
             if (index >= 0 && index < routes.length) {
               context.go(routes[index]);
             }
@@ -208,10 +207,6 @@ final GoRouter router = GoRouter(
       },
       routes: [
         GoRoute(
-          path: '/design/dashboard',
-          builder: (context, state) => const HomeDashboardScreen(),
-        ),
-        GoRoute(
           path: '/design',
           redirect: (context, state) => '/design/welcome',
         ),
@@ -219,44 +214,48 @@ final GoRouter router = GoRouter(
           path: '/design/welcome',
           builder: (context, state) => const DesignWelcomeScreen(),
         ),
-        // New simplified design routes
-        GoRoute(
-          path: '/design/create',
-          builder: (context, state) => const CreateDesignScreen(),
-        ),
         GoRoute(
           path: '/design/edit',
           builder: (context, state) => const MyConceptsScreen(),
         ),
         GoRoute(
-          path: '/design/edit/image/:id',
-          builder: (context, state) =>
-              ElementEditScreen(originalImage: state.extra as GeneratedImage),
-        ),
-        GoRoute(
-          path: '/design/tap-to-edit',
-          builder: (context, state) => const TapToEditScreen(),
-        ),
-        GoRoute(
-          path: '/design/image-to-image',
-          builder: (context, state) => const ImageToImageScreen(),
-        ),
-        GoRoute(
-          path: '/design/tap-to-edit/image/:id',
-          builder: (context, state) =>
-              TapToEditScreen(image: state.extra as GeneratedImage),
-        ),
-        // Orders routes for Design module (minimal)
-        GoRoute(
-          path: '/design/orders/client/:id',
-          builder: (context, state) =>
-              ClientDetailsScreen(clientId: state.pathParameters['id']!),
-        ),
-        GoRoute(
-          path: '/design/orders/add-client',
-          builder: (context, state) => const AddClientScreen(),
+          path: '/design/concepts',
+          redirect: (context, state) => '/design/edit',
         ),
       ],
+    ),
+    // Standalone Full-Screen Design Creation & Editing Tools (Outside ShellRoute to prevent Nav overlays)
+    GoRoute(
+      path: '/design/create',
+      builder: (context, state) => const CreateDesignScreen(),
+    ),
+    GoRoute(
+      path: '/design/edit/image/:id',
+      builder: (context, state) =>
+          ElementEditScreen(originalImage: state.extra as GeneratedImage),
+    ),
+    GoRoute(
+      path: '/design/tap-to-edit',
+      builder: (context, state) => const TapToEditScreen(),
+    ),
+    GoRoute(
+      path: '/design/image-to-image',
+      builder: (context, state) => const ImageToImageScreen(),
+    ),
+    GoRoute(
+      path: '/design/tap-to-edit/image/:id',
+      builder: (context, state) =>
+          TapToEditScreen(image: state.extra as GeneratedImage),
+    ),
+    // Orders routes for Design module (minimal)
+    GoRoute(
+      path: '/design/orders/client/:id',
+      builder: (context, state) =>
+          ClientDetailsScreen(clientId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/design/orders/add-client',
+      builder: (context, state) => const AddClientScreen(),
     ),
     // Analytics Dashboard Route
     GoRoute(
@@ -299,19 +298,11 @@ int _getFinanceIndex(String path) {
 }
 
 int _getDesignIndex(String path) {
-  if (path == '/design/dashboard') {
-    return 0;
+  if (path == '/design/welcome' || path == '/design') {
+    return 0; // Studio tab
   }
-  if (path.startsWith('/design/welcome') ||
-      path.startsWith('/design/idea-generation') ||
-      path.startsWith('/design/sculpting') ||
-      path.startsWith('/design/detailing') ||
-      path.startsWith('/design/preview') ||
-      path.startsWith('/design/backdrop') ||
-      path.startsWith('/design/lighting') ||
-      path.startsWith('/design/orders') ||
-      path.startsWith('/design/reports')) {
-    return 1;
+  if (path == '/design/edit' || path.startsWith('/design/concepts')) {
+    return 1; // My Concepts tab
   }
-  return 0; // default to dashboard
+  return -1;
 }
