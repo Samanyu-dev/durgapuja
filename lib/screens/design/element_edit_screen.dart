@@ -108,8 +108,23 @@ class _ElementEditScreenState extends State<ElementEditScreen> {
         _isEditing = false;
       });
 
+      // Auto-save edited design to My Concepts
+      try {
+        await DatabaseService.insertConcept(
+          id: editedImage.id,
+          title: editedImage.prompt.isNotEmpty
+              ? editedImage.prompt.split('\n').first
+              : 'Edited design',
+          imageUrl: editedImage.url,
+          theme: 'Traditional',
+          prompt: editedImage.prompt,
+        );
+      } catch (dbError) {
+        debugPrint('Failed to auto-save edited design: $dbError');
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Element edited successfully!')),
+        const SnackBar(content: Text('Element edited & saved to My Concepts!')),
       );
     } catch (e) {
       setState(() {

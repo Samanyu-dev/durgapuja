@@ -352,6 +352,22 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
   }
 
   Widget _buildConceptImage(Concept concept) {
+    if (concept.imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        concept.imageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.darkBrown,
+          child: const Icon(
+            Icons.broken_image,
+            color: Colors.white30,
+            size: 48,
+          ),
+        ),
+      );
+    }
     final isNetwork =
         concept.imageUrl.startsWith('http://') ||
         concept.imageUrl.startsWith('https://');
@@ -391,23 +407,28 @@ class _MyConceptsScreenState extends State<MyConceptsScreen> {
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: Text(concept.title),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Created on ${concept.dateCreated.split('T').first}'),
-                const SizedBox(height: AppConstants.largePadding),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.borderRadius,
-                  ),
-                  child: SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: _buildConceptImage(concept),
-                  ),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.85,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Created on ${concept.dateCreated.split('T').first}'),
+                    const SizedBox(height: AppConstants.largePadding),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
+                      child: SizedBox(
+                        height: 250,
+                        width: double.infinity,
+                        child: _buildConceptImage(concept),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
             actions: [
               TextButton(

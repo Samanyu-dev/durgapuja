@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/image_to_image_service.dart';
+import '../../services/database_service.dart';
 import '../../models/generated_image.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
@@ -200,6 +201,21 @@ class _ImageToImageScreenState extends State<ImageToImageScreen>
         );
       }
 
+      // Auto-save result to My Concepts
+      try {
+        await DatabaseService.insertConcept(
+          id: resultImage.id,
+          title: _promptController.text.trim().isNotEmpty
+              ? _promptController.text.trim().split('\n').first
+              : 'Transformed Design',
+          imageUrl: resultImage.url,
+          theme: 'Traditional',
+          prompt: _promptController.text.trim(),
+        );
+      } catch (dbError) {
+        debugPrint('Failed to auto-save transformed concept: $dbError');
+      }
+
       if (mounted) {
         Navigator.push(
           context,
@@ -246,6 +262,19 @@ class _ImageToImageScreenState extends State<ImageToImageScreen>
         prompt: enhancementType,
         createdAt: DateTime.now(),
       );
+
+      // Auto-save result to My Concepts
+      try {
+        await DatabaseService.insertConcept(
+          id: resultImage.id,
+          title: 'Enhanced: $enhancementType',
+          imageUrl: resultImage.url,
+          theme: 'Traditional',
+          prompt: enhancementType,
+        );
+      } catch (dbError) {
+        debugPrint('Failed to auto-save enhanced concept: $dbError');
+      }
 
       if (mounted) {
         Navigator.push(

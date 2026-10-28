@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/generated_image.dart';
 import '../../utils/colors.dart';
 import '../../services/image_save_service.dart';
+import '../../services/database_service.dart';
 
 class ImageViewerScreen extends StatefulWidget {
   final List<GeneratedImage> images;
@@ -60,6 +61,11 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_add_outlined, color: Colors.white),
+            tooltip: 'Save to My Concepts',
+            onPressed: _saveConcept,
+          ),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
             onPressed: _shareImage,
@@ -173,6 +179,30 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to share image: $e')));
+    }
+  }
+
+  Future<void> _saveConcept() async {
+    final image = widget.images[_currentIndex];
+    try {
+      await DatabaseService.insertConcept(
+        id: image.id,
+        title: image.prompt.trim().isNotEmpty
+            ? image.prompt.trim().split('\n').first
+            : 'Idol Concept',
+        imageUrl: image.url,
+        theme: 'Traditional',
+        prompt: image.prompt.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved to My Concepts!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save to concepts: $e')),
+      );
     }
   }
 

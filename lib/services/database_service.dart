@@ -352,6 +352,27 @@ class DatabaseService {
 
   static Future<List<Map<String, dynamic>>> getConcepts() async {
     final db = await getDatabase();
+    // Seed uploaded golden durga idol concept if not yet added
+    try {
+      final count = Sqflite.firstIntValue(
+        await db.rawQuery(
+          'SELECT COUNT(*) FROM $_conceptsTableName WHERE id = ?',
+          ['concept_golden_durga_idol'],
+        ),
+      ) ?? 0;
+      if (count == 0) {
+        await db.insert(_conceptsTableName, {
+          'id': 'concept_golden_durga_idol',
+          'title': 'Golden Traditional Durga Idol',
+          'image_url': 'assets/images/traditional_durga_concept.jpg',
+          'theme': 'Traditional',
+          'prompt':
+              'Exquisite golden traditional Durga idol with ten arms, ornate gold halo, lion vahana, and festive diyas',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+    } catch (_) {}
+
     return db.query(_conceptsTableName, orderBy: 'created_at DESC');
   }
 

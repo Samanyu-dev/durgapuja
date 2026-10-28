@@ -341,6 +341,21 @@ class _TapToEditScreenState extends State<TapToEditScreen> {
         _isEditing = false;
       });
 
+      // Auto-save edited design to My Concepts
+      try {
+        await DatabaseService.insertConcept(
+          id: editedImage.id,
+          title: editedImage.prompt.trim().isNotEmpty
+              ? editedImage.prompt.trim().split('\n').first
+              : 'Tap-to-Edit design',
+          imageUrl: editedImage.url,
+          theme: 'Traditional',
+          prompt: editedImage.prompt.trim(),
+        );
+      } catch (dbError) {
+        debugPrint('Failed to auto-save edited design: $dbError');
+      }
+
       // Show success dialog with option to view the edited image
       await _showEditSuccessDialog(editedImage);
     } catch (e) {

@@ -32,6 +32,16 @@ class SmartImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        key: imageKey,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: errorBuilder,
+      );
+    }
     if (isNetworkUrl(url)) {
       return Image.network(
         url,

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/krea_ai_service.dart';
+import '../../services/database_service.dart';
 import '../../models/generated_image.dart';
 import 'image_viewer_screen.dart';
 
@@ -49,6 +50,21 @@ class _CreateBackdropScreenState extends State<CreateBackdropScreen> {
           'Create beautiful Durga Puja backdrop in ${_selectedBackdropStyle.toLowerCase()} style: ${_backdropController.text.trim()}. Traditional Bengali pandal background, festive decorations, intricate details, cultural elements.';
 
       final images = await _kreaService.generateImages(prompt, count: 2);
+
+      // Auto-save generated backdrops to My Concepts
+      for (final image in images) {
+        try {
+          await DatabaseService.insertConcept(
+            id: image.id,
+            title: 'Backdrop: $_selectedBackdropStyle',
+            imageUrl: image.url,
+            theme: 'Traditional',
+            prompt: prompt,
+          );
+        } catch (dbError) {
+          debugPrint('Failed to save backdrop concept: $dbError');
+        }
+      }
 
       setState(() {
         _generatedImages.addAll(images);

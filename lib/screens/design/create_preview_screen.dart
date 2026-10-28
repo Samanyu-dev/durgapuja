@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../utils/colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../services/krea_ai_service.dart';
+import '../../services/database_service.dart';
 import '../../models/generated_image.dart';
 import 'image_viewer_screen.dart';
 
@@ -47,6 +48,21 @@ class _CreatePreviewScreenState extends State<CreatePreviewScreen> {
           'Create ${_selectedPreviewType.toLowerCase()} preview of Durga Puja scene: ${_sceneController.text.trim()}. Realistic lighting, traditional Bengali setting, festive atmosphere.';
 
       final images = await _kreaService.generateImages(prompt, count: 2);
+
+      // Auto-save generated previews to My Concepts
+      for (final image in images) {
+        try {
+          await DatabaseService.insertConcept(
+            id: image.id,
+            title: 'Preview: $_selectedPreviewType',
+            imageUrl: image.url,
+            theme: 'Traditional',
+            prompt: prompt,
+          );
+        } catch (dbError) {
+          debugPrint('Failed to save preview concept: $dbError');
+        }
+      }
 
       setState(() {
         _generatedImages.addAll(images);

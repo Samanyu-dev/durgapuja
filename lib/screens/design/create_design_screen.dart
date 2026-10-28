@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../services/krea_ai_service.dart';
+import '../../services/database_service.dart';
 import '../../models/generated_image.dart';
 import 'enhanced_image_editor_screen.dart';
 
@@ -173,6 +174,21 @@ class _CreateDesignScreenState extends State<CreateDesignScreen>
         generatedImage = await _kreaService.generateImage(
           _promptController.text,
         );
+      }
+
+      // Auto-save generated design to My Concepts
+      try {
+        await DatabaseService.insertConcept(
+          id: generatedImage.id,
+          title: _promptController.text.trim().isNotEmpty
+              ? _promptController.text.trim().split('\n').first
+              : 'Durga Idol Concept',
+          imageUrl: generatedImage.url,
+          theme: 'Traditional',
+          prompt: _promptController.text.trim(),
+        );
+      } catch (dbError) {
+        debugPrint('Failed to auto-save concept: $dbError');
       }
 
       if (mounted) {

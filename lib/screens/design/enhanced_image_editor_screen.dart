@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../models/generated_image.dart';
 import '../../services/tap_to_edit_service.dart';
 import '../../services/image_save_service.dart';
+import '../../services/database_service.dart';
 import '../../models/editable_element.dart';
 
 class EnhancedImageEditorScreen extends StatefulWidget {
@@ -392,6 +393,20 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
         preserveColors: true,
       );
 
+      // Auto-save edited concept to database
+      try {
+        await DatabaseService.insertConcept(
+          id: editedImage.id,
+          title:
+              'Edited: ${widget.originalPrompt.trim().isNotEmpty ? widget.originalPrompt.trim().split('\n').first : 'Durga Idol Concept'}',
+          imageUrl: editedImage.url,
+          theme: 'Traditional',
+          prompt: widget.originalPrompt.trim(),
+        );
+      } catch (dbError) {
+        debugPrint('Failed to save edited concept: $dbError');
+      }
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -436,6 +451,11 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
               onPressed: _clearTrace,
               tooltip: 'Clear trace',
             ),
+          IconButton(
+            icon: const Icon(Icons.bookmark_add_outlined),
+            onPressed: _saveConcept,
+            tooltip: 'Save to My Concepts',
+          ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: _downloadImage,
@@ -558,6 +578,29 @@ class _EnhancedImageEditorScreenState extends State<EnhancedImageEditorScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _saveConcept() async {
+    try {
+      await DatabaseService.insertConcept(
+        id: widget.generatedImage.id,
+        title: widget.originalPrompt.trim().isNotEmpty
+            ? widget.originalPrompt.trim().split('\n').first
+            : 'Durga Idol Concept',
+        imageUrl: widget.generatedImage.url,
+        theme: 'Traditional',
+        prompt: widget.originalPrompt.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved to My Concepts!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save concept: $e')),
+      );
+    }
   }
 
   Future<void> _downloadImage() async {
